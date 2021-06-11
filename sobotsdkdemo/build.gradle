@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     // 签名配置
     signingConfigs {
 
@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
     }
@@ -29,8 +29,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     //以下三项必填
-//    implementation project(':sobotsdk_x')
-    implementation 'com.sobot.chat:sobotsdk_x:2.9.7'
+    implementation project(':sobotsdk_x')
+//    implementation 'com.sobot.chat:sobotsdk_x:2.9.7'
 
 	//必须有
     implementation 'com.squareup.okhttp3:okhttp:4.4.0'
