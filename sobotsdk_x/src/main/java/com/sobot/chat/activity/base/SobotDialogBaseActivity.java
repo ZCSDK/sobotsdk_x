@@ -1,7 +1,9 @@
 package com.sobot.chat.activity.base;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import android.view.Gravity;
@@ -26,6 +28,14 @@ public abstract class SobotDialogBaseActivity extends SobotBaseActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
+            if (!SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);//竖屏
+            } else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);//横屏
+
+            }
+        }
         super.onCreate(savedInstanceState);
 
         //窗口对齐屏幕宽度
@@ -46,7 +56,7 @@ public abstract class SobotDialogBaseActivity extends SobotBaseActivity {
                 public void onResult(INotchScreen.NotchScreenInfo notchScreenInfo) {
                     if (notchScreenInfo.hasNotch) {
                         for (Rect rect : notchScreenInfo.notchRects) {
-                            view.setPadding(rect.right, view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
+                            view.setPadding((rect.right > 110 ? 110 : rect.right), view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
                         }
                     }
                 }

@@ -303,7 +303,7 @@ public class StCusFieldPresenter {
                 public void onResult(INotchScreen.NotchScreenInfo notchScreenInfo) {
                     if (notchScreenInfo.hasNotch) {
                         for (Rect rect : notchScreenInfo.notchRects) {
-                            view.setPadding(rect.right, view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
+                            view.setPadding((rect.right > 110 ? 110 : rect.right), view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
                         }
                     }
                 }

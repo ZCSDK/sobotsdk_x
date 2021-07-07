@@ -94,14 +94,16 @@ public abstract class SobotBaseFragment extends Fragment {
                         for (Rect rect : notchScreenInfo.notchRects) {
                             if (view instanceof WebView && view.getParent() instanceof LinearLayout) {
                                 LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) view.getLayoutParams();
-                                layoutParams.leftMargin = rect.right + 14;
+                                layoutParams.rightMargin = (rect.right > 110 ? 110 : rect.right) + 14;
+                                layoutParams.leftMargin = (rect.right > 110 ? 110 : rect.right) + 14;
                                 view.setLayoutParams(layoutParams);
                             } else if (view instanceof WebView && view.getParent() instanceof RelativeLayout) {
                                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-                                layoutParams.leftMargin = rect.right + 14;
+                                layoutParams.rightMargin = (rect.right > 110 ? 110 : rect.right) + 14;
+                                layoutParams.leftMargin = (rect.right > 110 ? 110 : rect.right) + 14;
                                 view.setLayoutParams(layoutParams);
                             } else {
-                                view.setPadding(rect.right, view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
+                                view.setPadding((rect.right > 110 ? 110 : rect.right) + view.getPaddingLeft(), view.getPaddingTop(), (rect.right > 110 ? 110 : rect.right)+view.getPaddingRight(), view.getPaddingBottom());
                             }
                         }
                     }

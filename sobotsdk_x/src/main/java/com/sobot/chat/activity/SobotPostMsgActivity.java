@@ -121,6 +121,7 @@ public class SobotPostMsgActivity extends SobotBaseActivity implements View.OnCl
             LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mTvCompleted.getLayoutParams();
             lp.topMargin = ScreenUtils.dip2px(SobotPostMsgActivity.this, 40);
         }
+        displayInNotch(mllContainer);
     }
 
     @Override
