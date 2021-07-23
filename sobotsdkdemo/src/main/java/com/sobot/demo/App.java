@@ -35,6 +35,7 @@ public class App extends Application {
         if (TextUtils.isEmpty(appkey)) {
             appkey = "991bcba6975246448640724385796b81";
         }
+        ZCSobotApi.setShowDebug(true);
         SobotApi.initSobotSDK(this, appkey, SobotSPUtil.getStringData(this, "sobot_partnerId", ""));
         initUi();
 //        customMenu();
