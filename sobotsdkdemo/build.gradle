@@ -30,8 +30,6 @@ dependencies {
 
     //以下三项必填
     implementation project(':sobotsdk_x')
-//    implementation 'com.sobot.chat:sobotsdk_x:2.9.7'
-
 	//必须有
     implementation 'com.squareup.okhttp3:okhttp:4.4.0'
 
