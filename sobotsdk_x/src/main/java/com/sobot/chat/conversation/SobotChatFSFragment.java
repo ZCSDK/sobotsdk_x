@@ -45,6 +45,7 @@ import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.activity.SobotCameraActivity;
 import com.sobot.chat.activity.SobotChooseFileActivity;
 import com.sobot.chat.activity.SobotPostLeaveMsgActivity;
+import com.sobot.chat.activity.SobotPostMsgActivity;
 import com.sobot.chat.activity.SobotSkillGroupActivity;
 import com.sobot.chat.activity.WebViewActivity;
 import com.sobot.chat.adapter.SobotMsgAdapter;
@@ -78,8 +79,6 @@ import com.sobot.chat.api.model.ZhiChiPushMessage;
 import com.sobot.chat.api.model.ZhiChiReplyAnswer;
 import com.sobot.chat.core.channel.Const;
 import com.sobot.chat.core.channel.SobotMsgManager;
-import com.sobot.chat.core.http.callback.StringResultCallBack;
-import com.sobot.chat.core.http.upload.SobotUpload;
 import com.sobot.chat.listener.NoDoubleClickListener;
 import com.sobot.chat.listener.PermissionListenerImpl;
 import com.sobot.chat.listener.SobotFunctionType;
@@ -134,6 +133,8 @@ import com.sobot.chat.widget.kpswitch.view.ChattingPanelEmoticonView;
 import com.sobot.chat.widget.kpswitch.view.ChattingPanelUploadView;
 import com.sobot.chat.widget.kpswitch.view.CustomeViewFactory;
 import com.sobot.chat.widget.kpswitch.widget.KPSwitchFSPanelLinearLayout;
+import com.sobot.network.http.callback.StringResultCallBack;
+import com.sobot.network.http.upload.SobotUpload;
 import com.sobot.pictureframe.SobotBitmapUtil;
 
 import java.io.File;
@@ -378,6 +379,23 @@ public class SobotChatFSFragment extends SobotChatBaseFragment implements View.O
         intent.putExtra(ZhiChiConstant.SOBOT_CURRENT_IM_PARTNERID, info.getPartnerid());
         StServiceUtils.safeStartService(mAppContext, intent);
         SobotMsgManager.getInstance(mAppContext).getConfig(info.getApp_key()).clearCache();
+        //人工状态，检查连接
+        if (customerState == CustomerState.Online || customerState == CustomerState.Queuing) {
+            //获取tcp服务被杀死的时间，如果是0，不进行初始化，直接检查通道就行
+            long lastHideTime = SharedPreferencesUtil.getLongData(mAppContext, ZhiChiConstant.SOBOT_HIDE_CHATPAGE_TIME, System.currentTimeMillis());
+            if (lastHideTime != 0 && !CommonUtils.isServiceWork(getSobotActivity(), "com.sobot.chat.core.channel.SobotTCPServer")) {
+                //LogUtils.i((System.currentTimeMillis() + "-------------" + lastHideTime + "==========" + (System.currentTimeMillis() - lastHideTime)));
+                // LogUtils.i("----人工状态 SobotTCPServer 被杀死了");
+                if ((System.currentTimeMillis() - lastHideTime) > 30 * 60 * 1000) {
+                    //   LogUtils.i("----由于SobotTCPServer 被杀死了超过30分钟，需要重新初始化---------");
+                    initSdk(true, 0);
+                } else {
+                    zhiChiApi.reconnectChannel();
+                }
+            } else {
+                zhiChiApi.reconnectChannel();
+            }
+        }
     }
 
     @Override
@@ -927,6 +945,7 @@ public class SobotChatFSFragment extends SobotChatBaseFragment implements View.O
         localFilter.addAction(ZhiChiConstant.SOBOT_BROCAST_ACTION_TRASNFER_TO_OPERATOR);
         localFilter.addAction(ZhiChiConstants.chat_remind_post_msg);
         localFilter.addAction(ZhiChiConstants.sobot_click_cancle);
+        localFilter.addAction(ZhiChiConstants.SOBOT_POST_MSG_TMP_BROCAST);/*选取完留言模版后跳转到留言界面*/
         localFilter.addAction(ZhiChiConstants.dcrc_comment_state);/* 人工客服评论成功 */
         localFilter.addAction(ZhiChiConstants.sobot_close_now);/* 立即结束 */
         localFilter.addAction(ZhiChiConstants.sobot_close_now_clear_cache);// 立即结束不留缓存
@@ -4052,9 +4071,17 @@ public class SobotChatFSFragment extends SobotChatBaseFragment implements View.O
                         messageAdapter.notifyDataSetChanged();
                         //修改客服状态为在线
                         customerState = CustomerState.Online;
-                    } else if (ZhiChiConstant.push_message_outLine == pushMessage.getType()) {
-                        // 用户被下线
-                        customerServiceOffline(initModel, Integer.parseInt(pushMessage.getStatus()));
+                    } else if (ZhiChiConstant.push_message_outLine == pushMessage.getType() && customerState == CustomerState.Online) {
+                        if (6 == Integer.parseInt(pushMessage.getStatus())) {
+                            // 打开新窗口 单独处理
+                            String puid = SharedPreferencesUtil.getStringData(getSobotActivity(), Const.SOBOT_PUID, "");
+                            if (!TextUtils.isEmpty(puid) && !TextUtils.isEmpty(pushMessage.getPuid()) && puid.equals(pushMessage.getPuid())) {
+                                customerServiceOffline(initModel, Integer.parseInt(pushMessage.getStatus()));
+                            }
+                        } else {
+                            // 用户被下线
+                            customerServiceOffline(initModel, Integer.parseInt(pushMessage.getStatus()));
+                        }
                     } else if (ZhiChiConstant.push_message_transfer == pushMessage.getType()) {
                         LogUtils.i("用户被转接--->" + pushMessage.getName());
                         //替换标题 转接后客服头像取face 和name
@@ -4235,6 +4262,21 @@ public class SobotChatFSFragment extends SobotChatBaseFragment implements View.O
                 } else if (ZhiChiConstants.chat_remind_to_customer.equals(intent.getAction())) {
                     //转人工
                     doClickTransferBtn();
+                } else if (ZhiChiConstants.SOBOT_POST_MSG_TMP_BROCAST.equals(intent.getAction())) {
+                    //选完留言模版后跳转到留言界面
+                    Intent postMsgIntent = new Intent(getContext(), SobotPostMsgActivity.class);
+                    postMsgIntent.putExtra("intent_key_uid", intent.getStringExtra("uid"));
+                    postMsgIntent.putExtra("intent_key_config", intent.getSerializableExtra("sobotLeaveMsgConfig"));
+                    postMsgIntent.putExtra(StPostMsgPresenter.INTENT_KEY_COMPANYID, initModel.getCompanyId());
+                    postMsgIntent.putExtra(StPostMsgPresenter.INTENT_KEY_CUSTOMERID, initModel.getCustomerId());
+                    postMsgIntent.putExtra(ZhiChiConstant.FLAG_EXIT_SDK, intent.getBooleanExtra("mflag_exit_sdk", false));
+                    postMsgIntent.putExtra(StPostMsgPresenter.INTENT_KEY_GROUPID, info.getGroupid());
+                    postMsgIntent.putExtra(StPostMsgPresenter.INTENT_KEY_IS_SHOW_TICKET, intent.getBooleanExtra("mIsShowTicket", false));
+                    startActivity(postMsgIntent);
+                    if (getSobotActivity() != null) {
+                        getSobotActivity().overridePendingTransition(ResourceUtils.getIdByName(mAppContext, "anim", "sobot_push_left_in"),
+                                ResourceUtils.getIdByName(mAppContext, "anim", "sobot_push_left_out"));
+                    }
                 } else if (ZhiChiConstants.dcrc_comment_state.equals(intent.getAction())) {
                     //评价完客户后所需执行的逻辑
                     isComment = intent.getBooleanExtra("commentState", false);
@@ -4445,7 +4487,7 @@ public class SobotChatFSFragment extends SobotChatBaseFragment implements View.O
             if (checkIsShowPermissionPop(getResString("sobot_microphone"), getResString("sobot_microphone_yongtu"), 2)) {
                 return;
             }
-            if (!checkStorageAndAudioPermission()) {
+            if (!checkAudioPermission()) {
                 return;
             }
             showAudioRecorder();
@@ -4649,6 +4691,10 @@ public class SobotChatFSFragment extends SobotChatBaseFragment implements View.O
         if (current_client_model == ZhiChiConstant.client_model_robot && type != 2) {
             btn_model_voice.setVisibility(info.isUseVoice() && info.isUseRobotVoice() ? View.VISIBLE : View.GONE);
             view_model_split.setVisibility(info.isUseVoice() && info.isUseRobotVoice() ? View.VISIBLE : View.GONE);
+            if(type == 1){
+                //仅机器人模式，隐藏分割线
+                view_model_split.setVisibility(View.GONE);
+            }
         } else {
             view_model_split.setVisibility(View.GONE);
             btn_model_voice.setVisibility(info.isUseVoice() ? View.VISIBLE : View.GONE);
