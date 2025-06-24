@@ -1,6 +1,7 @@
 package com.sobot.chat.activity;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 import android.view.View;
@@ -8,14 +9,15 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
 import com.sobot.chat.api.model.SobotCacheFile;
 import com.sobot.chat.core.HttpUtils;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.FileOpenHelper;
 import com.sobot.chat.utils.FileSizeUtil;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SobotPathManager;
+import com.sobot.chat.utils.ThemeUtils;
 import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.network.http.db.SobotDownloadManager;
 import com.sobot.network.http.download.SobotDownload;
@@ -25,7 +27,7 @@ import com.sobot.network.http.model.SobotProgress;
 
 import java.io.File;
 
-public class SobotFileDetailActivity extends SobotBaseActivity implements View.OnClickListener {
+public class SobotFileDetailActivity extends SobotChatBaseActivity implements View.OnClickListener {
 
     private TextView sobot_file_icon;
     private TextView sobot_file_name;
@@ -45,25 +47,25 @@ public class SobotFileDetailActivity extends SobotBaseActivity implements View.O
 
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_activity_file_detail");
+        return R.layout.sobot_activity_file_detail;
     }
 
     @Override
     protected void initView() {
-        setTitle(getResString("sobot_file_preview"));
-        showLeftMenu(getResDrawableId("sobot_btn_back_selector"), "", true);
-        sobot_file_icon = (TextView) findViewById(getResId("sobot_file_icon"));
-        sobot_file_name = (TextView) findViewById(getResId("sobot_file_name"));
-        sobot_tv_file_size = (TextView) findViewById(getResId("sobot_tv_file_size"));
-        sobot_tv_progress = (TextView) findViewById(getResId("sobot_tv_progress"));
-        sobot_btn_start = (TextView) findViewById(getResId("sobot_btn_start"));
-        sobot_btn_start.setText(ResourceUtils.getResString(SobotFileDetailActivity.this, "sobot_file_download"));
-        sobot_ll_progress = (LinearLayout) findViewById(getResId("sobot_ll_progress"));
-        sobot_pb_progress = (ProgressBar) findViewById(getResId("sobot_pb_progress"));
-        sobot_btn_cancel = (TextView) findViewById(getResId("sobot_btn_cancel"));
-        sobot_tv_decribe = (TextView) findViewById(getResId("sobot_tv_decribe"));
+        setTitle(R.string.sobot_file_preview);
+        showLeftMenu(  true);
+        sobot_file_icon = (TextView) findViewById(R.id.sobot_file_icon);
+        sobot_file_name = (TextView) findViewById(R.id.sobot_file_name);
+        sobot_tv_file_size = (TextView) findViewById(R.id.sobot_tv_file_size);
+        sobot_tv_progress = (TextView) findViewById(R.id.sobot_tv_progress);
+        sobot_btn_start = (TextView) findViewById(R.id.sobot_btn_start);
+        sobot_btn_start.setText(R.string.sobot_file_download);
+        sobot_ll_progress = (LinearLayout) findViewById(R.id.sobot_ll_progress);
+        sobot_pb_progress = (ProgressBar) findViewById(R.id.sobot_pb_progress);
+        sobot_btn_cancel = (TextView) findViewById(R.id.sobot_btn_cancel);
+        sobot_tv_decribe = (TextView) findViewById(R.id.sobot_tv_decribe);
 
-        mProgressStr = getResString("sobot_file_downloading");
+        mProgressStr = getResources().getString(R.string.sobot_file_downloading);
         sobot_btn_start.setOnClickListener(this);
         sobot_btn_cancel.setOnClickListener(this);
 
@@ -93,6 +95,12 @@ public class SobotFileDetailActivity extends SobotBaseActivity implements View.O
 
             }
         };
+        if(ThemeUtils.isChangedThemeColor(this)){
+            Drawable bg= getResources().getDrawable(R.drawable.sobot_normal_btn_bg);
+            if(bg!=null){
+                sobot_btn_start.setBackground(ThemeUtils.applyColorToDrawable( bg,ThemeUtils.getThemeColor(this)));
+            }
+        }
     }
 
     @Override
@@ -113,14 +121,14 @@ public class SobotFileDetailActivity extends SobotBaseActivity implements View.O
                             @Override
                             public void run() {
                                 mCacheFile.setFileSize(s);
-                                sobot_tv_file_size.setText(getResString("sobot_file_size") + "：" + mCacheFile.getFileSize());
+                                sobot_tv_file_size.setText(getResources().getString(R.string.sobot_file_size) + "：" + mCacheFile.getFileSize());
                             }
                         });
 
                     }
                 });
             } else {
-                sobot_tv_file_size.setText(getResString("sobot_file_size") + "：" + mCacheFile.getFileSize());
+                sobot_tv_file_size.setText(getResources().getString(R.string.sobot_file_size) + "：" + mCacheFile.getFileSize());
             }
             SobotDownload.getInstance().setFolder(SobotPathManager.getInstance().getCacheDir());
 //            LogUtils.i("initFolder:" +SobotPathManager.getInstance().getCacheDir()));
@@ -187,7 +195,7 @@ public class SobotFileDetailActivity extends SobotBaseActivity implements View.O
 
     private void showCommonUi() {
         sobot_btn_start.setSelected(false);
-        sobot_btn_start.setText(getResString("sobot_file_download"));
+        sobot_btn_start.setText(R.string.sobot_file_download);
         sobot_tv_file_size.setVisibility(View.VISIBLE);
         sobot_tv_progress.setVisibility(View.GONE);
         sobot_btn_start.setVisibility(View.VISIBLE);
@@ -198,7 +206,7 @@ public class SobotFileDetailActivity extends SobotBaseActivity implements View.O
     private void showFinishUi() {
         sobot_tv_file_size.setVisibility(View.VISIBLE);
         sobot_tv_progress.setVisibility(View.GONE);
-        sobot_btn_start.setText(getResString("sobot_file_open"));
+        sobot_btn_start.setText(R.string.sobot_file_open);
         sobot_btn_start.setVisibility(View.VISIBLE);
         sobot_tv_decribe.setVisibility(View.VISIBLE);
         sobot_ll_progress.setVisibility(View.GONE);
@@ -217,9 +225,6 @@ public class SobotFileDetailActivity extends SobotBaseActivity implements View.O
         }
 
         if (v == sobot_btn_start) {
-            if (!checkStoragePermission()) {
-                return;
-            }
             if (sobot_btn_start.isSelected()) {
                 //打开文件
                 if (mCacheFile != null) {

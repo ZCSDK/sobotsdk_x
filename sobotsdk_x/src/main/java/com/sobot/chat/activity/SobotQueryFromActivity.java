@@ -1,28 +1,33 @@
 package com.sobot.chat.activity;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import androidx.core.content.ContextCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
+import com.sobot.chat.activity.halfdialog.SobotPostRegionActivity;
 import com.sobot.chat.api.model.CommonModel;
 import com.sobot.chat.api.model.SobotCityResult;
+import com.sobot.chat.api.model.SobotConnCusParam;
 import com.sobot.chat.api.model.SobotCusFieldConfig;
 import com.sobot.chat.api.model.SobotFieldModel;
 import com.sobot.chat.api.model.SobotProvinInfo;
 import com.sobot.chat.api.model.SobotQueryFormModel;
+import com.sobot.chat.application.MyApplication;
+import com.sobot.chat.core.HttpUtils;
 import com.sobot.chat.listener.ISobotCusField;
 import com.sobot.chat.presenter.StCusFieldPresenter;
 import com.sobot.chat.utils.CustomToast;
 import com.sobot.chat.utils.HtmlTools;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.ScreenUtils;
+import com.sobot.chat.utils.ThemeUtils;
 import com.sobot.chat.utils.ToastUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.widget.dialog.SobotDialogUtils;
@@ -33,30 +38,26 @@ import java.util.ArrayList;
 
 /**
  * @author Created by jinxl on 2018/1/4.
+ * 询前表单
  */
-public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotCusField, View.OnClickListener {
+public class SobotQueryFromActivity extends SobotChatBaseActivity implements ISobotCusField, View.OnClickListener {
     private Bundle mIntentBundleData;
-    private String mDocId;
-    private String mUnknownQuestion;
-    private String mActiveTransfer;
-    private String mGroupId;
+    private SobotConnCusParam param;
     private SobotQueryFormModel mQueryFormModel;
-    private String mGroupName;
     private String mUid;
-    private int mTransferType;
     private ArrayList<SobotFieldModel> mField;
     private SobotProvinInfo.SobotProvinceModel mFinalData;
 
     private LinearLayout sobot_container;
     private TextView sobot_tv_doc;
-    private Button sobot_btn_submit;
+    private TextView sobot_btn_submit;
     private TextView sobot_tv_safety;
     //防止多次提交
     private boolean isSubmitting = false;
 
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_activity_query_from");
+        return R.layout.sobot_activity_query_from;
     }
 
     protected void initBundleData(Bundle savedInstanceState) {
@@ -71,15 +72,9 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
     }
 
     private void initIntent(Bundle mIntentBundleData) {
-        mGroupId = mIntentBundleData.getString(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_GROUPID);
-        mGroupName = mIntentBundleData.getString(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_GROUPNAME);
         mQueryFormModel = (SobotQueryFormModel) mIntentBundleData.getSerializable(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_FIELD);
-        mDocId = mIntentBundleData.getString(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_DOCID);
-        mUnknownQuestion = mIntentBundleData.getString(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_UNKNOWNQUESTION);
-        mActiveTransfer = mIntentBundleData.getString(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_ACTIVETRANSFER);
-
+        param = (SobotConnCusParam) mIntentBundleData.getSerializable(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_CONNCUSPARAM);
         mUid = mIntentBundleData.getString(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_UID);
-        mTransferType = mIntentBundleData.getInt(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_TRANSFER_TYPE, 0);
         if (mQueryFormModel != null) {
             mField = mQueryFormModel.getField();
         }
@@ -87,16 +82,20 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
 
     @Override
     protected void initView() {
-        showLeftMenu(getResDrawableId("sobot_btn_back_selector"), "", true);
-        sobot_btn_submit = (Button) findViewById(getResId("sobot_btn_submit"));
-        sobot_btn_submit.setText(ResourceUtils.getResString(SobotQueryFromActivity.this, "sobot_btn_submit_text"));
+        showLeftMenu(  true);
+        sobot_btn_submit =   findViewById(R.id.sobot_btn_submit);
+        sobot_btn_submit.setText(R.string.sobot_btn_queryfrom_submit_text);
         sobot_btn_submit.setOnClickListener(this);
-        sobot_container = (LinearLayout) findViewById(getResId("sobot_container"));
-        sobot_tv_doc = (TextView) findViewById(getResId("sobot_tv_doc"));
-        sobot_tv_safety = (TextView) findViewById(getResId("sobot_tv_safety"));
+        if (ThemeUtils.isChangedThemeColor(this)) {
+            Drawable d = getResources().getDrawable(R.drawable.sobot_normal_btn_bg);
+            sobot_btn_submit.setBackground(ThemeUtils.applyColorToDrawable(d, ThemeUtils.getThemeColor(this)));
+        }
+        sobot_container = (LinearLayout) findViewById(R.id.sobot_container);
+        sobot_tv_doc = (TextView) findViewById(R.id.sobot_tv_doc);
+        sobot_tv_safety = (TextView) findViewById(R.id.sobot_tv_safety);
         if (mQueryFormModel != null) {
             setTitle(mQueryFormModel.getFormTitle());
-            HtmlTools.getInstance(getSobotBaseActivity()).setRichText(sobot_tv_doc, mQueryFormModel.getFormDoc(), ResourceUtils.getIdByName(getSobotBaseActivity(), "color", "sobot_color_link"));
+            HtmlTools.getInstance(getSobotBaseActivity()).setRichText(sobot_tv_doc, mQueryFormModel.getFormDoc(), R.color.sobot_color_link);
             if (!TextUtils.isEmpty(mQueryFormModel.getFormSafety())) {
                 sobot_tv_safety.setVisibility(View.VISIBLE);
                 sobot_tv_safety.setText(mQueryFormModel.getFormSafety());
@@ -132,11 +131,11 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
             public void onSuccess(CommonModel data) {
                 isSubmitting = false;
                 if (data != null && "1".equals(data.getCode())) {
-                    CustomToast.makeText(getBaseContext(), ResourceUtils.getResString(getBaseContext(), "sobot_leavemsg_success_tip"), 1000,
-                            ResourceUtils.getDrawableId(getBaseContext(), "sobot_iv_login_right")).show();
+                    CustomToast.makeText(getBaseContext(), getResources().getString(R.string.sobot_leavemsg_success_tip), 1000,
+                            R.drawable.sobot_icon_success).show();
                     saveIntentWithFinish();
                 } else if (data != null && "0".equals(data.getCode())) {
-                    ToastUtil.showToast(getSobotBaseActivity(), data.getMsg());
+                    ToastUtil.showToast(getApplicationContext(), data.getMsg());
                 }
             }
 
@@ -151,18 +150,13 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
     private void saveIntentWithFinish() {
         // 保存返回值 并且结束当前页面
         try {
-            KeyboardUtil.hideKeyboard(SobotQueryFromActivity.this.getCurrentFocus());
+            KeyboardUtil.hideKeyboard(sobot_container);
             Intent intent = new Intent();
-            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_GROUPID, mGroupId);
-            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_GROUPNAME, mGroupName);
-            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_TRANSFER_TYPE, mTransferType);
-            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_DOCID, mDocId);
-            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_UNKNOWNQUESTION, mUnknownQuestion);
-            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_ACTIVETRANSFER, mActiveTransfer);
+            intent.putExtra(ZhiChiConstant.SOBOT_INTENT_BUNDLE_DATA_CONNCUSPARAM, param);
             setResult(ZhiChiConstant.REQUEST_COCE_TO_QUERY_FROM, intent);
             finish();
         } catch (Exception e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
@@ -180,11 +174,11 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
                     if (1 == field.get(i).getCusFieldConfig().getFillFlag()) {
                         if ("city".equals(field.get(i).getCusFieldConfig().getFieldId())) {
                             if (field.get(i).getCusFieldConfig().getProvinceModel() == null) {
-                                ToastUtil.showToast(getApplicationContext(), field.get(i).getCusFieldConfig().getFieldName() + "  " + getResString("sobot__is_null"));
+                                ToastUtil.showToast(getApplicationContext(), field.get(i).getCusFieldConfig().getFieldName() + "  " + getResources().getString(R.string.sobot__is_null));
                                 return false;
                             }
                         } else if (TextUtils.isEmpty(field.get(i).getCusFieldConfig().getValue())) {
-                            ToastUtil.showToast(getApplicationContext(), field.get(i).getCusFieldConfig().getFieldName() + "  " + getResString("sobot__is_null"));
+                            ToastUtil.showToast(getApplicationContext(), field.get(i).getCusFieldConfig().getFieldName() + "  " + getResources().getString(R.string.sobot__is_null));
                             return false;
                         }
                     }
@@ -192,14 +186,15 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
                     if ("email".equals(field.get(i).getCusFieldConfig().getFieldId())
                             && !TextUtils.isEmpty(field.get(i).getCusFieldConfig().getValue())
                             && !ScreenUtils.isEmail(field.get(i).getCusFieldConfig().getValue())) {
-                        ToastUtil.showToast(getApplicationContext(), getResString("sobot_email_dialog_hint"));
+                        String msg = getResources().getString(R.string.sobot_email_dialog_hint);
+                        ToastUtil.showToast(getApplicationContext(), msg);
                         return false;
                     }
 
                     if ("tel".equals(field.get(i).getCusFieldConfig().getFieldId())
                             && !TextUtils.isEmpty(field.get(i).getCusFieldConfig().getValue())
                             && !ScreenUtils.isMobileNO(field.get(i).getCusFieldConfig().getValue())) {
-                        ToastUtil.showToast(getApplicationContext(), getResString("sobot_phone") + getResString("sobot_input_type_err"));
+                        ToastUtil.showToast(getApplicationContext(), getResources().getString(R.string.sobot_phone) + getResources().getString(R.string.sobot_input_type_err));
                         return false;
                     }
                 }
@@ -219,11 +214,11 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
     }
 
     @Override
-    public void onClickCusField(final View view, final int fieldType, final SobotFieldModel cusField) {
-        switch (fieldType) {
+    public void onClickCusField(final View view, final SobotCusFieldConfig field, final SobotFieldModel cusField) {
+        switch (field.getFieldType()) {
             case ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_DATE_TYPE:
             case ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_TIME_TYPE:
-                StCusFieldPresenter.openTimePicker(SobotQueryFromActivity.this, view, fieldType);
+                StCusFieldPresenter.openTimePicker(SobotQueryFromActivity.this, null, field);
                 break;
             case ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_SPINNER_TYPE:
             case ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_RADIO_TYPE:
@@ -251,6 +246,18 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
                     }
                 });
                 break;
+            case ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_REGION_TYPE:
+                final SobotCusFieldConfig cusFieldConfig = cusField.getCusFieldConfig();
+                if (cusFieldConfig != null) {
+                    Intent intent = new Intent(SobotQueryFromActivity.this, SobotPostRegionActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("selectedIds", cusFieldConfig.getValue());
+                    bundle.putString("selectedText", cusFieldConfig.getShowName());
+                    bundle.putSerializable("cusFieldConfig", cusFieldConfig);
+                    intent.putExtra("bundle", bundle);
+                    startActivityForResult(intent, cusFieldConfig.getFieldType());
+                }
+                break;
             default:
                 break;
         }
@@ -258,6 +265,8 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
 
     @Override
     protected void onDestroy() {
+        HttpUtils.getInstance().cancelTag(this);
+        MyApplication.getInstance().deleteActivity(this);
         SobotDialogUtils.stopProgressDialog(SobotQueryFromActivity.this);
         super.onDestroy();
     }
@@ -281,17 +290,12 @@ public class SobotQueryFromActivity extends SobotBaseActivity implements ISobotC
                                 model.setProvinceModel(mFinalData);
                                 View view = sobot_container.findViewWithTag(fieldId);
                                 if (view != null) {
-                                    TextView textClick = (TextView) view.findViewById(ResourceUtils.getIdByName(getApplicationContext(), "id", "work_order_customer_date_text_click"));
+                                    TextView textClick = (TextView) view.findViewById(R.id.work_order_customer_date_text_click);
                                     String pStr = mFinalData.provinceName == null ? "" : mFinalData.provinceName;
                                     String cStr = mFinalData.cityName == null ? "" : mFinalData.cityName;
                                     String aStr = mFinalData.areaName == null ? "" : mFinalData.areaName;
                                     String str = pStr + cStr + aStr;
                                     textClick.setText(str);
-                                    TextView fieldName = (TextView) view.findViewById(ResourceUtils.getIdByName(getBaseContext(), "id", "work_order_customer_field_text_lable"));
-                                    LinearLayout work_order_customer_field_ll = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(getBaseContext(), "id", "work_order_customer_field_ll"));
-                                    work_order_customer_field_ll.setVisibility(View.VISIBLE);
-                                    fieldName.setTextColor(ContextCompat.getColor(SobotQueryFromActivity.this, ResourceUtils.getResColorId(SobotQueryFromActivity.this, "sobot_common_gray2")));
-                                    fieldName.setTextSize(12);
                                 }
                             }
                         }

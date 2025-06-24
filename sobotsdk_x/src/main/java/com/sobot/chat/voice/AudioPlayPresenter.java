@@ -5,11 +5,11 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.text.TextUtils;
 
+import com.sobot.chat.R;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
 import com.sobot.chat.core.HttpUtils;
 import com.sobot.chat.utils.AudioTools;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SobotPathManager;
 import com.sobot.chat.utils.ToastUtil;
 
@@ -57,7 +57,7 @@ public class AudioPlayPresenter {
         if (!TextUtils.isEmpty(path)) {
             if (message.getSugguestionsFontColor() == 1) {
                 //是历史记录  就创建文件夹进行下载
-                contentPath = path.substring(path.lastIndexOf("/")+1, path.length());
+                contentPath = path.substring(path.lastIndexOf("/") + 1, path.length());
                 String tmpFilePath = SobotPathManager.getInstance().getVoiceDir() + contentPath;
                 File directory = new File(tmpFilePath).getParentFile();
                 if (!directory.exists() && !directory.mkdirs()) {
@@ -75,8 +75,8 @@ public class AudioPlayPresenter {
             final File file = new File(contentPath);
             if (!file.exists()) {
                 // 下载
-                if(TextUtils.isEmpty(path) || !path.startsWith("http")){
-                    ToastUtil.showToast(mContent, ResourceUtils.getResString(mContent,"sobot_voice_file_error"));
+                if (TextUtils.isEmpty(path) || !path.startsWith("http")) {
+                    ToastUtil.showToast(mContent, mContent.getResources().getString(R.string.sobot_voice_file_error));
                     return;
                 }
                 HttpUtils.getInstance().download(path, file, null, new HttpUtils.FileCallBack() {
@@ -88,6 +88,7 @@ public class AudioPlayPresenter {
 
                     @Override
                     public void onError(Exception e, String msg, int responseCode) {
+                        e.printStackTrace();
                     }
 
                     @Override

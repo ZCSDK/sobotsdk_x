@@ -19,32 +19,30 @@
             android:id="@+id/sobot_dialog_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
+            android:layout_marginStart="5dp"
             android:layout_marginTop="14dp"
-            android:gravity="center"
-            android:textColor="@color/sobot_common_gray1"
-            android:textSize="17sp"
             android:layout_marginEnd="5dp"
-            android:layout_marginStart="5dp" />
+            android:gravity="center"
+            android:lineSpacingExtra="@dimen/sobot_text_line_spacing_extra"
+            android:textColor="@color/sobot_color_text_first"
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/sobot_dialog_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:padding="10dp"
-            android:textColor="@color/sobot_common_gray1"
-            android:textSize="14sp"
             android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp" />
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="10dp"
+            android:lineSpacingExtra="@dimen/sobot_text_line_spacing_extra"
+            android:padding="10dp"
+            android:textColor="@color/sobot_color_text_first"
+            android:textSize="@dimen/sobot_text_font_14" />
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.5dip"
-            android:background="@color/sobot_line_1dp" />
+            android:layout_height="@dimen/sobot_line_height_dp"
+            android:background="@color/sobot_color_line_divider" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -59,13 +57,14 @@
                 android:background="@null"
                 android:gravity="center"
                 android:padding="10dp"
+                android:textAllCaps="false"
                 android:textColor="@drawable/sobot_btn_leavemsg_text_color_selector"
                 android:textSize="15sp" />
 
             <View
-                android:layout_width="0.5dp"
+                android:layout_width="@dimen/sobot_line_height_dp"
                 android:layout_height="match_parent"
-                android:background="@color/sobot_line_1dp" />
+                android:background="@color/sobot_color_line_divider" />
 
             <Button
                 android:id="@+id/sobot_btn_right"
@@ -75,6 +74,7 @@
                 android:background="@null"
                 android:gravity="center"
                 android:padding="10dp"
+                android:textAllCaps="false"
                 android:textColor="@drawable/sobot_btn_leavemsg_text_color_selector"
                 android:textSize="15sp" />
         </LinearLayout>

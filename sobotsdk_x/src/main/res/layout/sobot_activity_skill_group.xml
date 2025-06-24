@@ -1,11 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/sobot_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="bottom"
-    android:background="@android:color/transparent"
     android:gravity="bottom"
     android:orientation="vertical">
 
@@ -13,68 +10,56 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:sobot_mhv_HeightRatio="0.7">
+        app:sobot_mhv_HeightRatio="0.8">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/sobot_common_gray6"
-            android:gravity="center_vertical"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp">
-
-            <LinearLayout
+            android:background="@drawable/sobot_dialog_title_bg"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <!-- 标题 -->
+            <TextView
+                android:id="@+id/sobot_tv_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_marginStart="40dp"
-                android:layout_marginLeft="40dp"
-                android:layout_marginEnd="40dp"
-                android:layout_marginRight="40dp"
+                android:layout_marginStart="@dimen/sobot_dialog_margin"
+                android:layout_marginEnd="@dimen/sobot_dialog_margin"
                 android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/sobot_tv_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textColor="@color/sobot_common_gray1"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/sobot_btn_cancle"
-                android:layout_width="60dp"
-                android:layout_height="40dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true">
-
-                <TextView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="25dp"
-                    android:layout_marginLeft="25dp"
-                    android:background="@drawable/sobot_icon_evaluation_cancel" />
-            </LinearLayout>
-        </RelativeLayout>
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:textColor="@color/sobot_color_text_first"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="@dimen/sobot_line_height_0_4_dp"
-            android:background="@color/sobot_line_1dp" />
+            android:layout_height="@dimen/sobot_line_height_dp"
+            android:background="@color/sobot_color_line_divider" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/sobot_rcy_skill"
-            style="@style/sobot_grid_view"
+            android:id="@+id/rv_list"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:horizontalSpacing="6dp"
-            android:padding="20dp"
-            android:scrollbarSize="10dp"
-            android:scrollbarThumbVertical="@drawable/sobot_custom_scroll_style"
-            android:verticalSpacing="20dp" />
+            android:layout_weight="1"
+            android:minHeight="236dp"
+            android:background="@color/sobot_color_bg_first"
+            android:overScrollMode="never"
+            android:paddingTop="7dp"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tv_nodata"
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:layout_marginBottom="117dp"
+            android:background="@color/sobot_color_bg_first"
+            android:gravity="center"
+            android:text="@string/sobot_no_data_string"
+            android:textColor="@color/sobot_color_text_third"
+            android:textSize="@dimen/sobot_text_font_14"
+            android:visibility="gone" />
 
     </com.sobot.chat.widget.SobotMHLinearLayout>
 </LinearLayout>

@@ -24,7 +24,7 @@ import android.text.style.ImageSpan;
 import android.view.KeyEvent;
 import android.widget.EditText;
 
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -83,8 +83,7 @@ public class InputHelper {
         Resources res = context.getResources();
 
         // a>，[大兵] </body> :smile:
-        int bound = (int) res.getDimension(ResourceUtils.getIdByName(context, "dimen",
-                "sobot_text_font_large"));
+        int bound = (int) res.getDimension(R.dimen.sobot_text_font_20);
         String regex = "\\[[^\\]^\\[]+\\]";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(spannable);

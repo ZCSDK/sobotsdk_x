@@ -12,7 +12,8 @@
     <ImageView
         android:id="@+id/st_iv_pic"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
 
     <TextView
         android:id="@+id/st_tv_play"
@@ -20,6 +21,7 @@
         android:layout_height="68dp"
         android:layout_gravity="center"
         android:background="@drawable/sobot_ic_play"
+        android:lineSpacingExtra="@dimen/sobot_text_line_spacing_extra"
         android:visibility="gone" />
 
     <ProgressBar

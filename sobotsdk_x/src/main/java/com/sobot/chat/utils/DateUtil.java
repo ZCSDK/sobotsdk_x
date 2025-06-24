@@ -1,15 +1,8 @@
 package com.sobot.chat.utils;
 
-import android.content.Context;
-import android.graphics.Color;
-import androidx.core.content.ContextCompat;
 import android.text.TextUtils;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.sobot.chat.application.MyApplication;
-import com.sobot.chat.widget.timePicker.SobotTimePickerView;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -302,61 +295,6 @@ public class DateUtil {
             System.out.println(e.getMessage());
         }
         return date;
-    }
-
-    /**
-     * 要回显的view 也就是textView
-     *
-     * @param context      应该为activity
-     * @param selectedTime 选中的日期  可以为null 如果为null那么取当前时间
-     * @param displayType  显示的类型 0 为 年月日  1为 时分
-     * @param view         父控件
-     * @param v            回显的view
-     */
-    public static void openTimePickerView(final Context context, final View view, View v, final Date selectedTime, final int displayType) {
-        Calendar selectedDate = Calendar.getInstance();
-        if (selectedTime != null) {
-            selectedDate.setTime(selectedTime);
-        }
-        boolean[] typeArray = displayType == 0 ? new boolean[]{true, true, true, false, false, false} : new boolean[]{false, false, false, true, true, false};
-        //时间选择器
-        SobotTimePickerView pvTime = new SobotTimePickerView.Builder(context, new SobotTimePickerView.OnTimeSelectListener() {
-            @Override
-            public void onTimeSelect(Date date, View v) {//选中事件回调
-                // 这里回调过来的v,就是show()方法里面所添加的 View 参数，如果show的时候没有添加参数，v则为null
-                if (v != null && v instanceof TextView && date != null) {
-                    TextView tv = (TextView) v;
-                    tv.setText(displayType == 0 ? DATE_FORMAT2.format(date) : DATE_FORMAT0.format(date));
-                    TextView fieldName = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_lable"));
-                    LinearLayout work_order_customer_field_ll = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_ll"));
-                    work_order_customer_field_ll.setVisibility(View.VISIBLE);
-                    fieldName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray2")));
-                    fieldName.setTextSize(12);
-                }
-            }
-        })
-                //年月日时分秒 的显示与否，不设置则默认全部显示
-                .setType(typeArray)
-                .setLabel("", "", "", "", "", "")
-                .isCenterLabel(false)
-                .setDividerColor(ResourceUtils.getResColorValue(context, "sobot_line_1dp"))
-                .setContentSize(17)
-                .setSubCalSize(17)
-                .setTitleBgColor(ResourceUtils.getResColorValue(context, "sobot_common_gray6"))
-                .setTitleColor(ResourceUtils.getResColorValue(context, "sobot_common_gray1"))
-                .setTitleText(ResourceUtils.getResString(context, displayType == 0 ? "sobot_title_date" : "sobot_title_time"))
-                .setCancelColor(Color.parseColor("#0DAEAF"))
-                .setSubmitColor(Color.parseColor("#FFFFFFFF"))
-                .setTextColorOut(ResourceUtils.getResColorValue(context, "sobot_common_gray2"))
-                .setTextColorCenter(ResourceUtils.getResColorValue(context, "sobot_common_wenzi_black"))
-                .setDate(selectedDate)
-                .setBgColor(ResourceUtils.getResColorValue(context, "sobot_common_gray6"))
-                .setBackgroundId(0x80000000) //设置外部遮罩颜色
-                .setDecorView(null)
-                .setLineSpacingMultiplier(2.0f)
-                .build();
-
-        pvTime.show(v);
     }
 
     //-----------------------------

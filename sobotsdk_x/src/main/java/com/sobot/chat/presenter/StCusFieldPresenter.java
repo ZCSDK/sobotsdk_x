@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
 import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
@@ -18,13 +16,16 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
-import com.sobot.chat.activity.SobotChooseCityActivity;
-import com.sobot.chat.activity.SobotCusFieldActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
+import com.sobot.chat.activity.halfdialog.SobotChooseCityActivity;
+import com.sobot.chat.activity.halfdialog.SobotCusFieldActivity;
+import com.sobot.chat.activity.halfdialog.SobotDateTimeActivity;
 import com.sobot.chat.api.apiUtils.GsonUtil;
 import com.sobot.chat.api.model.SobotCusFieldConfig;
 import com.sobot.chat.api.model.SobotFieldModel;
@@ -32,18 +33,16 @@ import com.sobot.chat.api.model.SobotProvinInfo;
 import com.sobot.chat.listener.ISobotCusField;
 import com.sobot.chat.notchlib.INotchScreen;
 import com.sobot.chat.notchlib.NotchScreenManager;
-import com.sobot.chat.utils.DateUtil;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.StringUtils;
 import com.sobot.chat.utils.ToastUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
+import com.sobot.chat.widget.SobotAntoLineLayout;
 import com.sobot.chat.widget.kpswitch.util.KeyboardUtil;
 
 import org.json.JSONArray;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +72,11 @@ public class StCusFieldPresenter {
                         && !StringUtils.isEmpty(cusFieldConfig.getValue())) {
                     model.put("id", field.get(i).getCusFieldConfig().getFieldId());
                     model.put("value", field.get(i).getCusFieldConfig().getValue());
+                    if (cusFieldConfig.getFieldType() == ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_REGION_TYPE) {
+                        model.put("text", field.get(i).getCusFieldConfig().getText());
+                    } else {
+                        model.put("text", field.get(i).getCusFieldConfig().getShowName());
+                    }
                     listModel.add(model);
                 }
             }
@@ -84,22 +88,44 @@ public class StCusFieldPresenter {
         return null;
     }
 
+
+    /**
+     * 获取要提交给接口的自定义字段的json
+     * 留言接口使用
+     *
+     * @param field
+     * @return
+     */
+    public static Map getSaveFieldNameAndVal(ArrayList<SobotFieldModel> field) {
+        if (field != null && field.size() > 0) {
+            Map<String, String> model = new HashMap<>();
+            for (int i = 0; i < field.size(); i++) {
+                SobotCusFieldConfig cusFieldConfig = field.get(i).getCusFieldConfig();
+                if (cusFieldConfig != null) {
+                    model.put(field.get(i).getCusFieldConfig().getFieldName(), TextUtils.isEmpty(field.get(i).getCusFieldConfig().getShowName()) ? field.get(i).getCusFieldConfig().getValue() : field.get(i).getCusFieldConfig().getShowName());
+                }
+            }
+            return model;
+        }
+        return null;
+    }
+
     /**
      * 打开时间或日期选择器的逻辑
      *
      * @param act
-     * @param view
-     * @param fieldType
      */
-    public static void openTimePicker(Activity act, View view, int fieldType) {
-        TextView textClick = (TextView) view.findViewById(ResourceUtils.getIdByName(view.getContext(), "id", "work_order_customer_date_text_click"));
-        String content = textClick.getText().toString();
-        Date date = null;
-        if (!StringUtils.isEmpty(content)) {
-            date = DateUtil.parse(content, fieldType == ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_DATE_TYPE ? DateUtil.DATE_FORMAT2 : DateUtil.DATE_FORMAT0);
+    public static void openTimePicker(Activity act, Fragment fragment, SobotCusFieldConfig cusFieldConfig) {
+//        TextView textClick = (TextView) view.findViewById(R.id.work_order_customer_date_text_click);
+//        String content = textClick.getText().toString();
+//        KeyboardUtil.hideKeyboard(textClick);
+        Intent intent = new Intent(act, SobotDateTimeActivity.class);
+        intent.putExtra("cusFieldConfig", cusFieldConfig);
+        if (fragment != null) {
+            fragment.startActivityForResult(intent, cusFieldConfig.getFieldType());
+        } else {
+            act.startActivityForResult(intent, cusFieldConfig.getFieldType());
         }
-        KeyboardUtil.hideKeyboard(textClick);
-        DateUtil.openTimePickerView(act, view, textClick, date, fieldType == ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_DATE_TYPE ? 0 : 1);
     }
 
     /**
@@ -208,18 +234,42 @@ public class StCusFieldPresenter {
                         model.setChecked(true);
                         model.setValue(dataValue);
                         model.setId(id);
+                        model.setShowName(value.endsWith(",") ? value.substring(0, value.length() - 1) : value);
                         View view = post_customer_field.findViewWithTag(model.getFieldId());
-                        TextView textClick = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_date_text_click"));
+                        //多选，显示标签形式
+                        SobotAntoLineLayout sobot_ll_labels = view.findViewById(R.id.sobot_ll_labels);
+                        TextView textClick = (TextView) view.findViewById(R.id.work_order_customer_date_text_click);
                         textClick.setText(value.endsWith(",") ? value.substring(0, value.length() - 1) : value);
-                        TextView fieldName = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_lable"));
-                        LinearLayout work_order_customer_field_ll = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_ll"));
-                        work_order_customer_field_ll.setVisibility(View.VISIBLE);
-                        fieldName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray2")));
-                        fieldName.setTextSize(12);
+                        if (model.getFieldType() == ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CHECKBOX_TYPE) {
+                            sobot_ll_labels.removeAllViews();
+                            sobot_ll_labels.setVisibility(View.VISIBLE);
+                            textClick.setVisibility(View.GONE);
+                            String[] array = value.split(",");
+                            for (int j = 0; j < array.length; j++) {
+                                TextView itemView = (TextView) View.inflate(context, R.layout.sobot_post_msg_cusfield_checkbox_item, null);
+                                itemView.setText(array[j]);
+                                sobot_ll_labels.addView(itemView);
+                            }
+                        } else if(model.getFieldType() ==ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CASCADE_TYPE){
+                            value = value.replace(",", "/");
+                            textClick.setText(value.endsWith("/") ? value.substring(0, value.length() - 1) : value);
+                        } else {
+                            sobot_ll_labels.setVisibility(View.GONE);
+                            textClick.setVisibility(View.VISIBLE);
+
+                        }
                     }
                 }
             } else {
                 //还原样式
+                View view = post_customer_field.findViewWithTag(id);
+                TextView textClick = null;
+                SobotAntoLineLayout sobot_ll_labels = null;
+                if (view != null) {
+                    sobot_ll_labels = view.findViewById(R.id.sobot_ll_labels);
+                    textClick = view.findViewById(R.id.work_order_customer_date_text_click);
+                    textClick.setText(value.endsWith(",") ? value.substring(0, value.length() - 1) : value);
+                }
                 if (StringUtils.isEmpty(dataValue)) {
                     for (int i = 0; i < field.size(); i++) {
                         //清空上次选中
@@ -228,19 +278,16 @@ public class StCusFieldPresenter {
                             model.setChecked(false);
                             model.setValue(dataValue);
                             model.setId(id);
+                            if (model.getFieldType() == ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CHECKBOX_TYPE && sobot_ll_labels != null && textClick != null) {
+                                sobot_ll_labels.removeAllViews();
+                                sobot_ll_labels.setVisibility(View.GONE);
+                                textClick.setVisibility(View.VISIBLE);
+                            }
                         }
                     }
                 }
-                View view = post_customer_field.findViewWithTag(id);
-                if (view != null) {
-                    TextView textClick = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_date_text_click"));
-                    textClick.setText(value.endsWith(",") ? value.substring(0, value.length() - 1) : value);
-                    TextView fieldName = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_lable"));
-                    LinearLayout work_order_customer_field_ll = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_ll"));
-                    work_order_customer_field_ll.setVisibility(View.GONE);
-                    fieldName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray1")));
-                    fieldName.setTextSize(14);
-                }
+
+
             }
         }
     }
@@ -261,31 +308,31 @@ public class StCusFieldPresenter {
                 View view = sobot_container.findViewWithTag(field.get(j).getCusFieldConfig().getFieldId());
                 if (view != null) {
                     if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_SINGLE_LINE_TYPE == field.get(j).getCusFieldConfig().getFieldType()) {
-                        EditText singleContent = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_single"));
+                        EditText singleContent = (EditText) view.findViewById(R.id.work_order_customer_field_text_single);
                         field.get(j).getCusFieldConfig().setValue(singleContent.getText() + "");
                         if (StringUtils.isNumber(field.get(j).getCusFieldConfig().getLimitOptions()) && field.get(j).getCusFieldConfig().getLimitOptions().contains("7")) {
                             if (!ScreenUtils.isEmail(singleContent.getText().toString().trim())) {
-                                return field.get(j).getCusFieldConfig().getFieldName() + ResourceUtils.getResString(context, "sobot_input_type_err_email");
+                                return field.get(j).getCusFieldConfig().getFieldName() + context.getResources().getString(R.string.sobot_email_dialog_hint);
                             }
                         }
                         if (StringUtils.isNumber(field.get(j).getCusFieldConfig().getLimitOptions()) && field.get(j).getCusFieldConfig().getLimitOptions().contains("8")) {
                             if (!ScreenUtils.isMobileNO(singleContent.getText().toString().trim())) {
-                                return field.get(j).getCusFieldConfig().getFieldName() + ResourceUtils.getResString(context, "sobot_phone")+ResourceUtils.getResString(context, "sobot_input_type_err");
+                                return field.get(j).getCusFieldConfig().getFieldName() + context.getResources().getString(R.string.sobot_phone) + context.getResources().getString(R.string.sobot_input_type_err);
                             }
                         }
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_MORE_LINE_TYPE == field.get(j).getCusFieldConfig().getFieldType()) {
-                        EditText moreContent = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_more_content"));
+                        EditText moreContent = (EditText) view.findViewById(R.id.work_order_customer_field_text_more_content);
                         field.get(j).getCusFieldConfig().setValue(moreContent.getText() + "");
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_TIME_TYPE == field.get(j).getCusFieldConfig().getFieldType()
                             || ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_DATE_TYPE == field.get(j).getCusFieldConfig().getFieldType()) {
-                        TextView textClick = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_date_text_click"));
+                        TextView textClick = (TextView) view.findViewById(R.id.work_order_customer_date_text_click);
                         field.get(j).getCusFieldConfig().setValue(textClick.getText() + "");
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_NUMBER_TYPE == field.get(j).getCusFieldConfig().getFieldType()) {
-                        EditText numberContent = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_number"));
-                        field.get(j).getCusFieldConfig().setValue(numberContent.getText() + "");
+                        EditText singleContent = (EditText) view.findViewById(R.id.work_order_customer_field_text_single);
+                        field.get(j).getCusFieldConfig().setValue(singleContent.getText() + "");
                         if (StringUtils.isNumber(field.get(j).getCusFieldConfig().getLimitOptions()) && field.get(j).getCusFieldConfig().getLimitOptions().contains("3")) {
-                            if (!StringUtils.isNumber(numberContent.getText().toString().trim())) {
-                                return field.get(j).getCusFieldConfig().getFieldName() + ResourceUtils.getResString(context, "sobot_input_type_err");
+                            if (!StringUtils.isNumber(singleContent.getText().toString().trim())) {
+                                return field.get(j).getCusFieldConfig().getFieldName() + context.getResources().getString(R.string.sobot_input_type_err);
                             }
                         }
                     }
@@ -296,7 +343,7 @@ public class StCusFieldPresenter {
     }
 
     public static void displayInNotch(Activity activity, final View view) {
-        if (SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
+        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
             // 获取刘海屏信息
             NotchScreenManager.getInstance().getNotchInfo(activity, new INotchScreen.NotchScreenCallback() {
                 @Override
@@ -312,9 +359,8 @@ public class StCusFieldPresenter {
         }
     }
 
-
     //创建工单自定义字段
-    public static void addWorkOrderCusFields(Activity activity, final Context context, final ArrayList<SobotFieldModel> cusFieldList, ViewGroup containerLayout, final ISobotCusField cusFieldInterface) {
+    public static void addWorkOrderCusFields(final Activity activity, final Context context, final ArrayList<SobotFieldModel> cusFieldList, ViewGroup containerLayout, final ISobotCusField cusFieldInterface) {
         if (containerLayout != null) {
             containerLayout.setVisibility(View.VISIBLE);
             containerLayout.removeAllViews();
@@ -326,77 +372,33 @@ public class StCusFieldPresenter {
                     if (cusFieldConfig == null) {
                         continue;
                     }
-                    View view = View.inflate(context, ResourceUtils.getIdByName(context, "layout", "sobot_post_msg_cusfield_list_item"), null);
+                    View view = View.inflate(context, R.layout.sobot_post_msg_cusfield_list_item, null);
                     view.setTag(cusFieldConfig.getFieldId());
-                    View bottomLine = view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_bootom_line"));
-//                    if (cusFieldList.size() == 1 || i == (size - 1)) {
-//                        bottomLine.setVisibility(View.GONE);
-//                    } else {
-                    bottomLine.setVisibility(View.VISIBLE);
-//                    }
-                    LinearLayout ll_more_text_layout = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_more_relativelayout"));
-                    final TextView fieldMoreName = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_more_text_lable"));
-                    final TextView editHintLabel2 = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_edit_hint_text_label_2"));
-                    editHintLabel2.setText(ResourceUtils.getResString(context,"sobot_please_input"));
-                    editHintLabel2.setVisibility(View.GONE);
-                    displayInNotch(activity, fieldMoreName);
-                    displayInNotch(activity, editHintLabel2);
-                    final EditText moreContent = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_more_content"));
+                    //多行
+                    final EditText moreContent = (EditText) view.findViewById(R.id.work_order_customer_field_text_more_content);
                     displayInNotch(activity, moreContent);
-                    moreContent.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                        @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            if (!hasFocus) {
-                                if (StringUtils.isEmpty(moreContent.getText().toString().trim())) {
-                                    fieldMoreName.setTextSize(14);
-                                    fieldMoreName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray1")));
-                                    moreContent.setVisibility(View.GONE);
-                                    editHintLabel2.setVisibility(View.VISIBLE);
-                                }
-                            } else {
-                                fieldMoreName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray2")));
-                                fieldMoreName.setTextSize(12);
-                                editHintLabel2.setVisibility(View.GONE);
-                                moreContent.setVisibility(View.VISIBLE);
-
-                            }
-                        }
-                    });
-
-
-                    LinearLayout ll_text_layout = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text"));
-                    final TextView fieldName = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_lable"));
-                    final TextView editHintLabel1 = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_edit_hint_text_label"));
-                    editHintLabel1.setText(ResourceUtils.getResString(context,"sobot_please_input"));
-                    editHintLabel1.setVisibility(View.GONE);
+                    //字段名
+                    final TextView fieldName = (TextView) view.findViewById(R.id.work_order_customer_field_text_lable);
                     displayInNotch(activity, fieldName);
-                    displayInNotch(activity, editHintLabel1);
-
-                    final TextView textClick = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_date_text_click"));
-                    EditText fieldValue = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_content"));
-                    final EditText numberContent = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_number"));
-                    final EditText singleContent = (EditText) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_single"));
-                    ImageView fieldImg = (ImageView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_text_img"));
-                    final LinearLayout work_order_customer_field_ll = (LinearLayout) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_customer_field_ll"));
-                    displayInNotch(activity, numberContent);
+                    //选择
+                    final TextView textClick = (TextView) view.findViewById(R.id.work_order_customer_date_text_click);
+                    //多选的结果
+                    final SobotAntoLineLayout sobot_ll_labels = view.findViewById(R.id.sobot_ll_labels);
+                    //单行
+                    final EditText singleContent = (EditText) view.findViewById(R.id.work_order_customer_field_text_single);
+                    ImageView fieldImg = (ImageView) view.findViewById(R.id.work_order_customer_field_text_img);
                     displayInNotch(activity, singleContent);
-                    displayInNotch(activity, fieldValue);
+                    displayInNotch(activity, moreContent);
                     displayInNotch(activity, textClick);
 
-
-
-
-                    if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_SINGLE_LINE_TYPE == cusFieldConfig.getFieldType()) {//单行文本
-                        ll_more_text_layout.setVisibility(View.GONE);
+                    if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_SINGLE_LINE_TYPE == cusFieldConfig.getFieldType()) {
+                        //单行文本
                         textClick.setVisibility(View.GONE);
                         fieldImg.setVisibility(View.GONE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
-                        editHintLabel1.setVisibility(View.VISIBLE);
-                        numberContent.setVisibility(View.GONE);
-                        fieldValue.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
                         singleContent.setVisibility(View.VISIBLE);
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
                             fieldName.setText(cusFieldConfig.getFieldName());
                         }
@@ -442,7 +444,7 @@ public class StCusFieldPresenter {
                                         return;
                                     if (cusFieldConfig.getLimitOptions().contains("6")) {
                                         if (!StringUtils.isEmpty(cusFieldConfig.getLimitChar()) && temp.length() > Integer.parseInt(cusFieldConfig.getLimitChar())) {
-                                            ToastUtil.showCustomToast(context, cusFieldConfig.getFieldName() + ResourceUtils.getResString(context, "sobot_only_can_write") + Integer.parseInt(cusFieldConfig.getLimitChar()) + ResourceUtils.getResString(context, "sobot_char_length"));
+                                            ToastUtil.showCustomToast(context, cusFieldConfig.getFieldName() + context.getResources().getString(R.string.sobot_only_can_write) + Integer.parseInt(cusFieldConfig.getLimitChar()) + context.getResources().getString(R.string.sobot_char_length));
                                             s.delete(temp.length() - 1, temp.length());
                                         }
                                     }
@@ -452,7 +454,7 @@ public class StCusFieldPresenter {
                                         Matcher match = pattern.matcher(s);
                                         boolean b = match.matches();
                                         if (!b) {
-                                            ToastUtil.showCustomToast(context, cusFieldConfig.getFieldName() + ResourceUtils.getResString(context, "sobot_only_can_write") + ResourceUtils.getResString(context, "sobot_number_english_china"));
+                                            ToastUtil.showCustomToast(context, cusFieldConfig.getFieldName() + context.getResources().getString(R.string.sobot_only_can_write) + context.getResources().getString(R.string.sobot_number_english_china));
                                             int ss = temp.length();
                                             s.delete(temp.length() - 1, temp.length());
                                         }
@@ -462,16 +464,16 @@ public class StCusFieldPresenter {
                             });
                         }
 
-                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_MORE_LINE_TYPE == cusFieldConfig.getFieldType()) {//多行文本
-                        ll_more_text_layout.setVisibility(View.VISIBLE);
-                        editHintLabel2.setVisibility(View.VISIBLE);
-                        moreContent.setVisibility(View.GONE);
-                        ll_text_layout.setVisibility(View.GONE);
+                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_MORE_LINE_TYPE == cusFieldConfig.getFieldType()) {
+                        //多行文本
+                        textClick.setVisibility(View.GONE);
                         fieldImg.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.VISIBLE);
+                        singleContent.setVisibility(View.GONE);
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldMoreName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
-                            fieldMoreName.setText(cusFieldConfig.getFieldName());
+                            fieldName.setText(cusFieldConfig.getFieldName());
                         }
                         moreContent.setInputType(EditorInfo.TYPE_CLASS_TEXT);
                         //设置EditText的显示方式为多行文本输入
@@ -484,54 +486,48 @@ public class StCusFieldPresenter {
                         moreContent.setHorizontallyScrolling(false);
 
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_DATE_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
+                        //日期
                         textClick.setVisibility(View.VISIBLE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
                         fieldImg.setVisibility(View.VISIBLE);
+                        fieldImg.setImageResource(R.drawable.sobot_cur_data);
                         singleContent.setVisibility(View.GONE);
-                        fieldValue.setVisibility(View.GONE);
-                        numberContent.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
                         fieldName.setText(cusFieldConfig.getFieldName());
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
                             fieldName.setText(cusFieldConfig.getFieldName());
                         }
 
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_TIME_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
+                        //时间
                         textClick.setVisibility(View.VISIBLE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
                         fieldImg.setVisibility(View.VISIBLE);
-                        fieldValue.setVisibility(View.GONE);
-                        numberContent.setVisibility(View.GONE);
+                        fieldImg.setImageResource(R.drawable.sobot_cur_time);
                         singleContent.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
                             fieldName.setText(cusFieldConfig.getFieldName());
                         }
 
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_NUMBER_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
+                        //数值
                         textClick.setVisibility(View.GONE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
-                        editHintLabel1.setVisibility(View.VISIBLE);
-                        singleContent.setVisibility(View.GONE);
                         fieldImg.setVisibility(View.GONE);
-                        fieldValue.setVisibility(View.GONE);
-                        numberContent.setVisibility(View.VISIBLE);
-                        numberContent.setSingleLine(true);
+                        singleContent.setVisibility(View.VISIBLE);
+                        moreContent.setVisibility(View.GONE);
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
                             fieldName.setText(cusFieldConfig.getFieldName());
                         }
-                        numberContent.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
+                        singleContent.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
                         //限制方式  1禁止输入空格   2 禁止输入小数点  3 小数点后只允许2位  4 禁止输入特殊字符  5只允许输入数字 6最多允许输入字符  7判断邮箱格式  8判断手机格式
                         if (!StringUtils.isEmpty(cusFieldConfig.getLimitOptions()) && "[3]".equals(cusFieldConfig.getLimitOptions())) {
-                            numberContent.setInputType(InputType.TYPE_CLASS_NUMBER | 8194);
-                            numberContent.addTextChangedListener(new TextWatcher() {
+                            singleContent.setInputType(InputType.TYPE_CLASS_NUMBER | 8194);
+                            singleContent.addTextChangedListener(new TextWatcher() {
 
                                 @Override
                                 public void onTextChanged(CharSequence s, int start, int before,
@@ -540,21 +536,21 @@ public class StCusFieldPresenter {
                                         if (s.length() - 1 - s.toString().indexOf(".") > 2) {
                                             s = s.toString().subSequence(0,
                                                     s.toString().indexOf(".") + 3);
-                                            numberContent.setText(s);
-                                            numberContent.setSelection(s.length());
+                                            singleContent.setText(s);
+                                            singleContent.setSelection(s.length());
                                         }
                                     }
                                     if (s.toString().trim().substring(0).equals(".")) {
                                         s = "0" + s;
-                                        numberContent.setText(s);
-                                        numberContent.setSelection(2);
+                                        singleContent.setText(s);
+                                        singleContent.setSelection(2);
                                     }
 
                                     if (s.toString().startsWith("0")
                                             && s.toString().trim().length() > 1) {
                                         if (!s.toString().substring(1, 2).equals(".")) {
-                                            numberContent.setText(s.subSequence(0, 1));
-                                            numberContent.setSelection(1);
+                                            singleContent.setText(s.subSequence(0, 1));
+                                            singleContent.setSelection(1);
                                             return;
                                         }
                                     }
@@ -575,65 +571,77 @@ public class StCusFieldPresenter {
                             });
 
                         } else {
-                            numberContent.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
+                            singleContent.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
                         }
 
-                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_SPINNER_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
+                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_SPINNER_TYPE == cusFieldConfig.getFieldType() || ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_RADIO_TYPE == cusFieldConfig.getFieldType()) {
+                        //下拉列表和单选框
                         textClick.setVisibility(View.VISIBLE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
-                        numberContent.setVisibility(View.GONE);
-                        singleContent.setVisibility(View.GONE);
                         fieldImg.setVisibility(View.VISIBLE);
-                        fieldValue.setVisibility(View.GONE);
-                        if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
-                        } else {
-                            fieldName.setText(cusFieldConfig.getFieldName());
-                        }
-
-
-                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_RADIO_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
-                        textClick.setVisibility(View.VISIBLE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
-                        fieldImg.setVisibility(View.VISIBLE);
-                        numberContent.setVisibility(View.GONE);
-                        fieldValue.setVisibility(View.GONE);
                         singleContent.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
                             fieldName.setText(cusFieldConfig.getFieldName());
                         }
 
                     } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CHECKBOX_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
+                        //复选框
                         textClick.setVisibility(View.VISIBLE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
                         fieldImg.setVisibility(View.VISIBLE);
-                        fieldValue.setVisibility(View.GONE);
                         singleContent.setVisibility(View.GONE);
-                        numberContent.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
                         if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
                         } else {
                             fieldName.setText(cusFieldConfig.getFieldName());
+                        }
+                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CASCADE_TYPE == cusFieldConfig.getFieldType()) {
+                        //级联
+                        textClick.setVisibility(View.VISIBLE);
+                        fieldImg.setVisibility(View.VISIBLE);
+                        moreContent.setVisibility(View.GONE);
+                        singleContent.setVisibility(View.GONE);
+                        if (1 == cusFieldConfig.getFillFlag()) {
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
+                        } else {
+                            fieldName.setText(cusFieldConfig.getFieldName());
+                        }
+                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_REGION_TYPE == cusFieldConfig.getFieldType()) {
+                        //地区级联
+                        textClick.setVisibility(View.VISIBLE);
+                        fieldImg.setVisibility(View.VISIBLE);
+                        singleContent.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
+                        fieldName.setText(cusFieldConfig.getFieldName());
+                        if (1 == cusFieldConfig.getFillFlag()) {
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
+                        }
+                        //赋值
+                        if (!TextUtils.isEmpty(cusFieldConfig.getText())) {
+                            textClick.setText(cusFieldConfig.getText());
+                            textClick.setTag(cusFieldConfig.getValue());
+                        }
+                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_TIME_ZONE == cusFieldConfig.getFieldType()) {
+                        //时区
+                        textClick.setVisibility(View.VISIBLE);
+                        fieldImg.setVisibility(View.VISIBLE);
+                        singleContent.setVisibility(View.GONE);
+                        moreContent.setVisibility(View.GONE);
+//                        textClick.setHint(R.string.sobot_wo_select_hint);
+                        //是否必填
+                        if (1 == cusFieldConfig.getFillFlag()) {
+                            fieldName.setText(Html.fromHtml("<font color='#f9676f'>*&nbsp;</font>" + cusFieldConfig.getFieldName()));
+                        } else {
+                            fieldName.setText(cusFieldConfig.getFieldName());
+                        }
+                        //赋值
+                        if (!TextUtils.isEmpty(cusFieldConfig.getText())) {
+                            textClick.setText(cusFieldConfig.getText());
+                            textClick.setTag(cusFieldConfig.getValue());
                         }
 
-                    } else if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CASCADE_TYPE == cusFieldConfig.getFieldType()) {
-                        ll_more_text_layout.setVisibility(View.GONE);
-                        textClick.setVisibility(View.VISIBLE);
-                        ll_text_layout.setVisibility(View.VISIBLE);
-                        numberContent.setVisibility(View.GONE);
-                        singleContent.setVisibility(View.GONE);
-                        fieldImg.setVisibility(View.VISIBLE);
-                        fieldValue.setVisibility(View.GONE);
-                        if (1 == cusFieldConfig.getFillFlag()) {
-                            fieldName.setText(Html.fromHtml(cusFieldConfig.getFieldName() + "<font color='#f9676f'>&nbsp;*</font>"));
-                        } else {
-                            fieldName.setText(cusFieldConfig.getFieldName());
-                        }
                     }
 
                     view.setOnClickListener(new View.OnClickListener() {
@@ -641,47 +649,15 @@ public class StCusFieldPresenter {
                         public void onClick(View v) {
 
                             if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_MORE_LINE_TYPE == cusFieldConfig.getFieldType()) {//多行文本
-                                editHintLabel2.setVisibility(View.GONE);
                                 moreContent.setVisibility(View.VISIBLE);
 
                                 moreContent.setFocusableInTouchMode(true);
                                 moreContent.setFocusable(true);
                                 moreContent.requestFocus();
-                            } else {
-
-                                for (int m = 0; m < work_order_customer_field_ll.getChildCount(); m++) {
-                                    if (work_order_customer_field_ll.getChildAt(m) instanceof EditText && work_order_customer_field_ll.getChildAt(m).getVisibility() == View.VISIBLE) {
-                                        work_order_customer_field_ll.setVisibility(View.VISIBLE);
-                                        fieldName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray2")));
-                                        fieldName.setTextSize(12);
-                                        editHintLabel1.setVisibility(View.GONE);
-                                        final EditText et = (EditText) work_order_customer_field_ll.getChildAt(m);
-                                        et.setFocusable(true);
-                                        KeyboardUtil.showKeyboard(et);
-                                        et.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                                            @Override
-                                            public void onFocusChange(View v, boolean hasFocus) {
-                                                if (!hasFocus) {
-                                                    if (StringUtils.isEmpty(et.getText().toString().trim())) {
-                                                        fieldName.setTextSize(14);
-                                                        fieldName.setTextColor(ContextCompat.getColor(context, ResourceUtils.getResColorId(context, "sobot_common_gray1")));
-                                                        work_order_customer_field_ll.setVisibility(View.GONE);
-                                                        //KeyboardUtil.hideKeyboard(et);
-                                                        editHintLabel1.setVisibility(View.VISIBLE);
-                                                    }
-
-                                                } else {
-                                                    editHintLabel1.setVisibility(View.GONE);
-                                                }
-
-                                            }
-                                        });
-                                    }
-                                }
                             }
 
                             if (cusFieldInterface != null) {
-                                cusFieldInterface.onClickCusField(v, cusFieldConfig.getFieldType(), model);
+                                cusFieldInterface.onClickCusField(v, cusFieldConfig, model);
                             }
                         }
                     });

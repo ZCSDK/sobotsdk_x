@@ -2,10 +2,11 @@ package com.sobot.chat.widget.rich;
 
 import android.app.Activity;
 import android.content.Context;
-import androidx.core.app.ShareCompat;
 import android.text.TextPaint;
 import android.text.style.ClickableSpan;
 import android.view.View;
+
+import androidx.core.app.ShareCompat;
 
 import com.sobot.chat.utils.SobotOption;
 
@@ -18,7 +19,11 @@ public class EmailSpan extends ClickableSpan {
     public EmailSpan(Context context, String email, int color) {
         this.email = email;
         this.context=context;
-        this.color = context.getResources().getColor(color);
+        try {
+            this.color = context.getResources().getColor(color);
+        } catch (Exception e) {
+            this.color = color;
+        }
     }
 
     @Override

@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.api.apiUtils.ZhiChiConstants;
 import com.sobot.chat.api.model.SobotKeyWordTransfer;
 import com.sobot.chat.api.model.ZhiChiGroupBase;
@@ -13,20 +14,20 @@ import com.sobot.chat.api.model.ZhiChiMessageBase;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.CommonUtils;
 import com.sobot.chat.utils.HtmlTools;
-import com.sobot.chat.utils.ResourceUtils;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.utils.StringUtils;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 
 import java.util.List;
 
-public class RobotKeyWordMessageHolder extends MessageHolderBase {
+public class RobotKeyWordMessageHolder extends MsgHolderBase {
 
     private TextView tv_title;
     private LinearLayout sobot_keyword_grouplist;
 
     public RobotKeyWordMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        tv_title = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_keyword_tips_msg"));
-        sobot_keyword_grouplist = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_keyword_grouplist"));
+        tv_title = (TextView) convertView.findViewById(R.id.sobot_keyword_tips_msg);
+        sobot_keyword_grouplist = (LinearLayout) convertView.findViewById(R.id.sobot_keyword_grouplist);
     }
 
     @Override
@@ -34,9 +35,11 @@ public class RobotKeyWordMessageHolder extends MessageHolderBase {
         if (message != null) {
             SobotKeyWordTransfer sobotKeyWordTransfer = message.getSobotKeyWordTransfer();
             if (sobotKeyWordTransfer != null) {
-                if (sobotKeyWordTransfer.getTipsMessage() != null) {
-                    applyTextViewUIConfig(tv_title);
+                if (StringUtils.isNoEmpty(sobotKeyWordTransfer.getTipsMessage())) {
+                    tv_title.setVisibility(View.VISIBLE);
                     HtmlTools.getInstance(context).setRichText(tv_title, sobotKeyWordTransfer.getTipsMessage(), isRight ? getLinkTextColor() : getLinkTextColor());
+                } else {
+                    tv_title.setVisibility(View.GONE);
                 }
 
                 List<ZhiChiGroupBase> groupList = sobotKeyWordTransfer.getGroupList();
@@ -48,6 +51,8 @@ public class RobotKeyWordMessageHolder extends MessageHolderBase {
                         model.setTempGroupId(groupList.get(i).getGroupId());
                         model.setKeyword(sobotKeyWordTransfer.getKeyword());
                         model.setKeywordId(sobotKeyWordTransfer.getKeywordId());
+                        model.setAnwerMsgId(message.getMsgId());
+                        model.setRuleld(message.getRuleId());
                         TextView tv = ChatUtils.initAnswerItemTextView(context, false);
                         tv.setText(groupList.get(i).getGroupName());
                         tv.setTag(model);
@@ -59,9 +64,11 @@ public class RobotKeyWordMessageHolder extends MessageHolderBase {
                 }
             }
         }
+        refreshReadStatus();
+        resetMaxWidth();
     }
 
-    private View.OnClickListener mKeyWorkCheckGroupClickListener =  new View.OnClickListener() {
+    private View.OnClickListener mKeyWorkCheckGroupClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Intent intent = new Intent();
@@ -70,7 +77,9 @@ public class RobotKeyWordMessageHolder extends MessageHolderBase {
             intent.putExtra("tempGroupId", sobotKeyWordTransfer.getTempGroupId());
             intent.putExtra("keyword", sobotKeyWordTransfer.getKeyword());
             intent.putExtra("keywordId", sobotKeyWordTransfer.getKeywordId());
-            CommonUtils.sendLocalBroadcast(mContext,intent);
+            intent.putExtra("anwerMsgId", sobotKeyWordTransfer.getAnwerMsgId());
+            intent.putExtra("ruleld", sobotKeyWordTransfer.getRuleld());
+            CommonUtils.sendLocalBroadcast(mContext, intent);
         }
     };
 
@@ -78,6 +87,24 @@ public class RobotKeyWordMessageHolder extends MessageHolderBase {
         private String tempGroupId;
         private String keyword;
         private String keywordId;
+        private String anwerMsgId;
+        private String ruleld;
+
+        public String getAnwerMsgId() {
+            return anwerMsgId;
+        }
+
+        public void setAnwerMsgId(String anwerMsgId) {
+            this.anwerMsgId = anwerMsgId;
+        }
+
+        public String getRuleld() {
+            return ruleld;
+        }
+
+        public void setRuleld(String ruleld) {
+            this.ruleld = ruleld;
+        }
 
         public String getTempGroupId() {
             return tempGroupId;

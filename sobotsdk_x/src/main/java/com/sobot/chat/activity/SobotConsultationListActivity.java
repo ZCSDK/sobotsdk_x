@@ -7,14 +7,16 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.sobot.chat.SobotApi;
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
 import com.sobot.chat.adapter.SobotMsgCenterAdapter;
 import com.sobot.chat.api.ZhiChiApi;
 import com.sobot.chat.api.apiUtils.ZhiChiConstants;
@@ -25,7 +27,6 @@ import com.sobot.chat.core.channel.SobotMsgManager;
 import com.sobot.chat.handler.SobotMsgCenterHandler;
 import com.sobot.chat.listener.SobotFunctionType;
 import com.sobot.chat.receiver.SobotMsgCenterReceiver;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SharedPreferencesUtil;
 import com.sobot.chat.utils.SobotCompareNewMsgTime;
 import com.sobot.chat.utils.SobotOption;
@@ -41,7 +42,7 @@ import java.util.List;
  * 咨询列表
  * Created by jinxl on 2017/9/6.
  */
-public class SobotConsultationListActivity extends SobotBaseActivity implements SobotMsgCenterHandler.SobotMsgCenterCallBack{
+public class SobotConsultationListActivity extends SobotChatBaseActivity implements SobotMsgCenterHandler.SobotMsgCenterCallBack{
     //刷新列表
     private static final int REFRESH_DATA = 1;
 
@@ -91,7 +92,7 @@ public class SobotConsultationListActivity extends SobotBaseActivity implements 
 
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_activity_consultation_list");
+        return R.layout.sobot_activity_consultation_list;
     }
 
     @Override
@@ -133,10 +134,10 @@ public class SobotConsultationListActivity extends SobotBaseActivity implements 
 
     @Override
     public void initView() {
-        showLeftMenu(getResDrawableId("sobot_btn_back_selector"), "", true);
-        setTitle(getResString("sobot_consultation_list"));
+        showLeftMenu( true);
+        setTitle(R.string.sobot_consultation_list);
 
-        sobot_ll_msg_center = (ListView) findViewById(getResId("sobot_ll_msg_center"));
+        sobot_ll_msg_center = (ListView) findViewById(R.id.sobot_ll_msg_center);
         sobot_ll_msg_center.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -148,7 +149,7 @@ public class SobotConsultationListActivity extends SobotBaseActivity implements 
                         SobotOption.sobotConversationListCallback.onConversationInit(getApplicationContext(), info);
                         return;
                     }
-                    SobotApi.startSobotChat(getApplicationContext(), info);
+                    ZCSobotApi.openZCChat(getApplicationContext(), info);
                 }
             }
         });
@@ -156,7 +157,7 @@ public class SobotConsultationListActivity extends SobotBaseActivity implements 
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, final View view, final int position, long id) {
                 new AlertDialog.Builder(SobotConsultationListActivity.this)
-                        .setPositiveButton(ResourceUtils.getResString(SobotConsultationListActivity.this,"sobot_delete_dialogue"), new DialogInterface.OnClickListener() {
+                        .setPositiveButton(R.string.sobot_delete_dialogue, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 final SobotMsgCenterModel data = (SobotMsgCenterModel) adapter.getItem(position);

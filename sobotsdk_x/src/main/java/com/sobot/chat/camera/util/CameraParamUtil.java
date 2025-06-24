@@ -3,8 +3,9 @@ package com.sobot.chat.camera.util;
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.Log;
-import android.view.Surface;
-import android.view.WindowManager;
+
+import com.sobot.chat.MarkConfig;
+import com.sobot.chat.ZCSobotApi;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,7 +29,17 @@ public class CameraParamUtil {
         }
     }
 
+    /**
+     * 预览尺寸
+     * @param list 所有尺寸
+     * @param th
+     * @param rate
+     * @return
+     */
     public Camera.Size getPreviewSize(List<Camera.Size> list, int th, float rate) {
+//        for (int i = 0; i < list.size(); i++) {
+//            SobotLogUtils.d(i+"===="+list.get(i).width+","+list.get(i).height);
+//        }
         Collections.sort(list, sizeComparator);
         int i = 0;
         for (Camera.Size s : list) {
@@ -137,9 +148,20 @@ public class CameraParamUtil {
         }
 
     }
-
+    /**
+     * 获取预览画面要校正的角度。
+     */
     public int getCameraDisplayOrientation(Context context, int cameraId) {
-        Camera.CameraInfo info = new Camera.CameraInfo();
+        int result;
+        //根据横竖屏开关来显示
+        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+            //横屏
+            result=0;
+        }else{
+            //竖屏
+            result=90;
+        }
+        /*Camera.CameraInfo info = new Camera.CameraInfo();
         try {
             Camera.getCameraInfo(cameraId, info);
         } catch (Exception e) {
@@ -165,6 +187,8 @@ public class CameraParamUtil {
                 degrees = 270;
                 break;
         }
+//        SobotLogUtils.d("========info.orientation ========"+info.orientation );
+//        SobotLogUtils.d("========degrees========"+degrees);
         int result;
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
@@ -172,7 +196,8 @@ public class CameraParamUtil {
         } else {
             // back-facing
             result = (info.orientation - degrees + 360) % 360;
-        }
+        }*/
+//        SobotLogUtils.d("========degrees========"+degrees);
         return result;
     }
 }

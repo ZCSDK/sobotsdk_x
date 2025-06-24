@@ -2,28 +2,34 @@ package com.sobot.chat.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
 import com.sobot.chat.api.model.BaseCode;
 import com.sobot.chat.api.model.SobotOfflineLeaveMsgModel;
 import com.sobot.chat.api.model.ZhiChiInitModeBase;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.CustomToast;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SharedPreferencesUtil;
+import com.sobot.chat.utils.ThemeUtils;
 import com.sobot.chat.utils.ToastUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.widget.dialog.SobotFreeAccountTipDialog;
 import com.sobot.chat.widget.kpswitch.util.KeyboardUtil;
 import com.sobot.network.http.callback.StringResultCallBack;
 
-public class SobotPostLeaveMsgActivity extends SobotBaseActivity implements View.OnClickListener {
+/**
+ * 留言转离线消息
+ */
+public class SobotPostLeaveMsgActivity extends SobotChatBaseActivity implements View.OnClickListener {
 
     private static final String EXTRA_MSG_UID = "EXTRA_MSG_UID";
     private static final String EXTRA_MSG_LEAVE_TXT = "EXTRA_MSG_LEAVE_TXT";
@@ -35,7 +41,7 @@ public class SobotPostLeaveMsgActivity extends SobotBaseActivity implements View
     private TextView sobot_tv_post_msg;
     private EditText sobot_post_et_content;
     private TextView sobot_tv_problem_description;
-    private Button sobot_btn_submit;
+    private TextView sobot_btn_submit;
     private String skillGroupId = "";
     private SobotFreeAccountTipDialog sobotFreeAccountTipDialog;
     private TextView sobot_tv_leaveExplain;
@@ -57,7 +63,7 @@ public class SobotPostLeaveMsgActivity extends SobotBaseActivity implements View
 
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_activity_post_leave_msg");
+        return R.layout.sobot_activity_post_leave_msg;
     }
 
     protected void initBundleData(Bundle savedInstanceState) {
@@ -68,16 +74,23 @@ public class SobotPostLeaveMsgActivity extends SobotBaseActivity implements View
 
     @Override
     protected void initView() {
-        showLeftMenu(getResDrawableId("sobot_btn_back_selector"), "", true);
-        setTitle(getResString("sobot_leavemsg_title"));
-        sobot_tv_post_msg = (TextView) findViewById(getResId("sobot_tv_post_msg"));
-        sobot_post_et_content = (EditText) findViewById(getResId("sobot_post_et_content"));
-        sobot_tv_problem_description = (TextView) findViewById(getResId("sobot_tv_problem_description"));
-        sobot_tv_problem_description.setText(ResourceUtils.getResString(SobotPostLeaveMsgActivity.this, "sobot_problem_description"));
-        sobot_btn_submit = (Button) findViewById(getResId("sobot_btn_submit"));
-        sobot_btn_submit.setText(ResourceUtils.getResString(SobotPostLeaveMsgActivity.this, "sobot_btn_submit_text"));
+        showLeftMenu(  true);
+        setTitle(R.string.sobot_leavemsg_title);
+        sobot_tv_post_msg = (TextView) findViewById(R.id.sobot_tv_post_msg);
+        sobot_post_et_content = (EditText) findViewById(R.id.sobot_post_et_content);
+        sobot_tv_problem_description = (TextView) findViewById(R.id.sobot_tv_problem_description);
+        String test = "<font color='#f9676f'>*&nbsp;</font>" + getResources().getString(R.string.sobot_problem_description);
+        sobot_tv_problem_description.setText(Html.fromHtml(test));
+        sobot_btn_submit = findViewById(R.id.sobot_btn_submit);
+        sobot_btn_submit.setText(R.string.sobot_btn_submit_text);
         sobot_btn_submit.setOnClickListener(this);
-        sobot_tv_leaveExplain= (TextView) findViewById(getResId("sobot_tv_leaveExplain"));
+        sobot_tv_leaveExplain= (TextView) findViewById(R.id.sobot_tv_leaveExplain);
+        if(ThemeUtils.isChangedThemeColor(this)){
+            Drawable bg= getResources().getDrawable(R.drawable.sobot_bg_theme_color_4dp);
+            if(bg!=null){
+                sobot_btn_submit.setBackground(ThemeUtils.applyColorToDrawable( bg,ThemeUtils.getThemeColor(this)));
+            }
+        }
     }
 
     @Override
@@ -101,7 +114,7 @@ public class SobotPostLeaveMsgActivity extends SobotBaseActivity implements View
             @Override
             public void onSuccess(SobotOfflineLeaveMsgModel offlineLeaveMsgModel) {
                 if (offlineLeaveMsgModel != null) {
-                    sobot_tv_post_msg.setText(TextUtils.isEmpty(offlineLeaveMsgModel.getMsgLeaveTxt()) ? "" : offlineLeaveMsgModel.getMsgLeaveTxt());
+                    sobot_tv_post_msg.setText(TextUtils.isEmpty(offlineLeaveMsgModel.getMsgLeaveTxt()) ? "" : Html.fromHtml(offlineLeaveMsgModel.getMsgLeaveTxt()));
                     sobot_post_et_content.setHint(TextUtils.isEmpty(offlineLeaveMsgModel.getMsgLeaveContentTxt()) ? "" : offlineLeaveMsgModel.getMsgLeaveContentTxt());
                     if (!TextUtils.isEmpty(offlineLeaveMsgModel.getLeaveExplain())){
                         sobot_tv_leaveExplain.setVisibility(View.VISIBLE);
@@ -122,17 +135,15 @@ public class SobotPostLeaveMsgActivity extends SobotBaseActivity implements View
     @Override
     public void onClick(View v) {
         if (v == sobot_btn_submit) {
-            final String content = sobot_post_et_content.getText().toString();
+            final String content = sobot_post_et_content.getText().toString().trim();
             if (TextUtils.isEmpty(content) || TextUtils.isEmpty(mUid)) {
-                CustomToast.makeText(SobotPostLeaveMsgActivity.this, ResourceUtils.getResString(SobotPostLeaveMsgActivity.this, "sobot_problem_description") + ResourceUtils.getResString(SobotPostLeaveMsgActivity.this, "sobot__is_null"), 1000).show();
+                CustomToast.makeText(SobotPostLeaveMsgActivity.this, getResources().getString(R.string.sobot_problem_description) + getResources().getString(R.string.sobot__is_null), 1000).show();
                 return;
             }
             KeyboardUtil.hideKeyboard(sobot_post_et_content);
-            zhiChiApi.leaveMsg(SobotPostLeaveMsgActivity.class, mUid, skillGroupId,content, new StringResultCallBack<BaseCode>() {
+            zhiChiApi.leaveMsg(SobotPostLeaveMsgActivity.class, mUid, skillGroupId,content,"0", new StringResultCallBack<BaseCode>() {
                 @Override
                 public void onSuccess(BaseCode baseCode) {
-                    CustomToast.makeText(getBaseContext(), ResourceUtils.getResString(getBaseContext(), "sobot_leavemsg_success_tip"), 1000,
-                            ResourceUtils.getDrawableId(getBaseContext(), "sobot_iv_login_right")).show();
                     Intent intent = new Intent();
                     intent.putExtra(EXTRA_MSG_LEAVE_CONTENT, content);
                     setResult(EXTRA_MSG_LEAVE_REQUEST_CODE, intent);

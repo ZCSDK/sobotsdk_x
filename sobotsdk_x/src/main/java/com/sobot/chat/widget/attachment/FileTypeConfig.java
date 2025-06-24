@@ -3,7 +3,7 @@ package com.sobot.chat.widget.attachment;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
 
 public class FileTypeConfig {
     public static final int MSGTYPE_FILE_RAR = 19;
@@ -40,10 +40,12 @@ public class FileTypeConfig {
             case "mp3":
                 return MSGTYPE_FILE_MP3;
             case "mp4":
+            case "mov":
                 return MSGTYPE_FILE_MP4;
             case "txt":
                 return MSGTYPE_FILE_TXT;
             case "jpg":
+            case "jpeg":
             case "png":
             case "gif":
                 return MSGTYPE_FILE_PIC;
@@ -68,34 +70,34 @@ public class FileTypeConfig {
         }
         switch (fileType) {
             case MSGTYPE_FILE_DOC:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_doc");
+                tmpResId = R.drawable.sobot_icon_file_doc;
                 break;
             case MSGTYPE_FILE_PPT:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_ppt");
+                tmpResId = R.drawable.sobot_icon_file_ppt;
                 break;
             case MSGTYPE_FILE_XLS:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_xls");
+                tmpResId = R.drawable.sobot_icon_file_xls;
                 break;
             case MSGTYPE_FILE_PDF:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_pdf");
+                tmpResId = R.drawable.sobot_icon_file_pdf;
                 break;
             case MSGTYPE_FILE_MP3:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_mp3");
+                tmpResId = R.drawable.sobot_icon_file_mp3;
                 break;
             case MSGTYPE_FILE_MP4:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_mp4");
+                tmpResId = R.drawable.sobot_icon_file_mp4;
                 break;
             case MSGTYPE_FILE_RAR:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_rar");
+                tmpResId = R.drawable.sobot_icon_file_rar;
                 break;
             case MSGTYPE_FILE_TXT:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_txt");
+                tmpResId = R.drawable.sobot_icon_file_txt;
                 break;
             case MSGTYPE_FILE_OTHER:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_unknow");
+                tmpResId = R.drawable.sobot_icon_file_unknow;
                 break;
             default:
-                tmpResId = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_file_unknow");
+                tmpResId = R.drawable.sobot_icon_file_unknow;
                 break;
         }
         return tmpResId;

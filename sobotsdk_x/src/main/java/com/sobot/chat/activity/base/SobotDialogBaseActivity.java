@@ -5,37 +5,38 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.annotation.Nullable;
+
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.notchlib.INotchScreen;
 import com.sobot.chat.notchlib.NotchScreenManager;
-import com.sobot.chat.utils.ResourceUtils;
 
 /**
  * 从界面下方弹出的activity
- *
- * @author Created by jinxl on 2019/2/21.
  */
-public abstract class SobotDialogBaseActivity extends SobotBaseActivity {
+public abstract class SobotDialogBaseActivity extends SobotChatBaseActivity {
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
-            if (!SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+            if (!ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);//竖屏
             } else {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);//横屏
 
             }
         }
+        //去掉dialog 的标题栏（不然弹窗会显示app名字）
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
 
         //窗口对齐屏幕宽度
@@ -49,7 +50,7 @@ public abstract class SobotDialogBaseActivity extends SobotBaseActivity {
 
 
     public static void displayInNotch(Activity activity, final View view) {
-        if (SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null && activity != null) {
+        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null && activity != null) {
             // 获取刘海屏信息
             NotchScreenManager.getInstance().getNotchInfo(activity, new INotchScreen.NotchScreenCallback() {
                 @Override
@@ -87,10 +88,8 @@ public abstract class SobotDialogBaseActivity extends SobotBaseActivity {
     }
 
     private void overridePending() {
-        overridePendingTransition(ResourceUtils.getIdByName(
-                getApplicationContext(), "anim", "sobot_popupwindow_in"),
-                ResourceUtils.getIdByName(getApplicationContext(),
-                        "anim", "sobot_popupwindow_out"));
+        overridePendingTransition(R.anim.sobot_popupwindow_in,
+                R.anim.sobot_popupwindow_out);
     }
 
     public Activity getContext() {

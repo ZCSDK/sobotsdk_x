@@ -4,14 +4,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/sobot_line_height_dp"
+        android:background="@color/sobot_color_line_divider" />
+
     <GridView
         android:id="@+id/sobot_gv_emotion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:listSelector="@android:color/transparent"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp" />
+        android:layout_marginEnd="10dp"
+        android:listSelector="@android:color/transparent" />
 </merge>

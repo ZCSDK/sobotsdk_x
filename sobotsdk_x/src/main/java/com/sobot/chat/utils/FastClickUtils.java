@@ -18,4 +18,19 @@ public class FastClickUtils {
         lastClickTime = curClickTime;
         return flag;
     }
+
+    private static long lastClickTimeSeconde;
+    /**
+     * 两次点击按钮之间的点击间隔不能少于指定的毫秒才能再次点击
+     * @return true 可以继续点击 false 不可以
+     */
+    public static boolean isCanClick(long time) {
+        boolean flag = false;
+        long curClickTime = System.currentTimeMillis();
+        if ((curClickTime - lastClickTimeSeconde) >= time) {
+            flag = true;
+        }
+        lastClickTimeSeconde = curClickTime;
+        return flag;
+    }
 }

@@ -2,45 +2,47 @@ package com.sobot.chat.viewHolder;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.activity.WebViewActivity;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
 import com.sobot.chat.utils.CommonUtils;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SobotOption;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
-import com.sobot.pictureframe.SobotBitmapUtil;
+import com.sobot.chat.utils.ThemeUtils;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
+import com.sobot.chat.widget.image.SobotProgressImageView;
 
 /**
  * 商品咨询项目
- * Created by jinxl on 2017/3/17.
  */
-public class ConsultMessageHolder extends MessageHolderBase implements View.OnClickListener {
+public class ConsultMessageHolder extends MsgHolderBase implements View.OnClickListener {
     private TextView tv_title;//   商品标题页title    商品描述  商品图片   发送按钮  商品标签
-    private ImageView iv_pic;
+    private SobotProgressImageView iv_pic;
     private Button btn_sendBtn;
     private View sobot_container;
     private TextView tv_lable;
     private TextView tv_des;
-    private int defaultPicResId;
     private ZhiChiMessageBase mData;
 
     public ConsultMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        btn_sendBtn = (Button) convertView.findViewById(ResourceUtils.getResId(context, "sobot_goods_sendBtn"));
-        btn_sendBtn.setText(ResourceUtils.getResString(context,"sobot_send_cus_service"));
-        sobot_container = convertView.findViewById(ResourceUtils.getResId(context, "sobot_container"));
-        iv_pic = (ImageView) convertView.findViewById(ResourceUtils.getResId(context, "sobot_goods_pic"));
-        tv_title = (TextView) convertView.findViewById(ResourceUtils.getResId(context, "sobot_goods_title"));
-        tv_lable = (TextView) convertView.findViewById(ResourceUtils.getResId(context, "sobot_goods_label"));
-        tv_des = (TextView) convertView.findViewById(ResourceUtils.getResId(context, "sobot_goods_des"));
-        defaultPicResId = ResourceUtils.getDrawableId(context, "sobot_icon_consulting_default_pic");
+        btn_sendBtn = (Button) convertView.findViewById(R.id.sobot_goods_sendBtn);
+        if (CommonUtils.checkSDKIsZh(mContext)) {
+            btn_sendBtn.setText(R.string.sobot_send_cus_service);
+        } else {
+            btn_sendBtn.setText(R.string.sobot_button_send);
+        }
+        sobot_container = convertView.findViewById(R.id.sobot_container);
+        iv_pic = (SobotProgressImageView) convertView.findViewById(R.id.sobot_goods_pic);
+        tv_title = (TextView) convertView.findViewById(R.id.sobot_goods_title);
+        tv_lable = (TextView) convertView.findViewById(R.id.sobot_goods_label);
+        tv_des = (TextView) convertView.findViewById(R.id.sobot_goods_des);
         sobot_container.setOnClickListener(this);
     }
 
@@ -56,10 +58,9 @@ public class ConsultMessageHolder extends MessageHolderBase implements View.OnCl
             iv_pic.setVisibility(View.VISIBLE);
             tv_des.setMaxLines(1);
             tv_des.setEllipsize(TextUtils.TruncateAt.END);
-            SobotBitmapUtil.display(context, CommonUtils.encode(picurl), iv_pic, defaultPicResId, defaultPicResId);
+            iv_pic.setImageUrl(CommonUtils.encode(picurl));
         } else {
             iv_pic.setVisibility(View.GONE);
-            iv_pic.setImageResource(defaultPicResId);
         }
 
         tv_des.setText(describe);
@@ -75,7 +76,11 @@ public class ConsultMessageHolder extends MessageHolderBase implements View.OnCl
                 tv_lable.setVisibility(View.GONE);
             }
         }
-
+        tv_lable.setTextColor(ThemeUtils.getThemeColor(mContext));
+        Drawable bg = btn_sendBtn.getBackground();
+        if (bg != null) {
+            btn_sendBtn.setBackground(ThemeUtils.applyColorToDrawable(bg, ThemeUtils.getThemeColor(mContext)));
+        }
         btn_sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,6 +90,7 @@ public class ConsultMessageHolder extends MessageHolderBase implements View.OnCl
                 }
             }
         });
+        refreshReadStatus();
     }
 
     @Override
@@ -96,7 +102,7 @@ public class ConsultMessageHolder extends MessageHolderBase implements View.OnCl
             }
             if (SobotOption.newHyperlinkListener != null) {
                 //如果返回true,拦截;false 不拦截
-                boolean isIntercept = SobotOption.newHyperlinkListener.onUrlClick(mContext,mData.getUrl());
+                boolean isIntercept = SobotOption.newHyperlinkListener.onUrlClick(mContext, mData.getUrl());
                 if (isIntercept) {
                     return;
                 }

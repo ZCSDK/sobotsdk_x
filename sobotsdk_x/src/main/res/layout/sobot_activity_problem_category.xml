@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sobot_common_gray6"
+    android:background="@color/sobot_color_common_bg"
     android:orientation="vertical">
 
-    <include layout="@layout/sobot_layout_titlebar1" />
+    <include layout="@layout/sobot_layout_common_titlebar" />
 
     <include layout="@layout/sobot_layout_top_divider" />
 
@@ -13,8 +13,7 @@
         android:id="@+id/sobot_listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="12dp"
-        android:divider="@color/sobot_line_1dp"
+        android:divider="@color/sobot_color_line_divider"
         android:dividerHeight="0.6dp"
         android:listSelector="@android:color/transparent"
         android:scrollbarThumbVertical="@drawable/sobot_custom_scroll_style"
@@ -25,7 +24,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:textColor="@color/sobot_common_gray1"
-        android:textSize="16sp" />
+        android:lineSpacingExtra="4dp"
+        android:textColor="@color/sobot_color_text_first"
+        android:textSize="@dimen/sobot_text_font_16"
+        android:visibility="gone" />
 
 </LinearLayout>

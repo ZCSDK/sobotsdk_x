@@ -4,35 +4,39 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Title -->
-
-    <include layout="@layout/sobot_layout_titlebar" />
+    <include layout="@layout/sobot_layout_chat_titlebar" />
 
     <RelativeLayout
         android:id="@+id/sobot_net_status_remide"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/sobot_DIMEN_108PX"
-        android:background="@color/sobot_common_yellow"
+        android:layout_height="wrap_content"
+        android:background="@color/sobot_no_net_bgcolor"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp"
         android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/sobot_not_net_icon"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/sobot_icon_send_fail" />
 
         <TextView
             android:id="@+id/sobot_net_not_connect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:textColor="@color/sobot_common_tuhuanse"
-            android:textSize="@dimen/sobot_robot_msg_text_size" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="5dip"
-            android:layout_toLeftOf="@id/sobot_net_not_connect"
-            android:contentDescription="@null"
-            android:src="@drawable/sobot_icon_tag_nonet"
-            android:layout_toStartOf="@id/sobot_net_not_connect"
-            android:layout_marginEnd="5dip" />
+            android:layout_centerInParent="false"
+            android:layout_toEndOf="@id/sobot_not_net_icon"
+            android:lineSpacingExtra="@dimen/sobot_text_line_spacing_extra"
+            android:textColor="@color/sobot_color_text_first"
+            android:textSize="@dimen/sobot_text_font_14" />
     </RelativeLayout>
 
     <include layout="@layout/sobot_chat_main" />

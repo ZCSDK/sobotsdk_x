@@ -16,9 +16,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.utils.ScreenUtils;
+import com.sobot.chat.utils.ThemeUtils;
 
 
 /**
@@ -34,19 +35,20 @@ public class SobotFreeAccountTipDialog extends Dialog {
     private LinearLayout coustom_pop_layout;
     private View.OnClickListener itemsOnClick;
     private final int screenHeight;
+    private Context mContext;
 
     public SobotFreeAccountTipDialog(Activity context, View.OnClickListener itemsOnClick) {
-        super(context, ResourceUtils.getIdByName(context, "style", "sobot_noAnimDialogStyle"));
+        super(context, R.style.sobot_noAnimDialogStyle);
         this.itemsOnClick = itemsOnClick;
         screenHeight = ScreenUtils.getScreenHeight(context);
-
+        mContext = context;
         // 修改Dialog(Window)的弹出位置
         Window window = getWindow();
         if (window != null) {
             WindowManager.LayoutParams layoutParams = window.getAttributes();
             layoutParams.gravity = Gravity.CENTER;
             //横屏设置dialog全屏
-            if (SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
                 layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
             }
             setParams(context, layoutParams);
@@ -57,7 +59,7 @@ public class SobotFreeAccountTipDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceUtils.getIdByName(getContext(), "layout", "sobot_free_account_tip_popup"));
+        setContentView(R.layout.sobot_free_account_tip_popup);
         initView();
     }
 
@@ -72,12 +74,17 @@ public class SobotFreeAccountTipDialog extends Dialog {
     }
 
     private void initView() {
-        sobot_btn_ok = (Button) findViewById(ResourceUtils.getIdByName(getContext(), "id", "sobot_btn_ok"));
-        sobot_btn_ok.setText(ResourceUtils.getResString(getContext(), "sobot_btn_submit"));
-        coustom_pop_layout = (LinearLayout) findViewById(ResourceUtils.getIdByName(getContext(), "id", "pop_layout"));
-        sobot_tv_tip = (TextView) findViewById(ResourceUtils.getIdByName(getContext(), "id", "sobot_tv_tip"));
-        sobot_tv_tip.setText(ResourceUtils.getResString(getContext(), "sobot_chat_free_account_tip"));
+        sobot_btn_ok = (Button) findViewById(R.id.sobot_btn_ok);
+        sobot_btn_ok.setText(R.string.sobot_btn_submit);
+        coustom_pop_layout = (LinearLayout) findViewById(R.id.pop_layout);
+        sobot_tv_tip = (TextView) findViewById(R.id.sobot_tv_tip);
+        sobot_tv_tip.setText(R.string.sobot_chat_free_account_tip);
         sobot_btn_ok.setOnClickListener(itemsOnClick);
+        if(ThemeUtils.isChangedThemeColor(mContext)){
+            int themeColor = ThemeUtils.getThemeColor(mContext);
+            sobot_btn_ok.setTextColor(themeColor);
+            sobot_btn_ok.setTextColor(themeColor);
+        }
     }
 
     private void setParams(Context context, WindowManager.LayoutParams lay) {

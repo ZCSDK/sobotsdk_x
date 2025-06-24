@@ -5,19 +5,19 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.api.apiUtils.GsonUtil;
 import com.sobot.chat.api.model.SobotMultiDiaRespInfo;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.HtmlTools;
-import com.sobot.chat.utils.ResourceUtils;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RobotAnswerItemsMsgHolder extends MessageHolderBase implements View.OnClickListener {
+public class RobotAnswerItemsMsgHolder extends MsgHolderBase implements View.OnClickListener {
     // 聊天的消息内容
     private TextView tv_msg;
     private LinearLayout answersListView;
@@ -28,8 +28,8 @@ public class RobotAnswerItemsMsgHolder extends MessageHolderBase implements View
 
     public RobotAnswerItemsMsgHolder(Context context, View convertView) {
         super(context, convertView);
-        tv_msg = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template2_msg"));
-        answersListView = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_answersList"));
+        tv_msg = (TextView) convertView.findViewById(R.id.sobot_template2_msg);
+        answersListView = (LinearLayout) convertView.findViewById(R.id.sobot_answersList);
     }
 
     @Override
@@ -63,6 +63,7 @@ public class RobotAnswerItemsMsgHolder extends MessageHolderBase implements View
                 answersListView.setVisibility(View.GONE);
             }
         }
+        refreshReadStatus();
     }
 
     private void sendMultiRoundQuestions(String labelText, Map<String, String> tmpMap, SobotMultiDiaRespInfo multiDiaRespInfo) {
@@ -73,7 +74,7 @@ public class RobotAnswerItemsMsgHolder extends MessageHolderBase implements View
             ZhiChiMessageBase msgObj = new ZhiChiMessageBase();
 
             Map<String, String> map = new HashMap<>();
-            map.put("level", multiDiaRespInfo.getLevel()+"");
+            map.put("level", multiDiaRespInfo.getLevel() + "");
             map.put("conversationId", multiDiaRespInfo.getConversationId());
             map.putAll(tmpMap);
             msgObj.setContent(GsonUtil.map2Str(map));
@@ -100,7 +101,7 @@ public class RobotAnswerItemsMsgHolder extends MessageHolderBase implements View
      * @param message
      * @return
      */
-    private boolean isHistoryMsg(ZhiChiMessageBase message){
+    private boolean isHistoryMsg(ZhiChiMessageBase message) {
         return message.getSugguestionsFontColor() == 1;
     }
 }

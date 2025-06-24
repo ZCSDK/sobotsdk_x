@@ -6,15 +6,16 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
 import com.sobot.chat.utils.ScreenUtils;
+import com.sobot.chat.utils.ThemeUtils;
 import com.sobot.chat.widget.kpswitch.widget.data.PageSetEntity;
 
 import java.util.ArrayList;
 
 public class EmoticonsIndicatorView extends LinearLayout {
 
-    private static final int MARGIN_LEFT = 4;
+    private static final int MARGIN_LEFT = 8;
     protected Context mContext;
     protected ArrayList<ImageView> mImageViews;
     protected Drawable mDrawableSelect;
@@ -27,17 +28,16 @@ public class EmoticonsIndicatorView extends LinearLayout {
         this.setOrientation(HORIZONTAL);
 
         if (mDrawableNomal == null) {
-            mDrawableNomal = getResources().getDrawable(ResourceUtils.getIdByName(context,
-                    "drawable", "sobot_indicator_point_nomal"));
+            mDrawableNomal = getResources().getDrawable(R.drawable.sobot_indicator_point_nomal);
         }
         if (mDrawableSelect == null) {
-            mDrawableSelect = getResources().getDrawable(ResourceUtils.getIdByName(context,
-                    "drawable", "sobot_indicator_point_select"));
+            mDrawableSelect = getResources().getDrawable(R.drawable.sobot_indicator_point_select);
+            ThemeUtils.applyColorToDrawable(mDrawableSelect, ThemeUtils.getThemeColor(getContext()));
         }
 
         mLeftLayoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        mLeftLayoutParams.height = ScreenUtils.dip2px(context, 5);
-        mLeftLayoutParams.width = ScreenUtils.dip2px(context, 5);
+        mLeftLayoutParams.height = ScreenUtils.dip2px(context, 6);
+        mLeftLayoutParams.width = ScreenUtils.dip2px(context, 6);
         mLeftLayoutParams.leftMargin = ScreenUtils.dip2px(context, MARGIN_LEFT);
     }
 
@@ -116,6 +116,11 @@ public class EmoticonsIndicatorView extends LinearLayout {
                     mImageViews.get(i).setVisibility(VISIBLE);
                 }
             }
+        }
+        if (count>1){
+            setVisibility(VISIBLE);
+        }else {
+            setVisibility(GONE);
         }
     }
 }

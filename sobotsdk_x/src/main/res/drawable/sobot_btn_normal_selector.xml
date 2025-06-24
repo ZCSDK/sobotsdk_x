@@ -7,7 +7,7 @@
 
             <stroke android:width="0.1dp" android:color="@color/sobot_btn_normal_color" />
 
-            <corners android:radius="@dimen/sobot_bbuton_rounded_corner_radius" />
+            <corners android:radius="22dp" />
         </shape>
     </item>
 
@@ -17,7 +17,7 @@
 
             <stroke android:width="0.1dp" android:color="@color/sobot_btn_bg_pressed" />
 
-            <corners android:radius="@dimen/sobot_bbuton_rounded_corner_radius" />
+            <corners android:radius="22dp" />
         </shape>
     </item>
     <item android:state_enabled="false">
@@ -26,7 +26,7 @@
 
             <stroke android:width="0.1dp" android:color="@color/sobot_btn_bg_disable" />
 
-            <corners android:radius="@dimen/sobot_bbuton_rounded_corner_radius" />
+            <corners android:radius="22dp" />
         </shape>
     </item>
 </selector>

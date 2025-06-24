@@ -1,15 +1,20 @@
 package com.sobot.chat.widget;
 
+import static com.sobot.network.http.SobotOkHttpUtils.runOnUiThread;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
+import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,11 +24,13 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.Button;
 import android.widget.PopupWindow;
 
+import com.sobot.chat.R;
 import com.sobot.chat.activity.WebViewActivity;
 import com.sobot.chat.utils.CustomToast;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.utils.SharedPreferencesUtil;
 import com.sobot.chat.utils.ToastUtil;
+import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.widget.zxing.Result;
 import com.sobot.chat.widget.zxing.util.CodeUtils;
 import com.sobot.pictureframe.SobotBitmapUtil;
@@ -34,15 +41,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-
-import static com.sobot.network.http.SobotOkHttpUtils.runOnUiThread;
+import java.util.Locale;
 
 
 @SuppressLint("ViewConstructor")
 public class SelectPicPopupWindow extends PopupWindow {
 
     private Button sobot_btn_take_photo, sobot_btn_cancel, sobot_btn_scan_qr_code;
-    private View mView;
+    private View mView,view_scan_qr_code_split;
     private String imgUrl;
     private Context context;
     private String type;
@@ -92,9 +98,11 @@ public class SelectPicPopupWindow extends PopupWindow {
                                 if (result.length == 1) {
                                     LogUtils.i("图片中二维码:" + result[0].getText());
                                     sobot_btn_scan_qr_code.setVisibility(View.VISIBLE);
+                                    view_scan_qr_code_split.setVisibility(View.VISIBLE);
                                 } else {
                                     LogUtils.i("图片中有 " + result.length + " 个二维码");
                                     sobot_btn_scan_qr_code.setVisibility(View.GONE);
+                                    view_scan_qr_code_split.setVisibility(View.GONE);
                                 }
 
                             }
@@ -106,15 +114,18 @@ public class SelectPicPopupWindow extends PopupWindow {
     }
 
     private void initView() {
+        //修改国际化语言
+        changeAppLanguage();
         inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mView = inflater.inflate(ResourceUtils.getIdByName(context, "layout", "sobot_clear_history_dialog"), null);
-        sobot_btn_take_photo = (Button) mView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_btn_take_photo"));
-        sobot_btn_take_photo.setText(ResourceUtils.getResString(context, "sobot_save_pic"));
-        sobot_btn_cancel = (Button) mView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_btn_cancel"));
-        sobot_btn_cancel.setText(ResourceUtils.getResString(context, "sobot_btn_cancle"));
-        sobot_btn_scan_qr_code = (Button) mView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_btn_scan_qr_code"));
-        sobot_btn_scan_qr_code.setText(ResourceUtils.getResString(context, "sobot_scan_qr_code"));
+        mView = inflater.inflate(R.layout.sobot_clear_history_dialog, null);
+        view_scan_qr_code_split = mView.findViewById(R.id.view_scan_qr_code_split);
+        sobot_btn_take_photo =  mView.findViewById(R.id.sobot_btn_take_photo);
+        sobot_btn_take_photo.setText(R.string.sobot_save_pic);
+        sobot_btn_cancel =  mView.findViewById(R.id.sobot_btn_cancel);
+        sobot_btn_cancel.setText(R.string.sobot_btn_cancle);
+        sobot_btn_scan_qr_code =  mView.findViewById(R.id.sobot_btn_scan_qr_code);
+        sobot_btn_scan_qr_code.setText(R.string.sobot_scan_qr_code);
         // 设置SelectPicPopupWindow的View
         this.setContentView(mView);
         // 设置SelectPicPopupWindow弹出窗体的宽
@@ -124,7 +135,7 @@ public class SelectPicPopupWindow extends PopupWindow {
         // 设置SelectPicPopupWindow弹出窗体可点击
         this.setFocusable(true);
         // 设置SelectPicPopupWindow弹出窗体动画效果
-        this.setAnimationStyle(ResourceUtils.getIdByName(context, "style", "sobot_AnimBottom"));
+        this.setAnimationStyle(R.style.sobot_AnimBottom);
         // 实例化一个ColorDrawable颜色为半透明
         ColorDrawable dw = new ColorDrawable(0xb0000000);
         // 设置SelectPicPopupWindow弹出窗体的背景
@@ -132,7 +143,7 @@ public class SelectPicPopupWindow extends PopupWindow {
         // mMenuView添加OnTouchListener监听判断获取触屏位置如果在选择框外面则销毁弹出框
         mView.setOnTouchListener(new OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
-                int height = mView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_pop_layout")).getTop();
+                int height = mView.findViewById(R.id.sobot_pop_layout).getTop();
                 int y = (int) event.getY();
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     if (y < height) {
@@ -145,17 +156,35 @@ public class SelectPicPopupWindow extends PopupWindow {
 
         if (!TextUtils.isEmpty(imgUrl)) {
             sobot_btn_take_photo.setTextColor(context.getResources()
-                    .getColor(ResourceUtils.getIdByName(context, "color", "sobot_common_black")));
+                    .getColor(R.color.sobot_color_text_first));
             sobot_btn_cancel.setTextColor(context.getResources()
-                    .getColor(ResourceUtils.getIdByName(context, "color", "sobot_common_black")));
+                    .getColor(R.color.sobot_color_text_first));
             sobot_btn_scan_qr_code.setTextColor(context.getResources()
-                    .getColor(ResourceUtils.getIdByName(context, "color", "sobot_common_black")));
+                    .getColor(R.color.sobot_color_text_first));
             // 取消按钮
             sobot_btn_cancel.setOnClickListener(savePictureOnClick);
             // 设置按钮监听
             sobot_btn_take_photo.setOnClickListener(savePictureOnClick);
             //识别二维码
             sobot_btn_scan_qr_code.setOnClickListener(savePictureOnClick);
+        }
+    }
+
+    public void changeAppLanguage() {
+        if (context != null) {
+            Locale language = (Locale) SharedPreferencesUtil.getObject(context, ZhiChiConstant.SOBOT_LANGUAGE);
+            try {
+                // 本地语言设置
+                Resources res = context.getResources();
+                DisplayMetrics dm = res.getDisplayMetrics();
+                Configuration conf = new Configuration();
+                if (language != null) {
+                    conf.locale = language;
+                }
+                res.updateConfiguration(conf, dm);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -185,6 +214,7 @@ public class SelectPicPopupWindow extends PopupWindow {
                     context.startActivity(intent);
                 } else {
                     sobot_btn_scan_qr_code.setVisibility(View.GONE);
+                    view_scan_qr_code_split.setVisibility(View.GONE);
                 }
             }
         }
@@ -192,16 +222,16 @@ public class SelectPicPopupWindow extends PopupWindow {
 
     private void showHint(String content) {
         CustomToast.makeText(context, content, 1000,
-                ResourceUtils.getDrawableId(context, "sobot_iv_login_right")).show();
+                R.drawable.sobot_icon_success).show();
     }
 
     public void saveImageToGallery(Context context, Bitmap bmp) {
         if (!isSdCardExist()) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err_sd_card"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err_sd_card));
             return;
         }
         if (bmp == null) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err_pic"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err_pic));
             return;
         }
         String savePath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + File
@@ -219,13 +249,13 @@ public class SelectPicPopupWindow extends PopupWindow {
             fos.flush();
             fos.close();
         } catch (FileNotFoundException e) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_error_file"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_error_file));
             e.printStackTrace();
         } catch (IOException e) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err));
             e.printStackTrace();
         } catch (Exception e) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err));
             e.printStackTrace();
         }
 
@@ -242,11 +272,11 @@ public class SelectPicPopupWindow extends PopupWindow {
 
     public void saveImageToGallery(Context context, String bmp) {
         if (!isSdCardExist()) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err_sd_card"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err_sd_card));
             return;
         }
         if (TextUtils.isEmpty(bmp)) {
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err_pic"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err_pic));
             return;
         }
         String savePath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + File
@@ -268,15 +298,12 @@ public class SelectPicPopupWindow extends PopupWindow {
         try {
             if (file != null && file.exists() && !TextUtils.isEmpty(fileName)) {
                 MediaStore.Images.Media.insertImage(context.getContentResolver(), file.getAbsolutePath(), fileName, null);
+                MediaScannerConnection.scanFile(context, new String[]{file.toString()}, null, null);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        Uri uri = Uri.fromFile(file);
-        intent.setData(uri);
-        context.sendBroadcast(intent);
-        showHint(ResourceUtils.getResString(context, "sobot_already_save_to_picture"));
+        showHint(context.getResources().getString(R.string.sobot_already_save_to_picture));
     }
 
     /**
@@ -299,7 +326,7 @@ public class SelectPicPopupWindow extends PopupWindow {
             in.transferTo(0, in.size(), out);//连接两个通道，并且从in通道读取，然后写入out通道
         } catch (IOException e) {
             isSuccess = false;
-            ToastUtil.showToast(context, ResourceUtils.getResString(context, "sobot_save_err"));
+            ToastUtil.showToast(context, context.getResources().getString(R.string.sobot_save_err));
             e.printStackTrace();
         } finally {
             try {

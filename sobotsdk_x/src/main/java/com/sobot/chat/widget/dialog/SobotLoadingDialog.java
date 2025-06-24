@@ -4,17 +4,17 @@ package com.sobot.chat.widget.dialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.sobot.chat.MarkConfig;
 import com.sobot.chat.R;
-import com.sobot.chat.SobotApi;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.ZCSobotApi;
 
 /**
  * Created by jinxl on 2017/4/10.
@@ -57,13 +57,13 @@ public class SobotLoadingDialog extends Dialog {
        // attributes.height = (screenWidth / 5) * 2;
         attributes.gravity= Gravity.CENTER;
         //横屏设置dialog全屏
-        if (SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
             attributes.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         }
         getWindow().setAttributes(attributes);
         setCancelable(mCancelable);
 
-        tv_loading = findViewById(ResourceUtils.getResId(getContext(), "tv_loading"));
+        tv_loading = findViewById(R.id.tv_loading);
         tv_loading.setText(mMessage);
     }
 

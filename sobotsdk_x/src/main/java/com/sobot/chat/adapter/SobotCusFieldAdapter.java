@@ -3,6 +3,10 @@ package com.sobot.chat.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -12,13 +16,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.api.model.SobotCusFieldDataInfo;
 import com.sobot.chat.notchlib.INotchScreen;
 import com.sobot.chat.notchlib.NotchScreenManager;
-import com.sobot.chat.utils.ResourceUtils;
-import com.sobot.chat.utils.ZhiChiConstant;
+import com.sobot.chat.utils.ThemeUtils;
+import com.sobot.utils.SobotStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +44,8 @@ public class SobotCusFieldAdapter extends SobotBaseAdapter<SobotCusFieldDataInfo
     private List<SobotCusFieldDataInfo> displayList;
     //过滤时候的总数据 这个是不变的数据
     private List<SobotCusFieldDataInfo> adminList;
-    //适配器的adpater
+    //输入的内容
+    private String searchText;
 
     public SobotCusFieldAdapter(Activity activity, Context context, List<SobotCusFieldDataInfo> list, int fieldType) {
         super(context, list);
@@ -51,6 +57,11 @@ public class SobotCusFieldAdapter extends SobotBaseAdapter<SobotCusFieldDataInfo
         displayList = list;
     }
 
+    public void setSearchText(String searchText) {
+        this.searchText = searchText;
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return displayList.size();
@@ -59,41 +70,44 @@ public class SobotCusFieldAdapter extends SobotBaseAdapter<SobotCusFieldDataInfo
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = View.inflate(mContext, ResourceUtils.getIdByName(mContext, "layout", "sobot_activity_cusfield_listview_items"), null);
-            myViewHolder = new MyViewHolder(mActivity,convertView);
+            convertView = View.inflate(mContext, R.layout.sobot_activity_cusfield_listview_items, null);
+            myViewHolder = new MyViewHolder(mActivity, convertView);
             convertView.setTag(myViewHolder);
         } else {
             myViewHolder = (MyViewHolder) convertView.getTag();
         }
-
-        myViewHolder.categorySmallTitle.setText(displayList.get(position).getDataName());
-
-        if (ZhiChiConstant.WORK_ORDER_CUSTOMER_FIELD_CHECKBOX_TYPE == fieldType) {
-            myViewHolder.categorySmallIshave.setVisibility(View.GONE);
-            myViewHolder.categorySmallCheckBox.setVisibility(View.VISIBLE);
-            if (displayList.get(position).isChecked()) {
-                myViewHolder.categorySmallCheckBox.setBackgroundResource(ResourceUtils.getIdByName(mContext, "drawable", "sobot_post_category_checkbox_pressed"));
+        if (position < displayList.size()) {
+            String data = displayList.get(position).getDataName();
+            if (SobotStringUtils.isNoEmpty(data)) {
+                SpannableString spannableString = new SpannableString(data);
+                if (SobotStringUtils.isNoEmpty(searchText)) {
+                    if (data.toLowerCase().contains(searchText.toLowerCase()) ) {
+                        int index = data.toLowerCase().indexOf(searchText.toLowerCase());
+                        if(index>=0) {
+                            spannableString.setSpan(new ForegroundColorSpan(ThemeUtils.getThemeColor(mContext)), index, index + searchText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        }
+                    }
+                }
+                myViewHolder.categorySmallTitle.setText(spannableString);
             } else {
-                myViewHolder.categorySmallCheckBox.setBackgroundResource(ResourceUtils.getIdByName(mContext, "drawable", "sobot_post_category_checkbox_normal"));
+                myViewHolder.categorySmallTitle.setText("");
             }
-        } else {
-            myViewHolder.categorySmallCheckBox.setVisibility(View.GONE);
+
             if (displayList.get(position).isChecked()) {
                 myViewHolder.categorySmallIshave.setVisibility(View.VISIBLE);
-                myViewHolder.categorySmallIshave.setBackgroundResource(ResourceUtils.getIdByName(mContext, "drawable", "sobot_work_order_selected_mark"));
+                if (ThemeUtils.isChangedThemeColor(context)) {
+                    int themeColor = ThemeUtils.getThemeColor(context);
+                    Drawable bg = context.getResources().getDrawable(R.drawable.sobot_cur_selected);
+                    if (bg != null) {
+                        myViewHolder.categorySmallIshave.setImageDrawable(ThemeUtils.applyColorToDrawable(bg, themeColor));
+                    }
+                }
             } else {
                 myViewHolder.categorySmallIshave.setVisibility(View.GONE);
             }
-        }
-
-        if (displayList.size() >= 2) {
-            if (position == displayList.size() - 1) {
-                myViewHolder.categorySmallline.setVisibility(View.GONE);
-            } else {
-                myViewHolder.categorySmallline.setVisibility(View.VISIBLE);
-            }
         } else {
-            myViewHolder.categorySmallline.setVisibility(View.GONE);
+            myViewHolder.categorySmallTitle.setText("");
+            myViewHolder.categorySmallIshave.setVisibility(View.GONE);
         }
 
         return convertView;
@@ -103,21 +117,21 @@ public class SobotCusFieldAdapter extends SobotBaseAdapter<SobotCusFieldDataInfo
 
         private TextView categorySmallTitle;
         private ImageView categorySmallIshave;
-        private ImageView categorySmallCheckBox;
-        private View categorySmallline;
+        //        private ImageView categorySmallCheckBox;
+//        private View categorySmallline;
         private Activity mActivity;
 
         MyViewHolder(Activity activity, View view) {
             this.mActivity = activity;
-            categorySmallTitle = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_activity_cusfield_listview_items_title"));
-            categorySmallIshave = (ImageView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_activity_cusfield_listview_items_ishave"));
-            categorySmallCheckBox = (ImageView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_activity_cusfield_listview_items_checkbox"));
-            categorySmallline = view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_activity_cusfield_listview_items_line"));
+            categorySmallTitle = (TextView) view.findViewById(R.id.sobot_activity_cusfield_listview_items_title);
+            categorySmallIshave = (ImageView) view.findViewById(R.id.sobot_activity_cusfield_listview_items_ishave);
+//            categorySmallCheckBox = (ImageView) view.findViewById(R.id.sobot_activity_cusfield_listview_items_checkbox);
+//            categorySmallline = view.findViewById(R.id.sobot_activity_cusfield_listview_items_line);
             displayInNotch(categorySmallTitle);
         }
 
         public void displayInNotch(final View view) {
-            if (SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
+            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
                 // 支持显示到刘海区域
                 NotchScreenManager.getInstance().setDisplayInNotch(mActivity);
                 // 设置Activity全屏
@@ -165,7 +179,7 @@ public class SobotCusFieldAdapter extends SobotBaseAdapter<SobotCusFieldDataInfo
 
                 for (int i = 0; i < adminList.size(); i++) {
                     final String value = adminList.get(i).getDataName();
-                    if (value.contains(prefixString)) {//我这里的规则就是筛选出和prefix相同的元素
+                    if (value.toLowerCase().contains(prefixString.toLowerCase())) {//我这里的规则就是筛选出和prefix相同的元素
                         newValues.add(adminList.get(i));
                     }
                 }

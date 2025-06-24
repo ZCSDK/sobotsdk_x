@@ -3,124 +3,98 @@ package com.sobot.chat.viewHolder;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import androidx.core.content.ContextCompat;
-import android.text.Layout;
-import android.text.TextPaint;
+import android.os.Build;
 import android.text.TextUtils;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
+import com.sobot.chat.R;
 import com.sobot.chat.activity.SobotFileDetailActivity;
 import com.sobot.chat.activity.SobotVideoActivity;
 import com.sobot.chat.activity.WebViewActivity;
-import com.sobot.chat.adapter.SobotMsgAdapter;
 import com.sobot.chat.api.model.ChatMessageRichListModel;
 import com.sobot.chat.api.model.SobotCacheFile;
-import com.sobot.chat.api.model.Suggestions;
+import com.sobot.chat.api.model.SobotLink;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
 import com.sobot.chat.camera.util.FileUtil;
-import com.sobot.chat.listener.NoDoubleClickListener;
+import com.sobot.chat.core.channel.SobotMsgManager;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.HtmlTools;
-import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.utils.MD5Util;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.SobotOption;
-import com.sobot.chat.utils.ToastUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
+import com.sobot.chat.widget.SobotSectorProgressView;
 import com.sobot.chat.widget.attachment.FileTypeConfig;
+import com.sobot.chat.widget.image.SobotProgressImageView;
+import com.sobot.network.http.callback.StringResultCallBack;
 import com.sobot.pictureframe.SobotBitmapUtil;
+import com.sobot.utils.SobotStringUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 富文本消息
- * Created by jinxl on 2017/3/17.
  */
-public class RichTextMessageHolder extends MessageHolderBase implements View.OnClickListener {
+public class RichTextMessageHolder extends MsgHolderBase implements View.OnClickListener {
     private TextView msg; // 聊天的消息内容
     private LinearLayout sobot_rich_ll;//拆分的富文本消息
     private TextView sobot_msgStripe; // 多轮会话中配置的引导语
-    private LinearLayout answersList;
-    private TextView stripe;
 
-    private LinearLayout sobot_chat_more_action;//包含以下所有控件
 
-    private LinearLayout sobot_ll_transferBtn;//只包含转人工按钮
-    private TextView sobot_tv_transferBtn;//机器人转人工按钮
-
-    private RelativeLayout sobot_right_empty_rl;
-    private LinearLayout sobot_ll_content;
-    private LinearLayout sobot_ll_likeBtn;
-    private LinearLayout sobot_ll_dislikeBtn;
-    private TextView sobot_tv_likeBtn;//机器人评价 顶 的按钮
-    private TextView sobot_tv_dislikeBtn;//机器人评价 踩 的按钮
     private LinearLayout sobot_ll_switch;//换一组按钮
     private TextView sobot_tv_switch;
     private View sobot_view_split;//换一组和查看详情分割线
-    int msgMaxWidth;//气泡最大宽度
+
+    private ProgressBar progressbar_loading;
+
 
     public RichTextMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        //102=左间距12+内间距30+右间距60
-        msgMaxWidth = ScreenUtils.getScreenWidth((Activity) mContext) - ScreenUtils.dip2px(mContext, 102);
-        msg = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_msg"));
-        sobot_rich_ll = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_rich_ll"));
-        sobot_msgStripe = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_msgStripe"));
-        sobot_chat_more_action = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_chat_more_action"));
-        sobot_ll_transferBtn = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_transferBtn"));
-        sobot_ll_likeBtn = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_likeBtn"));
-        sobot_ll_dislikeBtn = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_dislikeBtn"));
-        sobot_ll_content = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_content"));
-        sobot_ll_switch = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_switch"));
-        sobot_tv_switch = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_switch"));
-        sobot_tv_switch.setText(ResourceUtils.getResString(context, "sobot_switch"));
-        sobot_view_split = convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_view_split"));
-        sobot_right_empty_rl = (RelativeLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_right_empty_rl"));
-
-        stripe = (TextView) convertView.findViewById(ResourceUtils
-                .getIdByName(context, "id", "sobot_stripe"));
+        msg = (TextView) convertView.findViewById(R.id.sobot_msg);
+        sobot_rich_ll = (LinearLayout) convertView.findViewById(R.id.sobot_rich_ll);
+        sobot_msgStripe = (TextView) convertView.findViewById(R.id.sobot_msgStripe);
+        sobot_ll_switch = (LinearLayout) convertView.findViewById(R.id.sobot_ll_switch);
+        sobot_tv_switch = (TextView) convertView.findViewById(R.id.sobot_tv_switch);
+        sobot_tv_switch.setText(R.string.sobot_switch);
+        sobot_view_split = convertView.findViewById(R.id.sobot_view_split);
         answersList = (LinearLayout) convertView
-                .findViewById(ResourceUtils.getIdByName(context, "id",
-                        "sobot_answersList"));
-
-        sobot_tv_transferBtn = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_transferBtn"));
-        sobot_tv_transferBtn.setText(ResourceUtils.getResString(context, "sobot_transfer_to_customer_service"));
-        sobot_tv_likeBtn = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_likeBtn"));
-        sobot_tv_dislikeBtn = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_dislikeBtn"));
+                .findViewById(R.id.sobot_answersList);
+        progressbar_loading = (ProgressBar) convertView
+                .findViewById(R.id.progressbar_loading);
         sobot_ll_switch.setOnClickListener(this);
-        msg.setMaxWidth(msgMaxWidth);
     }
 
     @Override
-    public void bindData(final Context context, final ZhiChiMessageBase message) {
+    public void bindData(Context context, ZhiChiMessageBase message) {
+        this.mContext = context;
+        this.message = message;
+        if (message != null && SobotStringUtils.isNoEmpty(message.getServant()) && "aiagent".equals(message.getServant()) && progressbar_loading != null) {
+            //如果是aiagent 答案
+            if (message.getAnswer() != null && message.getAnswer().getRichList() != null && !message.getAnswer().getRichList().isEmpty() && (SobotStringUtils.isNoEmpty(message.getAnswer().getRichList().get(0).getMsg()))) {
+                progressbar_loading.setVisibility(View.GONE);
+            } else {
+                progressbar_loading.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (progressbar_loading != null) {
+                progressbar_loading.setVisibility(View.GONE);
+            }
+        }
         // 更具消息类型进行对布局的优化
         if (message.getAnswer() != null) {
             setupMsgContent(context, message);
-            if (!TextUtils.isEmpty(message.getAnswer().getMsgStripe())) {
-                sobot_msgStripe.setVisibility(View.VISIBLE);
-                sobot_msgStripe.setText(message.getAnswer().getMsgStripe());
-            } else {
-                sobot_msgStripe.setVisibility(View.GONE);
-            }
-        }
-
-        // 回复语的答复
-        String stripeContent = message.getStripe() != null ? message.getStripe().trim() : "";
-        if (!TextUtils.isEmpty(stripeContent)) {
-            //去掉p标签
-            stripeContent = stripeContent.replace("<p>", "").replace("</p>", "");
-            // 设置提醒的内容
-            stripe.setVisibility(View.VISIBLE);
-            HtmlTools.getInstance(context).setRichText(stripe, stripeContent, getLinkTextColor());
-        } else {
-            stripe.setText(null);
-            stripe.setVisibility(View.GONE);
+            sobot_msgStripe.setVisibility(View.GONE);
         }
 
         if (message.isGuideGroupFlag()//有分组
@@ -134,251 +108,47 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
         } else {
             sobot_ll_switch.setVisibility(View.GONE);
             sobot_view_split.setVisibility(View.GONE);
-
         }
 
-        if (message.getSugguestions() != null && message.getSugguestions().length > 0) {
-            resetAnswersList();
-        } else {
-            answersList.setVisibility(View.GONE);
-        }
-
-        checkShowTransferBtn();
-
-        msg.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (!TextUtils.isEmpty(message.getAnswer().getMsg())) {
-                    ToastUtil.showCopyPopWindows(context, view, message.getAnswer().getMsg(), 30, 0);
-                }
-                return false;
+        if (!isRight) {
+            msg.setMinHeight(0);
+            refreshItem();//左侧消息刷新顶和踩布局
+            checkShowTransferBtn();//检查转人工逻辑
+            //关联问题显示逻辑
+            if (message != null && message.getSugguestions() != null && message.getSugguestions().length > 0) {
+                resetAnswersList();
+            } else {
+                hideAnswers();
             }
-        });
-
-        applyTextViewUIConfig(msg);
-
-        refreshItem();
-    }
-
-    //设置问题列表
-    private void resetAnswersList() {
-        if (message == null) {
-            return;
+            msg.setMaxWidth(msgMaxWidth);
+//            sobot_rich_ll.setLayoutParams(new LinearLayout.LayoutParams(msgMaxWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
-        if (message.getListSuggestions() != null && message.getListSuggestions().size() > 0) {
-            ArrayList<Suggestions> listSuggestions = message.getListSuggestions();
-            answersList.removeAllViews();
-            answersList.setVisibility(View.VISIBLE);
-            int startNum = 0;
-            int endNum = listSuggestions.size();
-            if (message.isGuideGroupFlag() && message.getGuideGroupNum() > -1) {//有分组且不是全部
-                startNum = message.getCurrentPageNum() * message.getGuideGroupNum();
-                endNum = Math.min(startNum + message.getGuideGroupNum(), listSuggestions.size());
-            }
-            for (int i = startNum; i < endNum; i++) {
-                TextView answer = ChatUtils.initAnswerItemTextView(mContext, false);
-                int currentItem = i + 1;
-                answer.setOnClickListener(new AnsWerClickLisenter(mContext, null,
-                        listSuggestions.get(i).getQuestion(), null, listSuggestions.get(i).getDocId(), msgCallBack));
-                String tempStr = processPrefix(message, currentItem) + listSuggestions.get(i).getQuestion();
-                answer.setText(tempStr);
-                answersList.addView(answer);
-            }
-        } else {
-            String[] answerStringList = message.getSugguestions();
-            answersList.removeAllViews();
-            answersList.setVisibility(View.VISIBLE);
-            for (int i = 0; i < answerStringList.length; i++) {
-                TextView answer = ChatUtils.initAnswerItemTextView(mContext, true);
-                int currentItem = i + 1;
-                String tempStr = processPrefix(message, currentItem) + answerStringList[i];
-                answer.setText(tempStr);
-                answersList.addView(answer);
-            }
-        }
-        resetMaxWidth();
-    }
-
-    private void resetMaxWidth() {
-        ViewGroup.LayoutParams layoutParams = sobot_ll_content.getLayoutParams();
-        layoutParams.width = ScreenUtils.getScreenWidth((Activity) mContext) - ScreenUtils.dip2px(mContext, 72);
-        sobot_ll_content.setLayoutParams(layoutParams);
-    }
-
-    private void resetMinWidth() {
-        ViewGroup.LayoutParams layoutParams = sobot_ll_content.getLayoutParams();
-        layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        sobot_ll_content.setLayoutParams(layoutParams);
-    }
-
-    private void checkShowTransferBtn() {
-        if (message.isShowTransferBtn()) {
-            showTransferBtn();
-        } else {
-            hideTransferBtn();
-        }
-    }
-
-    private void hideContainer() {
-        if (!message.isShowTransferBtn() && message.getRevaluateState() == 0) {
-            sobot_chat_more_action.setVisibility(View.GONE);
-        } else {
-            sobot_chat_more_action.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
-     * 隐藏转人工按钮
-     */
-    public void hideTransferBtn() {
-        hideContainer();
-        sobot_ll_transferBtn.setVisibility(View.GONE);
-        sobot_tv_transferBtn.setVisibility(View.GONE);
-        if (message != null) {
-            message.setShowTransferBtn(false);
-        }
-    }
-
-    /**
-     * 显示转人工按钮
-     */
-    public void showTransferBtn() {
-        sobot_chat_more_action.setVisibility(View.VISIBLE);
-        sobot_tv_transferBtn.setVisibility(View.VISIBLE);
-        sobot_ll_transferBtn.setVisibility(View.VISIBLE);
-        if (message != null) {
-            message.setShowTransferBtn(true);
-        }
-        sobot_ll_transferBtn.setOnClickListener(new NoDoubleClickListener() {
-
-            @Override
-            public void onNoDoubleClick(View v) {
-                if (msgCallBack != null) {
-                    msgCallBack.doClickTransferBtn(message);
-                }
-            }
-        });
-    }
-
-    public void refreshItem() {
-        //顶 踩的状态 0 不显示顶踩按钮  1显示顶踩 按钮  2 显示顶之后的view  3显示踩之后view
-        switch (message.getRevaluateState()) {
-            case 1:
-                showRevaluateBtn();
-                break;
-            case 2:
-                showLikeWordView();
-                break;
-            case 3:
-                showDislikeWordView();
-                break;
-            default:
-                hideRevaluateBtn();
-                break;
-        }
+        setLongClickListener(msg);
+        setLongClickListener(sobot_msg_content_ll);
+        refreshReadStatus();
     }
 
     /**
      * 显示 顶踩 按钮
      */
     public void showRevaluateBtn() {
-        sobot_chat_more_action.setVisibility(View.VISIBLE);
-        sobot_tv_likeBtn.setVisibility(View.VISIBLE);
-        sobot_tv_dislikeBtn.setVisibility(View.VISIBLE);
-        sobot_ll_likeBtn.setVisibility(View.VISIBLE);
-        sobot_ll_dislikeBtn.setVisibility(View.VISIBLE);
-        sobot_right_empty_rl.setVisibility(View.VISIBLE);
-        sobot_tv_likeBtn.setEnabled(true);
-        sobot_tv_dislikeBtn.setEnabled(true);
-        sobot_tv_likeBtn.setSelected(false);
-        sobot_tv_dislikeBtn.setSelected(false);
-        //有顶和踩时显示信息显示两行 72-10-10=52 总高度减去上下内间距
-        msg.setMinHeight(ScreenUtils.dip2px(mContext, 52));
-        //有顶和踩时,拆分后的富文本消息如果只有一个并且是文本类型设置最小高度 72-10-10=52 总高度减去上下内间距
-        if (sobot_rich_ll != null && sobot_rich_ll.getChildCount() == 1) {
-            for (int i = 0; i < sobot_rich_ll.getChildCount(); i++) {
-                View view = sobot_rich_ll.getChildAt(i);
-                if (view instanceof TextView) {
-                    TextView tv = (TextView) view;
-                    tv.setMinHeight(ScreenUtils.dip2px(mContext, 52));
+        super.showRevaluateBtn();
+        if (dingcaiIsShowRight()) {
+            //有顶和踩时显示信息显示两行 64-12-12=40 总高度减去上下内间距
+            msg.setMinHeight(ScreenUtils.dip2px(mContext, 40));
+            //有顶和踩时,拆分后的富文本消息如果只有一个并且是文本类型设置最小高度 64-12-12=40 总高度减去上下内间距
+            if (sobot_rich_ll != null && sobot_rich_ll.getChildCount() == 1) {
+                for (int i = 0; i < sobot_rich_ll.getChildCount(); i++) {
+                    View view = sobot_rich_ll.getChildAt(i);
+                    if (view instanceof TextView) {
+                        TextView tv = (TextView) view;
+                        tv.setMinHeight(ScreenUtils.dip2px(mContext, 40));
+                    }
                 }
             }
         }
-
-        sobot_tv_likeBtn.setOnClickListener(new NoDoubleClickListener() {
-            @Override
-            public void onNoDoubleClick(View v) {
-                doRevaluate(true);
-            }
-        });
-        sobot_tv_dislikeBtn.setOnClickListener(new NoDoubleClickListener() {
-            @Override
-            public void onNoDoubleClick(View v) {
-                doRevaluate(false);
-            }
-        });
     }
 
-    /**
-     * 顶踩 操作
-     *
-     * @param revaluateFlag true 顶  false 踩
-     */
-    private void doRevaluate(boolean revaluateFlag) {
-        if (msgCallBack != null) {
-            msgCallBack.doRevaluate(revaluateFlag, message);
-        }
-    }
-
-    /**
-     * 隐藏 顶踩 按钮
-     */
-    public void hideRevaluateBtn() {
-        hideContainer();
-        sobot_tv_likeBtn.setVisibility(View.GONE);
-        sobot_tv_dislikeBtn.setVisibility(View.GONE);
-        sobot_ll_likeBtn.setVisibility(View.GONE);
-        sobot_right_empty_rl.setVisibility(View.GONE);
-        sobot_ll_dislikeBtn.setVisibility(View.GONE);
-        //没有顶和踩时显示信息显示一行 42-10-10=52 总高度减去上下内间距
-        msg.setMinHeight(ScreenUtils.dip2px(mContext, 22));
-    }
-
-    /**
-     * 显示顶之后的view
-     */
-    public void showLikeWordView() {
-        sobot_tv_likeBtn.setSelected(true);
-        sobot_tv_likeBtn.setEnabled(false);
-        sobot_tv_dislikeBtn.setEnabled(false);
-        sobot_tv_dislikeBtn.setSelected(false);
-        sobot_chat_more_action.setVisibility(View.VISIBLE);
-        sobot_tv_likeBtn.setVisibility(View.VISIBLE);
-        sobot_tv_dislikeBtn.setVisibility(View.GONE);
-        sobot_ll_likeBtn.setVisibility(View.VISIBLE);
-        sobot_right_empty_rl.setVisibility(View.VISIBLE);
-        sobot_ll_dislikeBtn.setVisibility(View.GONE);
-        //有顶和踩时显示信息显示两行
-        msg.setMinHeight(ScreenUtils.dip2px(mContext, 52));
-    }
-
-    /**
-     * 显示踩之后的view
-     */
-    public void showDislikeWordView() {
-        sobot_tv_dislikeBtn.setSelected(true);
-        sobot_tv_dislikeBtn.setEnabled(false);
-        sobot_tv_likeBtn.setEnabled(false);
-        sobot_tv_likeBtn.setSelected(false);
-        sobot_chat_more_action.setVisibility(View.VISIBLE);
-        sobot_tv_likeBtn.setVisibility(View.GONE);
-        sobot_tv_dislikeBtn.setVisibility(View.VISIBLE);
-        sobot_right_empty_rl.setVisibility(View.VISIBLE);
-        sobot_ll_likeBtn.setVisibility(View.GONE);
-        sobot_ll_dislikeBtn.setVisibility(View.VISIBLE);
-        //有顶和踩时显示信息显示两行
-        msg.setMinHeight(ScreenUtils.dip2px(mContext, 52));
-    }
 
     @Override
     public void onClick(View v) {
@@ -386,16 +156,15 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
             // 换一组
             if (message != null && message.getListSuggestions() != null
                     && message.getListSuggestions().size() > 0) {
-                LogUtils.i(message.getCurrentPageNum() + "==================");
                 int pageNum = message.getCurrentPageNum() + 1;
                 int total = message.getListSuggestions().size();
                 int pre = message.getGuideGroupNum();
+                if (pre == 0) {
+                    pre = 5;
+                }
                 int maxNum = (total % pre == 0) ? (total / pre) : (total / pre + 1);
-                LogUtils.i(maxNum + "=========maxNum=========");
                 pageNum = (pageNum >= maxNum) ? 0 : pageNum;
                 message.setCurrentPageNum(pageNum);
-
-                LogUtils.i(message.getCurrentPageNum() + "==================");
                 resetAnswersList();
             }
 
@@ -403,86 +172,56 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
         }
     }
 
-    // 查看阅读全文的监听
-    public static class ReadAllTextLisenter implements View.OnClickListener {
-        private String mUrlContent;
-        private Context context;
-
-        public ReadAllTextLisenter(Context context, String urlContent) {
-            super();
-            this.mUrlContent = urlContent;
-            this.context = context;
-        }
-
-        @Override
-        public void onClick(View arg0) {
-
-            if (!mUrlContent.startsWith("http://")
-                    && !mUrlContent.startsWith("https://")) {
-                mUrlContent = "http://" + mUrlContent;
-            }
-            // 内部浏览器
-            Intent intent = new Intent(context, WebViewActivity.class);
-            intent.putExtra("url", mUrlContent);
-            context.startActivity(intent);
-        }
-    }
-
-    // 问题的回答监听
-    public static class AnsWerClickLisenter implements View.OnClickListener {
-
-        private String msgContent;
-        private String id;
-        private ImageView img;
-        private String docId;
-        private Context context;
-        private SobotMsgAdapter.SobotMsgCallBack mMsgCallBack;
-
-        public AnsWerClickLisenter(Context context, String id, String msgContent, ImageView image,
-                                   String docId, SobotMsgAdapter.SobotMsgCallBack msgCallBack) {
-            super();
-            this.context = context;
-            this.msgContent = msgContent;
-            this.id = id;
-            this.img = image;
-            this.docId = docId;
-            mMsgCallBack = msgCallBack;
-        }
-
-        @Override
-        public void onClick(View arg0) {
-            if (img != null) {
-                img.setVisibility(View.GONE);
-            }
-
-            if (mMsgCallBack != null) {
-                mMsgCallBack.hidePanelAndKeyboard();
-                ZhiChiMessageBase msgObj = new ZhiChiMessageBase();
-                msgObj.setContent(msgContent);
-                msgObj.setId(id);
-                mMsgCallBack.sendMessageToRobot(msgObj, 0, 1, docId);
-            }
-        }
-    }
-
-    int getTextSize(TextView view) {
-
-        CharSequence text = view.getText();
-
-        TextPaint paint = view.getPaint();
-
-        int textSize = (int) Layout.getDesiredWidth(text, 0, text.length(), paint);
-
-        return textSize;
-
-    }
 
     private void setupMsgContent(final Context context, final ZhiChiMessageBase message) {
         if (message.getAnswer() != null && message.getAnswer().getRichList() != null && message.getAnswer().getRichList().size() > 0) {
-            LinearLayout.LayoutParams wlayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            wlayoutParams.setMargins(0, ScreenUtils.dip2px(context, 3), 0, 0);
             sobot_rich_ll.removeAllViews();
+            try {
+                if (message.getAnswer().getRichList().size() > 1) {
+                    //richList 数量大于1个，如果里边有不是卡片的超链接，超链接的上个又是文本的情况，需要单独处理（合并到上个文本后边）
+                    List<ChatMessageRichListModel> tempRichList = new ArrayList<>();
+                    for (int i = 0; i < message.getAnswer().getRichList().size(); i++) {
+                        //处理后的临时richList,替换旧的richList
+                        ChatMessageRichListModel richListModel = message.getAnswer().getRichList().get(i);
+                        if (richListModel != null) {
+                            //如果当前是文本,文本又不是卡片，需要处理
+                            if (richListModel.getType() == 0 && richListModel.getShowType() != 1) {
+                                ChatMessageRichListModel model = new ChatMessageRichListModel();
+                                model.setType(0);
+                                if (tempRichList.size() > 0) {
+                                    //如果上一个是文本,需要合并当前文本到上个文本后边
+                                    ChatMessageRichListModel tempRichListModel = tempRichList.get(tempRichList.size() - 1);
+                                    if (tempRichListModel != null && tempRichListModel.getType() == 0) {
+                                        if (!TextUtils.isEmpty(richListModel.getName()) && HtmlTools.isHasPatterns(richListModel.getMsg())) {
+                                            model.setMsg(tempRichListModel.getMsg() + "<a href=\"" + richListModel.getMsg() + "\">" + richListModel.getName() + "</a>");
+                                        } else {
+                                            model.setMsg(tempRichListModel.getMsg() + richListModel.getMsg());
+                                        }
+                                        tempRichList.remove(tempRichList.size() - 1);
+                                        tempRichList.add(model);
+                                    } else {
+                                        tempRichList.add(richListModel);
+                                    }
+                                } else {
+                                    if (!TextUtils.isEmpty(richListModel.getName()) && HtmlTools.isHasPatterns(richListModel.getMsg())) {
+                                        //当前是超链接，同时又不是卡片
+                                        model.setMsg("<a href=\"" + richListModel.getMsg() + "\">" + richListModel.getName() + "</a>");
+                                    } else {
+                                        model.setMsg(richListModel.getMsg());
+                                    }
+                                    tempRichList.add(model);
+                                }
+                            } else {
+                                tempRichList.add(richListModel);
+                            }
+                        }
+                    }
+                    if (tempRichList != null && tempRichList.size() > 0) {
+                        message.getAnswer().setRichList(tempRichList);
+                    }
+                }
+            } catch (Exception e) {
+            }
             for (int i = 0; i < message.getAnswer().getRichList().size(); i++) {
                 final ChatMessageRichListModel richListModel = message.getAnswer().getRichList().get(i);
                 if (richListModel != null) {
@@ -493,13 +232,27 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
                     // 0：文本，1：图片，2：音频，3：视频，4：文件
                     if (richListModel.getType() == 0) {
                         TextView textView = new TextView(mContext);
-                        textView.setTextSize(14);
-                        textView.setLayoutParams(wlayoutParams);
+                        textView.setIncludeFontPadding(false);
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mContext.getResources().getDimensionPixelSize(R.dimen.sobot_text_font_14));
+                        textView.setLineSpacing(mContext.getResources().getDimension(R.dimen.sobot_text_line_spacing_extra), 1);
+                        if (i != 0) {
+                            LinearLayout.LayoutParams wlayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT);
+                            wlayoutParams.setMargins(0, ScreenUtils.dip2px(context, 10), 0, 0);
+                            textView.setLayoutParams(wlayoutParams);
+                        } else {
+                            textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT));
+                        }
                         textView.setMaxWidth(msgMaxWidth);
-                        //设置行间距
-                        textView.setLineSpacing(0, 1.1f);
+                        setLongClickListener(textView);
                         if (!TextUtils.isEmpty(richListModel.getName()) && HtmlTools.isHasPatterns(richListModel.getMsg())) {
-                            textView.setTextColor(ContextCompat.getColor(mContext, ResourceUtils.getResColorId(mContext, "sobot_color_link")));
+                            try {
+                                textView.setTextColor(getLinkTextColor());
+                            } catch (Exception e) {
+                            }
+//                            textView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG); //下划线
+//                            textView.getPaint().setAntiAlias(true);//抗锯齿
                             textView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -516,70 +269,176 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
                                 }
                             });
                             textView.setText(richListModel.getName());
+                            sobot_rich_ll.addView(textView);
+                            if (richListModel.getShowType() == 1) {
+                                //超链接，并且是卡片形式才显示卡片
+                                final View view = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_link_card, null);
+                                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(msgCardWidth-12, ViewGroup.LayoutParams.WRAP_CONTENT);
+                                layoutParams.setMargins(0, ScreenUtils.dip2px(mContext, 10), 0, ScreenUtils.dip2px(mContext, 4));
+                                view.setLayoutParams(layoutParams);
+                                TextView tv_title = view.findViewById(R.id.tv_title);
+                                tv_title.setText(R.string.sobot_parsing);
+                                if (richListModel.getSobotLink() != null) {
+                                    tv_title = view.findViewById(R.id.tv_title);
+                                    TextView tv_des = view.findViewById(R.id.tv_des);
+                                    ImageView image_link = view.findViewById(R.id.image_link);
+                                    if (TextUtils.isEmpty(richListModel.getSobotLink().getTitle())) {
+                                        tv_title.setVisibility(View.GONE);
+                                    } else {
+                                        tv_title.setText(richListModel.getSobotLink().getTitle());
+                                        tv_title.setVisibility(View.VISIBLE);
+                                    }
+                                    tv_des.setText(TextUtils.isEmpty(richListModel.getSobotLink().getDesc()) ? richListModel.getMsg() : richListModel.getSobotLink().getDesc());
+                                    SobotBitmapUtil.display(mContext, richListModel.getSobotLink().getImgUrl(), image_link, R.drawable.sobot_link_image, R.drawable.sobot_link_image);
+                                    if (TextUtils.isEmpty(richListModel.getSobotLink().getTitle()) && TextUtils.isEmpty(richListModel.getSobotLink().getDesc()) && TextUtils.isEmpty(richListModel.getSobotLink().getImgUrl())) {
+                                        view.setVisibility(View.GONE);
+                                    }
+                                } else {
+                                    SobotMsgManager.getInstance(mContext).getZhiChiApi().getHtmlAnalysis(context, richListModel.getMsg(), new StringResultCallBack<SobotLink>() {
+                                        @Override
+                                        public void onSuccess(SobotLink link) {
+                                            if (link != null) {
+                                                richListModel.setSobotLink(link);
+                                                TextView tv_title = view.findViewById(R.id.tv_title);
+                                                TextView tv_des = view.findViewById(R.id.tv_des);
+                                                ImageView image_link = view.findViewById(R.id.image_link);
+                                                if (TextUtils.isEmpty(link.getTitle())) {
+                                                    tv_title.setVisibility(View.VISIBLE);
+                                                    tv_title.setText(richListModel.getName());
+                                                } else {
+                                                    tv_title.setText(link.getTitle());
+                                                    tv_title.setVisibility(View.VISIBLE);
+                                                }
+                                                tv_des.setText(TextUtils.isEmpty(link.getDesc()) ? richListModel.getMsg() : link.getDesc());
+                                                if (mContext != null && !isActivityDestroyed(mContext)) {
+                                                    SobotBitmapUtil.display(mContext, link.getImgUrl(), image_link, R.drawable.sobot_link_image, R.drawable.sobot_link_image);
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Exception e, String s) {
+                                            if (view != null) {
+                                                TextView tv_title = view.findViewById(R.id.tv_title);
+                                                tv_title.setText(richListModel.getMsg());
+                                                ImageView image_link = view.findViewById(R.id.image_link);
+                                                SobotBitmapUtil.display(mContext, "", image_link, R.drawable.sobot_link_image, R.drawable.sobot_link_image);
+                                            }
+                                        }
+                                    });
+                                }
+                                sobot_rich_ll.addView(view);
+                                view.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if (SobotOption.newHyperlinkListener != null) {
+                                            //如果返回true,拦截;false 不拦截
+                                            boolean isIntercept = SobotOption.newHyperlinkListener.onUrlClick(mContext, richListModel.getMsg());
+                                            if (isIntercept) {
+                                                return;
+                                            }
+                                        }
+                                        Intent intent = new Intent(context, WebViewActivity.class);
+                                        intent.putExtra("url", richListModel.getMsg());
+                                        context.startActivity(intent);
+                                    }
+                                });
+                            }
                         } else {
-                            textView.setTextColor(ContextCompat.getColor(mContext, ResourceUtils.getResColorId(mContext, "sobot_left_msg_text_color")));
+                            textView.setTextColor(ContextCompat.getColor(mContext, R.color.sobot_left_msg_text_color));
                             if (!TextUtils.isEmpty(richListModel.getMsg()) && i == (message.getAnswer().getRichList().size() - 1)) {
                                 //如果是richlist的最后一个，把这个的尾部的<br/>都去掉
                                 String content = richListModel.getMsg().trim();
                                 while (content.length() > 5 && "<br/>".equals(content.substring(content.length() - 5, content.length()))) {
                                     content = content.substring(0, content.length() - 5);
                                 }
-                                HtmlTools.getInstance(mContext).setRichTextViewText(textView, content, getLinkTextColor());
+                                HtmlTools.getInstance(mContext).setRichText(textView, content, getLinkTextColor());
                             } else {
-                                HtmlTools.getInstance(mContext).setRichTextViewText(textView, richListModel.getMsg(), getLinkTextColor());
+                                HtmlTools.getInstance(mContext).setRichText(textView, richListModel.getMsg(), getLinkTextColor());
                             }
-
+                            sobot_rich_ll.addView(textView);
                         }
-                        sobot_rich_ll.addView(textView);
                     } else if (richListModel.getType() == 1 && HtmlTools.isHasPatterns(richListModel.getMsg())) {
-                        LinearLayout.LayoutParams mlayoutParams = new LinearLayout.LayoutParams(msgMaxWidth,
-                                ScreenUtils.dip2px(context, 200));
-                        mlayoutParams.setMargins(0, ScreenUtils.dip2px(context, 3), 0, 0);
+                        LinearLayout.LayoutParams mlayoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        if (i != 0) {
+                            mlayoutParams.setMargins(0, ScreenUtils.dip2px(context, 10), 0, 0);
+                        }
                         ImageView imageView = new ImageView(mContext);
-                        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        imageView.setMaxWidth(msgMaxWidth);
+                        imageView.setAdjustViewBounds(true);
                         imageView.setLayoutParams(mlayoutParams);
                         SobotBitmapUtil.display(mContext, richListModel.getMsg(), imageView);
                         imageView.setOnClickListener(new ImageClickLisenter(context, richListModel.getMsg(), isRight));
                         sobot_rich_ll.addView(imageView);
+                        setLongClickListener(imageView);
                     } else if (richListModel.getType() == 3 && HtmlTools.isHasPatterns(richListModel.getMsg())) {
-                        TextView videoView = new TextView(mContext);
-                        videoView.setMaxWidth(msgMaxWidth);
-                        HtmlTools.getInstance(mContext).setRichText(videoView, TextUtils.isEmpty(richListModel.getName()) ? richListModel.getMsg() : richListModel.getName(), getLinkTextColor());
-                        videoView.setLayoutParams(wlayoutParams);
-                        videoView.setTextColor(ContextCompat.getColor(mContext, ResourceUtils.getResColorId(mContext, "sobot_color_link")));
-                        sobot_rich_ll.addView(videoView);
+                        View videoView = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_item_rich_vedio_view, sobot_rich_ll, false);
+                        SobotProgressImageView sobot_video_first_image = videoView.findViewById(R.id.sobot_video_first_image);
+                        if (!TextUtils.isEmpty(richListModel.getVideoImgUrl())) {
+                            sobot_video_first_image.setImageUrl(richListModel.getVideoImgUrl());
+                            sobot_video_first_image.setImageWidthAndHeight(msgMaxWidth, msgMaxWidth * 146 / 246);
+                        }
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(msgMaxWidth, msgMaxWidth * 146 / 246);
+                        if (i != 0) {
+                            layoutParams.setMargins(0, ScreenUtils.dip2px(mContext, 10), 0, 0);
+                        }
+                        sobot_rich_ll.addView(videoView, layoutParams);
                         videoView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 SobotCacheFile cacheFile = new SobotCacheFile();
-                                cacheFile.setFileName(richListModel.getName());
+                                String name = MD5Util.encode(richListModel.getMsg());
+                                int dotIndex = richListModel.getMsg().lastIndexOf('.');
+                                if (dotIndex == -1) {
+                                    name = name + ".mp4";
+                                } else {
+                                    name = name + richListModel.getMsg().substring(dotIndex + 1);
+                                }
+                                cacheFile.setFileName(name);
                                 cacheFile.setUrl(richListModel.getMsg());
-                                cacheFile.setFileType(FileTypeConfig.getFileType(FileUtil.getFileEndWith(richListModel.getMsg())));
-                                cacheFile.setMsgId(message.getMsgId() + richListModel.getMsg());
+                                cacheFile.setFileType(FileTypeConfig.getFileType(FileUtil.checkFileEndWith(richListModel.getMsg())));
+                                cacheFile.setMsgId(message.getMsgId());
                                 Intent intent = SobotVideoActivity.newIntent(mContext, cacheFile);
                                 mContext.startActivity(intent);
                             }
                         });
-                    } else if ((richListModel.getType() == 4 || richListModel.getType() == 2) && HtmlTools.isHasPatterns(richListModel.getMsg())) {
-                        TextView fileView = new TextView(mContext);
-                        fileView.setMaxWidth(msgMaxWidth);
-                        HtmlTools.getInstance(mContext).setRichText(fileView, TextUtils.isEmpty(richListModel.getName()) ? richListModel.getMsg() : richListModel.getName(), getLinkTextColor());
-                        fileView.setLayoutParams(wlayoutParams);
-                        fileView.setTextColor(ContextCompat.getColor(mContext, ResourceUtils.getResColorId(mContext, "sobot_color_link")));
-                        sobot_rich_ll.addView(fileView);
-                        fileView.setOnClickListener(new View.OnClickListener() {
+                        setLongClickListener(videoView);
+                    } else if ((richListModel.getType() == 4 || richListModel.getType() == 2)) {
+                        View view = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_file_l, null);
+                        TextView sobot_file_name = (TextView) view.findViewById(R.id.sobot_file_name);
+                        TextView sobot_file_size = (TextView) view.findViewById(R.id.sobot_file_size);
+                        SobotSectorProgressView sobot_progress = (SobotSectorProgressView) view.findViewById(R.id.sobot_progress);
+                        sobot_file_name.setText(richListModel.getName());
+                        sobot_file_size.setText(TextUtils.isEmpty(richListModel.getFileSize()) ? "" : richListModel.getFileSize());
+                        SobotBitmapUtil.display(mContext, ChatUtils.getFileIcon(mContext, FileTypeConfig.getFileType(FileUtil.checkFileEndWith(richListModel.getMsg()))), sobot_progress);
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(msgCardWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        if (i != 0) {
+                            layoutParams.setMargins(0, ScreenUtils.dip2px(mContext, 10), 0, 0);
+                        }
+                        view.setLayoutParams(layoutParams);
+                        sobot_rich_ll.addView(view);
+                        setLongClickListener(view);
+                        view.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                // 打开详情页面
-                                Intent intent = new Intent(mContext, SobotFileDetailActivity.class);
-                                SobotCacheFile cacheFile = new SobotCacheFile();
-                                cacheFile.setFileName(richListModel.getName());
-                                cacheFile.setUrl(richListModel.getMsg());
-                                cacheFile.setFileType(FileTypeConfig.getFileType(FileUtil.getFileEndWith(richListModel.getMsg())));
-                                cacheFile.setMsgId(message.getMsgId() + richListModel.getMsg());
-                                intent.putExtra(ZhiChiConstant.SOBOT_INTENT_DATA_SELECTED_FILE, cacheFile);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                mContext.startActivity(intent);
+                                if (richListModel.getType() == 2) {
+                                    Intent intent = new Intent(context, WebViewActivity.class);
+                                    intent.putExtra("url", richListModel.getMsg());
+                                    context.startActivity(intent);
+                                } else {
+                                    // 打开详情页面
+                                    Intent intent = new Intent(mContext, SobotFileDetailActivity.class);
+                                    SobotCacheFile cacheFile = new SobotCacheFile();
+                                    cacheFile.setFileName(richListModel.getName());
+                                    cacheFile.setFileSize(TextUtils.isEmpty(richListModel.getFileSize()) ? "" : richListModel.getFileSize());
+                                    cacheFile.setUrl(richListModel.getMsg());
+                                    cacheFile.setFileType(FileTypeConfig.getFileType(FileUtil.checkFileEndWith(richListModel.getMsg())));
+                                    cacheFile.setMsgId(message.getMsgId() + richListModel.getMsg());
+                                    intent.putExtra(ZhiChiConstant.SOBOT_INTENT_DATA_SELECTED_FILE, cacheFile);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    mContext.startActivity(intent);
+                                }
                             }
                         });
                     }
@@ -587,10 +446,6 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
             }
             sobot_rich_ll.setVisibility(View.VISIBLE);
             msg.setVisibility(View.GONE);
-            LinearLayout.LayoutParams contentlayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            contentlayoutParams.leftMargin = ScreenUtils.dip2px(context, 12);
-            sobot_ll_content.setLayoutParams(contentlayoutParams);
         } else {
             sobot_rich_ll.setVisibility(View.GONE);
             if (message.getAnswer() != null && !TextUtils.isEmpty(message.getAnswer().getMsg())) {
@@ -611,11 +466,28 @@ public class RichTextMessageHolder extends MessageHolderBase implements View.OnC
         }
     }
 
-    private String processPrefix(final ZhiChiMessageBase message, int num) {
-        if (message != null && message.getAnswer() != null && message.getAnswer().getMultiDiaRespInfo() != null
-                && message.getAnswer().getMultiDiaRespInfo().getIcLists() != null) {
-            return "•";
+    /**
+     * 判断context 所属的activity是否销毁了
+     *
+     * @param context
+     * @return
+     */
+    public boolean isActivityDestroyed(Context context) {
+        if (context == null) {
+            return true;
         }
-        return num + ".";
+
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                return activity.isDestroyed();
+            } else {
+                // 对于低于API 17的版本，可以通过检查Activity的生命周期状态
+                return activity.isFinishing() || activity.isDestroyed();
+            }
+        }
+
+        // 如果context不是Activity实例，则认为它没有被销毁
+        return false;
     }
 }

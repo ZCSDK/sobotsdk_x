@@ -1,40 +1,48 @@
 package com.sobot.chat.widget;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatEditText;
+
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.api.ZhiChiApi;
+import com.sobot.chat.api.model.RespInfoListBean;
 import com.sobot.chat.api.model.SobotRobotGuess;
+import com.sobot.chat.api.model.ZhiChiInitModeBase;
 import com.sobot.chat.core.HttpUtils;
 import com.sobot.chat.core.channel.SobotMsgManager;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.SharedPreferencesUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.widget.emoji.InputHelper;
 import com.sobot.chat.widget.kpswitch.util.KeyboardUtil;
 import com.sobot.network.http.callback.StringResultCallBack;
+import com.sobot.utils.SobotStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +50,11 @@ import java.util.List;
 /**
  * 自动补全的editText
  */
-public class ContainsEmojiEditText extends EditText implements View.OnFocusChangeListener {
+public class ContainsEmojiEditText extends AppCompatEditText implements View.OnFocusChangeListener {
     private static final String LAYOUT_CONTENT_VIEW_LAYOUT_RES_NAME = "sobot_layout_auto_complete";
     private static final String LAYOUT_AUTOCOMPELTE_ITEM = "sobot_item_auto_complete_menu";
     private static final String SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG = "SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG";
-    private static final int MAX_AUTO_COMPLETE_NUM = 3;
+    private static final int MAX_AUTO_COMPLETE_NUM = 4;
     Handler handler = new Handler();
     SobotCustomPopWindow mPopWindow;
 
@@ -58,6 +66,10 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
     String mRobotFlag;
     boolean mIsAutoComplete;
     SobotAutoCompleteListener autoCompleteListener;
+
+    private View activityRootView;
+    private Rect previousVisibleRect = new Rect();
+    private boolean isKeyboardVisible = false;
 
     public ContainsEmojiEditText(Context context) {
         super(context);
@@ -82,12 +94,38 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
         if (!supportFlag) {
             return;
         }
+        try {
+            activityRootView = ((Activity) getContext()).getWindow().getDecorView().findViewById(android.R.id.content);
+            if (activityRootView != null) {
+                activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        Rect r = new Rect();
+                        activityRootView.getWindowVisibleDisplayFrame(r);
+                        int heightDiff = activityRootView.getRootView().getHeight() - r.bottom;
+                        if (heightDiff > 100) { // if more than 100 pixels, it's probably a keyboard...
+                            if (!isKeyboardVisible) {
+                                isKeyboardVisible = true;
+
+                            }
+                        } else {
+                            if (isKeyboardVisible) {
+                                isKeyboardVisible = false;
+                                dismissPop();
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+
+        }
 
         setOnFocusChangeListener(this);
 
         myWatcher = new MyWatcher();
         addTextChangedListener(myWatcher);
-        if (SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {//横屏
+        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {//横屏
             setOnEditorActionListener(new OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -96,7 +134,7 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
                         doAfterTextChanged(v.getText().toString());
                         return true;
                     }
-                    if (actionId==KeyEvent.ACTION_DOWN){
+                    if (actionId == KeyEvent.ACTION_DOWN) {
                         KeyboardUtil.hideKeyboard(ContainsEmojiEditText.this);
                         doAfterTextChanged(v.getText().toString());
                         return true;
@@ -112,31 +150,60 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
             return;
         }
         if (TextUtils.isEmpty(s)) {
+            HttpUtils.getInstance().cancelTag(SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG);
             dismissPop();
         } else {
             HttpUtils.getInstance().cancelTag(SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG);
             ZhiChiApi zhiChiApi = SobotMsgManager.getInstance(getContext()).getZhiChiApi();
-            zhiChiApi.robotGuess(SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG, mUid, mRobotFlag, s, new StringResultCallBack<SobotRobotGuess>() {
-                @Override
-                public void onSuccess(SobotRobotGuess result) {
-                    try {
-                        String originQuestion = result.getOriginQuestion();
-                        String currntContent = getText().toString();
-                        if (currntContent.equals(originQuestion)) {
-                            //只处理当前查询到的返回值
-                            List<SobotRobotGuess.RespInfoListBean> respInfoList = result.getRespInfoList();
-                            showPop(ContainsEmojiEditText.this, respInfoList);
+            ZhiChiInitModeBase initMode = (ZhiChiInitModeBase) SharedPreferencesUtil.getObject(getContext(),
+                    ZhiChiConstant.sobot_last_current_initModel);
+            if (initMode != null && initMode.isAiAgent()) {
+                //Ai
+                zhiChiApi.AiAnswerSuggest(getContext(), mUid, mRobotFlag, s, initMode.getCid(), initMode.getAiAgentCid(), new StringResultCallBack<ArrayList<RespInfoListBean>>() {
+                    @Override
+                    public void onSuccess(ArrayList<RespInfoListBean> list) {
+                        if (getText() != null && SobotStringUtils.isEmpty(getText().toString().trim())) {
+                            //输入框内容为空 就返回并且隐藏弹窗
+                            dismissPop();
+                            return;
                         }
-                    } catch (Exception e) {
-//                        e.printStackTrace();
+                        //只处理当前查询到的返回值
+                        showPop((View) ContainsEmojiEditText.this.getParent(), list);
                     }
-                }
 
-                @Override
-                public void onFailure(Exception e, String des) {
+                    @Override
+                    public void onFailure(Exception e, String des) {
+                        LogUtils.d("des" + des);
+                    }
+                });
+            } else {
+                zhiChiApi.robotGuess(SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG, mUid, mRobotFlag, s, new StringResultCallBack<SobotRobotGuess>() {
+                    @Override
+                    public void onSuccess(SobotRobotGuess result) {
+                        try {
+                            if (getText() != null && SobotStringUtils.isEmpty(getText().toString().trim())) {
+                                //输入框内容为空 就返回并且隐藏弹窗
+                                dismissPop();
+                                return;
+                            }
+                            String originQuestion = result.getOriginQuestion();
+                            String currntContent = getText().toString();
+                            if (currntContent.equals(originQuestion)) {
+                                //只处理当前查询到的返回值
+                                List<RespInfoListBean> respInfoList = result.getRespInfoList();
+                                showPop((View) ContainsEmojiEditText.this.getParent(), respInfoList);
+                            }
+                        } catch (Exception e) {
+//                        e.printStackTrace();
+                        }
+                    }
 
-                }
-            });
+                    @Override
+                    public void onFailure(Exception e, String des) {
+
+                    }
+                });
+            }
         }
     }
 
@@ -154,19 +221,17 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
 
     private class MyWatcher implements TextWatcher {
         public void afterTextChanged(Editable s) {
-            LogUtils.e( "beforeTextChanged: "+s.toString());
-            if (!SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
-                doAfterTextChanged(s.toString());
-            }
+            LogUtils.e("beforeTextChanged: " + s.toString());
+            doAfterTextChanged(s.toString());
         }
 
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 //            doBeforeTextChanged();
-            LogUtils.e( "beforeTextChanged: "+s.toString());
+            //LogUtils.e( "beforeTextChanged: "+s.toString());
         }
 
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            LogUtils.e( "onTextChanged: "+s.toString());
+            // LogUtils.e( "onTextChanged: "+s.toString());
         }
     }
 
@@ -196,12 +261,12 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
         return false;
     }
 
-    private void showPop(final View anchorView, final List<SobotRobotGuess.RespInfoListBean> list) {
+    private void showPop(final View anchorView, final List<RespInfoListBean> list) {
         if (getWindowVisibility() == View.GONE) {
             return;
         }
 
-        if (list == null || list.size() == 0) {
+        if (list == null || list.isEmpty()) {
             dismissPop();
             return;
         }
@@ -217,23 +282,13 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
                     .setWidthMatchParent(true)
                     .create();
         }
-        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) listView.getLayoutParams();
-        mPopWindow.showAsDropDown(anchorView, 0, -(anchorView.getHeight() + params.height));
-
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                mPopWindow.getPopupWindow().update(anchorView, 0, -(anchorView.getHeight() + params.height), mPopWindow.getPopupWindow().getWidth(), params.height);
-            }
-        });
+        int[] location = new int[2];
+        anchorView.getLocationOnScreen(location);
+        mPopWindow.showAtLocation(anchorView, Gravity.NO_GRAVITY, location[0], location[1] - ScreenUtils.dip2px(getContext(), 33) * (list.size() > MAX_AUTO_COMPLETE_NUM ? MAX_AUTO_COMPLETE_NUM : list.size()) - ScreenUtils.dip2px(getContext(), 16+20));
     }
 
-    public int getResId(String name) {
-        return ResourceUtils.getIdByName(getContext(), "id", name);
-    }
-
-    private ListView handleListView(View contentView, final List<SobotRobotGuess.RespInfoListBean> list) {
-        final ListView listView = (ListView) contentView.findViewById(getResId("sobot_lv_menu"));
+    private ListView handleListView(View contentView, final List<RespInfoListBean> list) {
+        final ListView listView = (ListView) contentView.findViewById(R.id.sobot_lv_menu);
         notifyAdapter(listView, list);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -241,9 +296,9 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
                 dismissPop();
                 if (autoCompleteListener != null) {
                     SobotAutoCompelteAdapter adapter = (SobotAutoCompelteAdapter) listView.getAdapter();
-                    List<SobotRobotGuess.RespInfoListBean> datas = adapter.getDatas();
+                    List<RespInfoListBean> datas = adapter.getDatas();
                     if (datas != null && position < datas.size()) {
-                        SobotRobotGuess.RespInfoListBean respInfoListBean = datas.get(position);
+                        RespInfoListBean respInfoListBean = datas.get(position);
                         autoCompleteListener.onRobotGuessComplete(respInfoListBean.getQuestion());
                     }
                 }
@@ -254,15 +309,18 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
 
     }
 
-    private void notifyAdapter(ListView listView, final List<SobotRobotGuess.RespInfoListBean> list) {
+    private void notifyAdapter(ListView listView, final List<RespInfoListBean> list) {
+        if (list == null || listView == null) {
+            return;
+        }
         if (mAdapter == null) {
-            List<SobotRobotGuess.RespInfoListBean> tmpList = new ArrayList<>();
+            List<RespInfoListBean> tmpList = new ArrayList<>();
             tmpList.clear();
             tmpList.addAll(list);
             mAdapter = new SobotAutoCompelteAdapter(getContext(), tmpList);
             listView.setAdapter(mAdapter);
         } else {
-            List<SobotRobotGuess.RespInfoListBean> datas = mAdapter.getDatas();
+            List<RespInfoListBean> datas = mAdapter.getDatas();
             if (datas != null) {
                 datas.clear();
                 datas.addAll(list);
@@ -271,29 +329,18 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
         }
         listView.setSelection(0);
 
-        measureListViewHeight(listView);
+        measureListViewHeight(listView, list.size());
     }
 
-    private void measureListViewHeight(ListView listView) {
-        ListAdapter listAdapter = listView.getAdapter();
-        if (listAdapter == null) {
-            return;
-        }
-        int totalHeight = 0;
-        for (int i = 0; i < Math.min(listAdapter.getCount(), MAX_AUTO_COMPLETE_NUM); i++) {
-            View listItem = listAdapter.getView(i, null, listView);
-            listItem.measure(0, 0);
-            int itemHeight = listItem.getMeasuredHeight();
-            totalHeight += itemHeight;
-        }
-        // 底部分割线的高度
-        int historyHeight = totalHeight
-                + (listView.getDividerHeight() * listAdapter.getCount() - 1);
-        if (listAdapter.getCount() > MAX_AUTO_COMPLETE_NUM) {
-            historyHeight += ScreenUtils.dip2px(getContext(), 10);
+    private void measureListViewHeight(ListView listView, int count) {
+        int listHeight;
+        if (count > MAX_AUTO_COMPLETE_NUM) {
+            listHeight = ScreenUtils.dip2px(getContext(), 33) * MAX_AUTO_COMPLETE_NUM;
+        } else {
+            listHeight = ScreenUtils.dip2px(getContext(), 33) * count;
         }
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) listView.getLayoutParams();
-        params.height = historyHeight;
+        params.height = listHeight;
         listView.setLayoutParams(params);
     }
 
@@ -311,16 +358,16 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
         if (mContentView == null) {
             synchronized (ContainsEmojiEditText.class) {
                 if (mContentView == null) {
-                    mContentView = LayoutInflater.from(getContext()).inflate(ResourceUtils.getIdByName(getContext(), "layout", LAYOUT_CONTENT_VIEW_LAYOUT_RES_NAME), null);
+                    mContentView = LayoutInflater.from(getContext()).inflate(R.layout.sobot_layout_auto_complete, null);
                 }
             }
         }
         return mContentView;
     }
 
-    private static class SobotAutoCompelteAdapter extends SobotBaseAdapter<SobotRobotGuess.RespInfoListBean> {
+    private static class SobotAutoCompelteAdapter extends SobotBaseAdapter<RespInfoListBean> {
 
-        private SobotAutoCompelteAdapter(Context context, List<SobotRobotGuess.RespInfoListBean> list) {
+        private SobotAutoCompelteAdapter(Context context, List<RespInfoListBean> list) {
             super(context, list);
         }
 
@@ -328,13 +375,13 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
         public View getView(int position, View convertView, ViewGroup viewGroup) {
             final ViewHolder holder;
             if (convertView == null) {
-                convertView = View.inflate(context, ResourceUtils.getIdByName(context, "layout", LAYOUT_AUTOCOMPELTE_ITEM), null);
+                convertView = View.inflate(context, R.layout.sobot_item_auto_complete_menu, null);
                 holder = new ViewHolder(context, convertView);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-            SobotRobotGuess.RespInfoListBean child = list.get(position);
+            RespInfoListBean child = list.get(position);
             if (child != null && !TextUtils.isEmpty(child.getHighlight())) {
                 holder.sobot_child_menu.setText(Html.fromHtml(child.getHighlight()));
             } else {
@@ -347,7 +394,7 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
             private TextView sobot_child_menu;
 
             private ViewHolder(Context context, View view) {
-                sobot_child_menu = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_child_menu"));
+                sobot_child_menu = (TextView) view.findViewById(R.id.sobot_child_menu);
             }
         }
     }
@@ -357,6 +404,8 @@ public class ContainsEmojiEditText extends EditText implements View.OnFocusChang
         if (!mIsAutoComplete) {
             HttpUtils.getInstance().cancelTag(SOBOT_AUTO_COMPLETE_REQUEST_CANCEL_TAG);
             dismissPop();
+        } else {
+            initEditText();
         }
     }
 

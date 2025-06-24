@@ -17,8 +17,6 @@ package com.sobot.chat.widget.emoji;
 
 import android.content.Context;
 
-import com.sobot.chat.utils.ResourceUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -185,7 +183,7 @@ public enum DisplayRules {
         if (sEmojiMap == null) {
             sEmojiMap = new HashMap<String, Integer>();
             for (DisplayRules data : values()) {
-                int drawableId = ResourceUtils.getIdByName(context, "drawable",
+                int drawableId = getIdByName(context, "drawable",
                         data.getResName());
                 if(drawableId != 0){
                     sEmojiMap.put(data.getEmojiStr(), drawableId);
@@ -199,7 +197,7 @@ public enum DisplayRules {
         context = context.getApplicationContext();
         ArrayList<Emojicon> sEmojiList = new ArrayList<>();
         for (DisplayRules data : values()) {
-            int drawableId = ResourceUtils.getIdByName(context, "drawable",
+            int drawableId = getIdByName(context, "drawable",
                     data.getResName());
             if(drawableId != 0){
                 sEmojiList.add(new Emojicon(data.getResName(),data.getValue(),data.getEmojiStr(),data
@@ -207,5 +205,13 @@ public enum DisplayRules {
             }
         }
         return sEmojiList;
+    }
+    public static int getIdByName(Context context, String className,
+                                  String resName) {
+        context = context.getApplicationContext();
+        String packageName = context.getPackageName();
+        int indentify = context.getResources().getIdentifier(resName,
+                className, packageName);
+        return indentify;
     }
 }

@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
-import androidx.annotation.StyleRes;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -13,7 +12,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.sobot.chat.utils.ResourceUtils;
+import androidx.annotation.StyleRes;
+
+import com.sobot.chat.R;
 import com.sobot.chat.widget.kpswitch.util.KeyboardUtil;
 
 /**
@@ -28,7 +29,7 @@ public abstract class SobotActionSheet extends Dialog {
 
     public SobotActionSheet(Activity context) {
         // 给Dialog的Window设置样式
-        this(context, ResourceUtils.getIdByName(context, "style", "sobot_clearHistoryDialogStyle"));
+        this(context, R.style.sobot_clearHistoryDialogStyle);
 
     }
 
@@ -73,8 +74,7 @@ public abstract class SobotActionSheet extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceUtils.getIdByName(getContext(), "layout",
-                getLayoutStrName()));
+        setContentView(getLayoutId());
         initView();
         sobot_container = getDialogContainer();
         sobot_container.measure(0,0);
@@ -85,7 +85,7 @@ public abstract class SobotActionSheet extends Dialog {
      * 获取dialog布局
      * @return
      */
-    protected abstract String getLayoutStrName();
+    protected abstract int getLayoutId();
 
 
     /**
@@ -110,27 +110,6 @@ public abstract class SobotActionSheet extends Dialog {
         DisplayMetrics dm = new DisplayMetrics();
         activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
         return dm.heightPixels;
-    }
-
-    public int getResId(String name) {
-        return ResourceUtils.getIdByName(getContext(), "id", name);
-    }
-
-    public int getResDrawableId(String name) {
-        return ResourceUtils.getIdByName(getContext(), "drawable", name);
-    }
-
-    public int getResLayoutId(String name) {
-        return ResourceUtils.getIdByName(getContext(), "layout", name);
-    }
-
-    public int getResStringId(String name) {
-        return ResourceUtils.getIdByName(getContext(), "string", name);
-    }
-
-    public String getResString(String name){
-        return  ResourceUtils.getResString(getContext(),name);
-//        return getContext().getResources().getString(getResStringId(name));
     }
 
     @Override

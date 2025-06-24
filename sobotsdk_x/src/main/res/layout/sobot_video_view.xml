@@ -24,10 +24,10 @@
 
         <ImageView
             android:id="@+id/iv_back"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_margin="16dp"
-            android:src="@drawable/sobot_ic_back2"
+            android:src="@drawable/sobot_icon_close"
             android:visibility="gone" />
 
     </LinearLayout>
@@ -45,21 +45,19 @@
             android:layout_width="20dp"
             android:layout_height="40dp"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="6dp"
+            android:layout_marginStart="6dp"
             android:background="@android:color/transparent"
-            android:scaleType="fitCenter"
-            android:layout_marginStart="6dp" />
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/st_currentTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
             android:text="0:00"
-            android:textColor="@color/sobot_common_white"
-            android:textSize="12sp"
-            android:layout_marginStart="5dp" />
+            android:textColor="@color/sobot_color_white"
+            android:textSize="@dimen/sobot_text_font_12" />
 
         <SeekBar
             android:id="@+id/st_seekbar"
@@ -78,11 +76,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="6dp"
+            android:layout_marginEnd="6dp"
             android:text="0:00"
-            android:textColor="@color/sobot_common_white"
-            android:textSize="12sp"
-            android:layout_marginEnd="6dp" />
+            android:textColor="@color/sobot_color_white"
+            android:textSize="@dimen/sobot_text_font_12" />
 
     </LinearLayout>
 

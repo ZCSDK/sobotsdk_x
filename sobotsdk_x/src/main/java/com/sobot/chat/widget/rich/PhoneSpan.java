@@ -16,7 +16,11 @@ public class PhoneSpan extends ClickableSpan {
 
     public PhoneSpan(Context context, String phone, int color) {
         this.phone = phone;
-        this.color = context.getResources().getColor(color);
+        try {
+            this.color = context.getResources().getColor(color);
+        } catch (Exception e) {
+            this.color = color;
+        }
         this.context = context;
     }
 

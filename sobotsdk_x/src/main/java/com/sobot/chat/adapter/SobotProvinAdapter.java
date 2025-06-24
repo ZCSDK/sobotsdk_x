@@ -3,6 +3,7 @@ package com.sobot.chat.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -10,12 +11,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.api.model.SobotProvinInfo;
 import com.sobot.chat.notchlib.INotchScreen;
 import com.sobot.chat.notchlib.NotchScreenManager;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.utils.ThemeUtils;
 
 import java.util.List;
 
@@ -37,7 +39,7 @@ public class SobotProvinAdapter extends SobotBaseAdapter<SobotProvinInfo.SobotPr
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = View.inflate(mContext, ResourceUtils.getIdByName(mContext, "layout", "sobot_activity_post_category_items"), null);
+            convertView = View.inflate(mContext, R.layout.sobot_activity_post_category_items, null);
             myViewHolder = new SobotProvinAdapter.ViewHolder(mActivity, mContext, convertView);
             convertView.setTag(myViewHolder);
         } else {
@@ -45,15 +47,6 @@ public class SobotProvinAdapter extends SobotBaseAdapter<SobotProvinInfo.SobotPr
         }
         myViewHolder.bindData(list.get(position));
 
-        if (list.size() >= 2) {
-            if (position == list.size() - 1) {
-                myViewHolder.work_order_category_line.setVisibility(View.GONE);
-            } else {
-                myViewHolder.work_order_category_line.setVisibility(View.VISIBLE);
-            }
-        } else {
-            myViewHolder.work_order_category_line.setVisibility(View.GONE);
-        }
 
         return convertView;
     }
@@ -61,17 +54,16 @@ public class SobotProvinAdapter extends SobotBaseAdapter<SobotProvinInfo.SobotPr
     static class ViewHolder {
         private TextView categoryTitle;
         private ImageView categoryIshave;
-        private View work_order_category_line;
         private Context mContext;
         private Activity mActivity;
 
         ViewHolder(Activity activity, Context context, View view) {
             mActivity = activity;
             mContext = context;
-            categoryTitle = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_category_title"));
-            categoryIshave = (ImageView) view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_category_ishave"));
-            work_order_category_line = view.findViewById(ResourceUtils.getIdByName(context, "id", "work_order_category_line"));
+            categoryTitle = (TextView) view.findViewById(R.id.work_order_category_title);
+            categoryIshave = (ImageView) view.findViewById(R.id.work_order_category_ishave);
             displayInNotch(categoryTitle);
+
         }
 
         void bindData(SobotProvinInfo.SobotProvinceModel data) {
@@ -92,7 +84,7 @@ public class SobotProvinAdapter extends SobotBaseAdapter<SobotProvinInfo.SobotPr
 
             if (data.nodeFlag) {
                 categoryIshave.setVisibility(View.VISIBLE);
-                categoryIshave.setBackgroundResource(ResourceUtils.getIdByName(mContext, "drawable", "sobot_right_arrow_icon"));
+                categoryIshave.setImageResource(R.drawable.sobot_right_arrow_icon);
             } else {
                 categoryIshave.setVisibility(View.GONE);
             }
@@ -100,14 +92,20 @@ public class SobotProvinAdapter extends SobotBaseAdapter<SobotProvinInfo.SobotPr
 
             if (data.isChecked) {
                 categoryIshave.setVisibility(View.VISIBLE);
-                categoryIshave.setBackgroundResource(ResourceUtils.getIdByName(mContext, "drawable", "sobot_work_order_selected_mark"));
+                if (ThemeUtils.isChangedThemeColor(mActivity)) {
+                    int themeColor = ThemeUtils.getThemeColor(mActivity);
+                    Drawable bg = mActivity.getResources().getDrawable(R.drawable.sobot_cur_selected);
+                    if (bg != null) {
+                        categoryIshave.setImageDrawable(ThemeUtils.applyColorToDrawable(bg, themeColor));
+                    }
+                }
             }
 
 
         }
 
         public void displayInNotch(final View view) {
-            if (SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
+            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
                 // 支持显示到刘海区域
                 NotchScreenManager.getInstance().setDisplayInNotch(mActivity);
                 // 设置Activity全屏

@@ -1,14 +1,13 @@
 package com.sobot.chat.widget;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseBooleanArray;
@@ -18,13 +17,19 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.sobot.chat.R;
+import com.sobot.chat.api.model.ZhiChiInitModeBase;
 import com.sobot.chat.utils.HtmlTools;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.utils.ScreenUtils;
+import com.sobot.chat.utils.SharedPreferencesUtil;
+import com.sobot.chat.utils.ZhiChiConstant;
 
 /**
  * 可以展开的textView
@@ -43,13 +48,12 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
     /* The default alpha value when the animation starts */
     private static final float DEFAULT_ANIM_ALPHA_START = 1f;
 
-    protected TextView mTv;
+    protected TextView contentText;
 
-    protected ViewGroup mButton; // Button to expand/collapse
-    protected ImageView mImageView;//图片
-    protected TextView mTextBtn;//文本
-    protected ViewGroup mOtherView;
-    protected int otherViewHeight=0;
+    protected ViewGroup mButton; // 展开按钮的父类
+    protected TextView expand_text_btn;//展开按钮
+    protected ViewGroup mOtherView;//文件列表
+    protected int otherViewHeight = 0;
 
     private boolean mRelayout;
 
@@ -108,7 +112,9 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
         }
         super.setOrientation(orientation);
     }
-
+    public boolean ismCollapsed(){
+        return mCollapsed;
+    }
     @Override
     public void onClick(View view) {
         if (mButton.getVisibility() != View.VISIBLE) {
@@ -131,28 +137,29 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
         if (mCollapsed) {
             // notify the listener
             if (mListener != null) {
-                mListener.onExpandStateChanged(mTv, false);
+                mListener.onExpandStateChanged(contentText, false);
             }
             animation = new ExpandCollapseAnimation(this, getHeight(), mCollapsedHeight);
         } else {
             // notify the listener
             if (mListener != null) {
-                mListener.onExpandStateChanged(mTv, true);
+                mListener.onExpandStateChanged(contentText, true);
             }
 
 
-            if (otherViewHeight==0&&mOtherView!=null){
-                otherViewHeight=mOtherView.getMeasuredHeight();
+            if (otherViewHeight == 0 && mOtherView != null) {
+                otherViewHeight = mOtherView.getMeasuredHeight();
             }
-            animation = new ExpandCollapseAnimation(this, getHeight(), getHeight() +otherViewHeight+
-                    mTextHeightWithMaxLines - mTv.getHeight());
+
+            animation = new ExpandCollapseAnimation(this, getHeight(), getHeight() + otherViewHeight +
+                    mTextHeightWithMaxLines - contentText.getHeight() );
         }
 
         animation.setFillAfter(true);
         animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-                applyAlphaAnimation(mTv, mAnimAlphaStart);
+                applyAlphaAnimation(contentText, mAnimAlphaStart);
             }
 
             @Override
@@ -164,7 +171,7 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
 
                 // notify the listener
                 if (mListener != null) {
-                    mListener.onExpandStateChanged(mTv, !mCollapsed);
+                    mListener.onExpandStateChanged(contentText, !mCollapsed);
                 }
             }
 
@@ -202,24 +209,26 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
         // Setup with optimistic case
         // i.e. Everything fits. No button needed
         mButton.setVisibility(View.GONE);
-        mTv.setMaxLines(Integer.MAX_VALUE);
+        contentText.setMaxLines(Integer.MAX_VALUE);
+        contentText.setEllipsize(TextUtils.TruncateAt.END);
         setOtherViewVisibility(VISIBLE);
 
         // Measure
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         // If the text fits in collapsed mode, we are done.
-        if (mTv.getLineCount() <= mMaxCollapsedLines&&!haveFile) {
+        if (contentText.getLineCount() <= mMaxCollapsedLines && !haveFile) {
             return;
         }
 
         // Saves the text height w/ max lines
-        mTextHeightWithMaxLines = getRealTextViewHeight(mTv);
+        mTextHeightWithMaxLines = getRealTextViewHeight(contentText);
 
         // Doesn't fit in collapsed mode. Collapse text view as needed. Show
         // button.
         if (mCollapsed) {
-            mTv.setMaxLines(mMaxCollapsedLines);
+            contentText.setMaxLines(mMaxCollapsedLines);
+            contentText.setEllipsize(TextUtils.TruncateAt.END);
             setOtherViewVisibility(GONE);
         }
         mButton.setVisibility(View.VISIBLE);
@@ -229,10 +238,10 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
 
         if (mCollapsed) {
             // Gets the margin between the TextView's bottom and the ViewGroup's bottom
-            mTv.post(new Runnable() {
+            contentText.post(new Runnable() {
                 @Override
                 public void run() {
-                    mMarginBetweenTxtAndBottom = getHeight() - mTv.getHeight();
+                    mMarginBetweenTxtAndBottom = getHeight() - contentText.getHeight();
                 }
             });
             // Saves the collapsed height of this ViewGroup
@@ -241,7 +250,7 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
     }
 
     private void setOtherViewVisibility(int visible) {
-        if (mOtherView!=null){
+        if (mOtherView != null) {
             mOtherView.setVisibility(visible);
         }
     }
@@ -250,13 +259,29 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
         mListener = listener;
     }
 
+    @SuppressLint("ResourceAsColor")
     public void setText(@Nullable CharSequence text) {
         mRelayout = true;
 //        mTv.setText(text);
         if (TextUtils.isEmpty(text)) {
-            mTv.setText("");
+            contentText.setText("");
         } else {
-            HtmlTools.getInstance(getContext()).setRichText(mTv, text.toString(), ResourceUtils.getResColorId(getContext(), "sobot_announcement_title_color_2"), linkBottomLine);
+            try {
+                int color = R.color.sobot_announcement_link_color;
+                if (getContext().getResources().getColor(R.color.sobot_announcement_link_color) == getContext().getResources().getColor(R.color.sobot_common_hese)) {
+                    ZhiChiInitModeBase initMode = (ZhiChiInitModeBase) SharedPreferencesUtil.getObject(getContext(),
+                            ZhiChiConstant.sobot_last_current_initModel);
+                    if (initMode != null && initMode.getVisitorScheme() != null) {
+                        //服务端返回的可点击链接颜色
+                        if (!TextUtils.isEmpty(initMode.getVisitorScheme().getMsgClickColor())) {
+                            color = Color.parseColor(initMode.getVisitorScheme().getMsgClickColor());
+                        }
+                    }
+                }
+                HtmlTools.getInstance(getContext()).setRichText(contentText, text.toString(), color, linkBottomLine);
+            } catch (Exception e) {
+                HtmlTools.getInstance(getContext()).setRichText(contentText, text.toString(), R.color.sobot_announcement_link_color, linkBottomLine);
+            }
         }
         setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
     }
@@ -276,10 +301,10 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
 
     @Nullable
     public CharSequence getText() {
-        if (mTv == null) {
+        if (contentText == null) {
             return "";
         }
-        return mTv.getText();
+        return contentText.getText();
     }
 
     private void init(AttributeSet attrs) {
@@ -290,8 +315,6 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
 
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.sobot_ExpandableTextView);
         mMaxCollapsedLines = typedArray.getInt(R.styleable.sobot_ExpandableTextView_sobot_maxCollapsedLines, MAX_COLLAPSED_LINES);
-        mExpandStrResId = typedArray.getResourceId(R.styleable.sobot_ExpandableTextView_sobot_ExpandStrResId, ResourceUtils.getDrawableId(getContext(), "sobot_icon_triangle_down"));
-        mCollapseStrResId = typedArray.getResourceId(R.styleable.sobot_ExpandableTextView_sobot_CollapseStrResId, ResourceUtils.getDrawableId(getContext(), "sobot_icon_triangle_up"));
 //        mAnimationDuration = typedArray.getInt(R.styleable.ExpandableTextView_animDuration, DEFAULT_ANIM_DURATION);
 //        mAnimAlphaStart = typedArray.getFloat(R.styleable.ExpandableTextView_animAlphaStart, DEFAULT_ANIM_ALPHA_START);
 //        mExpandDrawable = typedArray.getDrawable(R.styleable.ExpandableTextView_expandDrawable);
@@ -317,13 +340,12 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
 
 
     private void findViews() {
-        mTv = (TextView) findViewById(ResourceUtils.getResId(getContext(), "expandable_text"));
+        contentText = (TextView) findViewById(R.id.expandable_text);
 //        mTv.setOnClickListener(this);
-        mButton = (ViewGroup) findViewById(ResourceUtils.getResId(getContext(), "expand_collapse"));
-        mImageView = findViewById(ResourceUtils.getResId(getContext(), "expand_image"));
-        mTextBtn = findViewById(ResourceUtils.getResId(getContext(), "expand_text_btn"));
+        mButton = (ViewGroup) findViewById(R.id.expand_collapse);
+        expand_text_btn = findViewById(R.id.expand_text_btn);
 //        mButton.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
-        mOtherView =(ViewGroup) findViewById(ResourceUtils.getResId(getContext(), "expand_other_groupView"));
+        mOtherView = (ViewGroup) findViewById(R.id.expand_other_groupView);
         setupExpandCollapse();
         mButton.setOnClickListener(this);
 
@@ -381,9 +403,9 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
         @Override
         protected void applyTransformation(float interpolatedTime, Transformation t) {
             final int newHeight = (int) ((mEndHeight - mStartHeight) * interpolatedTime + mStartHeight);
-            mTv.setMaxHeight(newHeight - mMarginBetweenTxtAndBottom);
+            contentText.setMaxHeight(newHeight - mMarginBetweenTxtAndBottom);
             if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
-                applyAlphaAnimation(mTv, mAnimAlphaStart + interpolatedTime * (1.0f - mAnimAlphaStart));
+                applyAlphaAnimation(contentText, mAnimAlphaStart + interpolatedTime * (1.0f - mAnimAlphaStart));
             }
             mTargetView.getLayoutParams().height = newHeight;
             mTargetView.requestLayout();
@@ -412,10 +434,11 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
 
     private void setupExpandCollapse() {
 //        setText(mTv.getText().toString());
-        mImageView.setSelected(!mCollapsed);
-        mImageView.setImageResource(mCollapsed ? mExpandStrResId : mCollapseStrResId);
-        if (mOtherView!=null) {
+        if (mOtherView != null) {
             mOtherView.setVisibility(mCollapsed ? GONE : VISIBLE);
+            if (otherViewHeight > 0) {
+                mOtherView.setVisibility(GONE);
+            }
         }
     }
 
@@ -423,16 +446,17 @@ public class StExpandableTextView extends LinearLayout implements View.OnClickLi
         this.linkBottomLine = linkBottomLine;
     }
 
-    public ImageView getImageView() {
-        return mImageView;
-    }
 
     public ViewGroup getmOtherView() {
         return mOtherView;
     }
 
+    public TextView getTextView() {
+        return contentText;
+    }
+
     public TextView getTextBtn() {
-        return mTextBtn;
+        return expand_text_btn;
     }
 
     public void setHaveFile(boolean haveFile) {

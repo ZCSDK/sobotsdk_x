@@ -58,7 +58,7 @@ public class HorizontalGridPage extends LinearLayout {
         indicatorView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         indicatorView.initIndicator(grid[1]);
         gridView.setIndicator(indicatorView);
-        gridView.addItemDecoration(new SpaceItemDecoration(0, dip2px(builder.getSpace())));//设置间距
+        gridView.addItemDecoration(new GridSpaceItemDecoration(0, dip2px(builder.getSpace())));//设置间距
         PagerGridLayoutManager layoutManager = new PagerGridLayoutManager(grid[0], grid[1], PagerGridLayoutManager
                 .HORIZONTAL);
         layoutManager.setAllowContinuousScroll(false);

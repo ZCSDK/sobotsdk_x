@@ -2,7 +2,6 @@ package com.sobot.chat.viewHolder;
 
 import android.content.Context;
 import android.content.Intent;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -11,36 +10,32 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.sobot.chat.R;
 import com.sobot.chat.activity.WebViewActivity;
 import com.sobot.chat.api.model.SobotMultiDiaRespInfo;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
-import com.sobot.chat.listener.NoDoubleClickListener;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.HtmlTools;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.SharedPreferencesUtil;
 import com.sobot.chat.utils.SobotOption;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.utils.ThemeUtils;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 import com.sobot.chat.widget.horizontalgridpage.HorizontalGridPage;
 import com.sobot.chat.widget.horizontalgridpage.PageBuilder;
 import com.sobot.chat.widget.horizontalgridpage.PageCallBack;
 import com.sobot.chat.widget.horizontalgridpage.PageGridAdapter;
-import com.sobot.chat.widget.image.SobotRCImageView;
-import com.sobot.pictureframe.SobotBitmapUtil;
+import com.sobot.chat.widget.image.SobotProgressImageView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RobotTemplateMessageHolder1 extends MessageHolderBase {
+public class RobotTemplateMessageHolder1 extends MsgHolderBase {
 
     private TextView tv_title;
-    private LinearLayout sobot_ll_content;
-
-    private LinearLayout sobot_ll_transferBtn;//只包含转人工按钮
-    private TextView sobot_tv_transferBtn;//机器人转人工按钮
-
     private PageGridAdapter adapter;
     private HorizontalGridPage pageView;
     private Context mContext;
@@ -50,12 +45,8 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
 
     public RobotTemplateMessageHolder1(Context context, View convertView) {
         super(context, convertView);
-        tv_title = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot__template1_msg"));
-        sobot_ll_content = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_content"));
-        pageView = (HorizontalGridPage) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "pageView"));
-        sobot_ll_transferBtn = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_transferBtn"));
-        sobot_tv_transferBtn = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_transferBtn"));
-        sobot_tv_transferBtn.setText(ResourceUtils.getResString(context,"sobot_transfer_to_customer_service"));
+        tv_title = (TextView) convertView.findViewById(R.id.sobot_template1_msg);
+        pageView = (HorizontalGridPage) convertView.findViewById(R.id.pageView);
         this.mContext = context;
     }
 
@@ -68,21 +59,21 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
         pageBuilder = new PageBuilder.Builder()
                 .setGrid(row, column)//设置网格
                 .setPageMargin(0)//页面边距
-                .setIndicatorMargins(5, 10, 5, 10)//设置指示器间隔
-                .setIndicatorSize(10)//设置指示器大小
+                .setIndicatorMargins(4, 4, 4, 4)//设置指示器间隔
+                .setIndicatorSize(6)//设置指示器大小
                 .setIndicatorRes(android.R.drawable.presence_invisible,
                         android.R.drawable.presence_online)//设置指示器图片资源
                 .setIndicatorGravity(Gravity.CENTER)//设置指示器位置
                 .setSwipePercent(40)//设置翻页滑动距离百分比（1-100）
                 .setShowIndicator(true)//设置显示指示器
-                .setSpace(5)//设置间距
-                .setItemHeight(ScreenUtils.dip2px(mContext, 125))
+                .setSpace(0)//设置间距
+                .setItemHeight(ScreenUtils.dip2px(mContext, 130))
                 .build();
 
         adapter = new PageGridAdapter<>(new PageCallBack() {
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext()).inflate(ResourceUtils.getResLayoutId(parent.getContext(), "sobot_chat_msg_item_template1_item_l"), parent, false);
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.sobot_chat_msg_item_template1_item_l, parent, false);
                 return new Template1ViewHolder(view, parent.getContext());
             }
 
@@ -90,27 +81,44 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
             public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
                 //注意：因为data经过转换，所以此处不能使用data.get(position)而要使用adapter.getData().get(position)
                 Map<String, String> interfaceRet = (Map<String, String>) adapter.getData().get(position);
-
+                Template1ViewHolder viewHolder = (Template1ViewHolder) holder;
                 if (!TextUtils.isEmpty(interfaceRet.get("thumbnail"))) {
-                    ((Template1ViewHolder) holder).sobotThumbnail.setVisibility(View.VISIBLE);
-                    ((Template1ViewHolder) holder).sobotSummary.setMaxLines(1);
-                    ((Template1ViewHolder) holder).sobotSummary.setEllipsize(TextUtils.TruncateAt.END);
-                    SobotBitmapUtil.display(mContext, interfaceRet.get("thumbnail"), ((Template1ViewHolder) holder).sobotThumbnail, ResourceUtils.getDrawableId(mContext, "sobot_bg_default_pic_img"), ResourceUtils.getDrawableId(mContext, "sobot_bg_default_pic_img"));
-
+                    viewHolder.sobotThumbnail.setVisibility(View.VISIBLE);
+                    viewHolder.sobotSummary.setMaxLines(1);
+                    viewHolder.sobotSummary.setEllipsize(TextUtils.TruncateAt.END);
+                    viewHolder.sobotThumbnail.setImageUrl(interfaceRet.get("thumbnail"));
                 } else {
-                    ((Template1ViewHolder) holder).sobotThumbnail.setVisibility(View.GONE);
+                    viewHolder.sobotThumbnail.setVisibility(View.GONE);
                 }
 
-                ((Template1ViewHolder) holder).sobotTitle.setText(interfaceRet.get("title"));
-                ((Template1ViewHolder) holder).sobotSummary.setText(interfaceRet.get("summary"));
-                ((Template1ViewHolder) holder).sobotLable.setText(interfaceRet.get("label"));
-                ((Template1ViewHolder) holder).sobotOtherLable.setText(interfaceRet.get("tag"));
+                viewHolder.sobotTitle.setText(interfaceRet.get("title"));
+                viewHolder.sobotSummary.setText(interfaceRet.get("summary"));
+                viewHolder.sobotLable.setText(interfaceRet.get("label"));
+                viewHolder.sobotOtherLable.setText(interfaceRet.get("tag"));
 
                 if (!TextUtils.isEmpty(interfaceRet.get("label"))) {
-                    ((Template1ViewHolder) holder).sobotLable.setVisibility(View.VISIBLE);
+                    viewHolder.sobotLable.setVisibility(View.VISIBLE);
+                    viewHolder.sobotLable.setTextColor(ThemeUtils.getThemeColor(mContext));
                 } else {
-                    ((Template1ViewHolder) holder).sobotLable.setVisibility(View.GONE);
+                    viewHolder.sobotLable.setVisibility(View.GONE);
                 }
+//                // 测量 TextView 的宽度
+//                viewHolder.sobotLable.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+//                int labelWidth = viewHolder.sobotLable.getMeasuredWidth();
+//
+//                viewHolder.sobotOtherLable.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+//                int otherFlagWidth = viewHolder.sobotOtherLable.getMeasuredWidth();
+//
+//                // 获取容器的宽度
+//                viewHolder.sobot_ll_lable.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+//                int containerWidth = viewHolder.sobot_ll_lable.getMeasuredWidth();
+//
+//                // 如果两个 TextView 的总宽度超过容器宽度，则将方向改为垂直
+//                if (labelWidth + otherFlagWidth > containerWidth) {
+//                    viewHolder.sobot_ll_lable.setOrientation(LinearLayout.VERTICAL);
+//                } else {
+//                    viewHolder.sobot_ll_lable.setOrientation(LinearLayout.HORIZONTAL);
+//                }
             }
 
             @Override
@@ -139,7 +147,7 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
                 if (mMultiDiaRespInfo.getEndFlag() && !TextUtils.isEmpty(mInterfaceRet.get("anchor"))) {
                     if (SobotOption.newHyperlinkListener != null) {
                         //如果返回true,拦截;false 不拦截
-                        boolean isIntercept = SobotOption.newHyperlinkListener.onUrlClick(mContext,mInterfaceRet.get("anchor"));
+                        boolean isIntercept = SobotOption.newHyperlinkListener.onUrlClick(mContext, mInterfaceRet.get("anchor"));
                         if (isIntercept) {
                             return;
                         }
@@ -157,6 +165,7 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
 
             }
         });
+        pageView.setLayoutParams(new LinearLayout.LayoutParams(msgCardWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
         pageView.init(pageBuilder, message.getCurrentPageNum());
         adapter.init(pageBuilder);
         pageView.setAdapter(adapter, message);
@@ -171,13 +180,13 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
             String msgStr = ChatUtils.getMultiMsgTitle(multiDiaRespInfo);
             if (!TextUtils.isEmpty(msgStr)) {
                 HtmlTools.getInstance(context).setRichText(tv_title, msgStr.replaceAll("\n", "<br/>"), getLinkTextColor());
-                sobot_ll_content.setVisibility(View.VISIBLE);
+                tv_title.setVisibility(View.VISIBLE);
             } else {
-                sobot_ll_content.setVisibility(View.INVISIBLE);
+                tv_title.setVisibility(View.INVISIBLE);
             }
-            checkShowTransferBtn();
             final List<Map<String, String>> interfaceRetList = multiDiaRespInfo.getInterfaceRetList();
             if ("000000".equals(multiDiaRespInfo.getRetCode()) && interfaceRetList != null && interfaceRetList.size() > 0) {
+                resetMaxWidth();
                 pageView.setVisibility(View.VISIBLE);
                 if (interfaceRetList.size() >= 3) {
                     initView(3, 1);
@@ -190,12 +199,16 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
                 pageView.setVisibility(View.GONE);
             }
         }
-
-        applyTextViewUIConfig(tv_title);
-
-        refreshRevaluateItem();//左侧消息刷新顶和踩布局
+        refreshItem();//左侧消息刷新顶和踩布局
+        checkShowTransferBtn();//检查转人工逻辑
+        //关联问题显示逻辑
+        if (message != null && message.getSugguestions() != null && message.getSugguestions().length > 0) {
+            resetAnswersList();
+        } else {
+            hideAnswers();
+        }
         pageView.selectCurrentItem();
-
+        refreshReadStatus();
     }
 
 
@@ -204,8 +217,8 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
      */
     class Template1ViewHolder extends RecyclerView.ViewHolder {
 
-        LinearLayout sobotLayout;
-        SobotRCImageView sobotThumbnail;
+        LinearLayout sobotLayout,sobot_ll_lable;
+        SobotProgressImageView sobotThumbnail;
         TextView sobotTitle;
         TextView sobotSummary;
         TextView sobotLable;
@@ -214,162 +227,14 @@ public class RobotTemplateMessageHolder1 extends MessageHolderBase {
 
         public Template1ViewHolder(View convertView, Context context) {
             super(convertView);
-            sobotLayout = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item_"));
-            sobotThumbnail = (SobotRCImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item_thumbnail"));
-            sobotTitle = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item_title"));
-            sobotSummary = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item_summary"));
-            sobotLable = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item_lable"));
-            sobotOtherLable = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item_other_flag"));
+            sobotLayout = (LinearLayout) convertView.findViewById(R.id.sobot_template1_item_);
+            sobot_ll_lable = (LinearLayout) convertView.findViewById(R.id.sobot_ll_lable);
+            sobotThumbnail = (SobotProgressImageView) convertView.findViewById(R.id.sobot_template1_item_thumbnail);
+            sobotTitle = (TextView) convertView.findViewById(R.id.sobot_template1_item_title);
+            sobotSummary = (TextView) convertView.findViewById(R.id.sobot_template1_item_summary);
+            sobotLable = (TextView) convertView.findViewById(R.id.sobot_template1_item_lable);
+            sobotOtherLable = (TextView) convertView.findViewById(R.id.sobot_template1_item_other_flag);
         }
-    }
-
-    private void checkShowTransferBtn() {
-        if (message.getTransferType() == 4) {
-            //4 多次命中 显示转人工
-            showTransferBtn();
-        } else {
-            //隐藏转人工
-            hideTransferBtn();
-        }
-    }
-
-
-    /**
-     * 隐藏转人工按钮
-     */
-    public void hideTransferBtn() {
-        sobot_ll_transferBtn.setVisibility(View.GONE);
-        sobot_tv_transferBtn.setVisibility(View.GONE);
-        if (message != null) {
-            message.setShowTransferBtn(false);
-        }
-    }
-
-    /**
-     * 显示转人工按钮
-     */
-    public void showTransferBtn() {
-        sobot_tv_transferBtn.setVisibility(View.VISIBLE);
-        sobot_ll_transferBtn.setVisibility(View.VISIBLE);
-        if (message != null) {
-            message.setShowTransferBtn(true);
-        }
-        sobot_ll_transferBtn.setOnClickListener(new NoDoubleClickListener() {
-
-            @Override
-            public void onNoDoubleClick(View v) {
-                if (msgCallBack != null) {
-                    msgCallBack.doClickTransferBtn(message);
-                }
-            }
-        });
-    }
-
-    public void refreshRevaluateItem() {
-        if (message == null) {
-            return;
-        }
-        //找不到顶和踩就返回
-        if (sobot_tv_likeBtn == null ||
-                sobot_tv_dislikeBtn == null ||
-                sobot_ll_likeBtn == null ||
-                sobot_ll_dislikeBtn == null) {
-            return;
-        }
-        //顶 踩的状态 0 不显示顶踩按钮  1显示顶踩 按钮  2 显示顶之后的view  3显示踩之后view
-        switch (message.getRevaluateState()) {
-            case 1:
-                showRevaluateBtn();
-                break;
-            case 2:
-                showLikeWordView();
-                break;
-            case 3:
-                showDislikeWordView();
-                break;
-            default:
-                hideRevaluateBtn();
-                break;
-        }
-    }
-
-    /**
-     * 显示 顶踩 按钮
-     */
-    public void showRevaluateBtn() {
-        sobot_tv_likeBtn.setVisibility(View.VISIBLE);
-        sobot_tv_dislikeBtn.setVisibility(View.VISIBLE);
-        sobot_ll_likeBtn.setVisibility(View.VISIBLE);
-        sobot_ll_dislikeBtn.setVisibility(View.VISIBLE);
-        rightEmptyRL.setVisibility(View.VISIBLE);
-        sobot_tv_likeBtn.setEnabled(true);
-        sobot_tv_dislikeBtn.setEnabled(true);
-        sobot_tv_likeBtn.setSelected(false);
-        sobot_tv_dislikeBtn.setSelected(false);
-        sobot_tv_likeBtn.setOnClickListener(new NoDoubleClickListener() {
-            @Override
-            public void onNoDoubleClick(View v) {
-                doRevaluate(true);
-            }
-        });
-        sobot_tv_dislikeBtn.setOnClickListener(new NoDoubleClickListener() {
-            @Override
-            public void onNoDoubleClick(View v) {
-                doRevaluate(false);
-            }
-        });
-    }
-
-    /**
-     * 顶踩 操作
-     *
-     * @param revaluateFlag true 顶  false 踩
-     */
-    private void doRevaluate(boolean revaluateFlag) {
-        if (msgCallBack != null && message != null) {
-            msgCallBack.doRevaluate(revaluateFlag, message);
-        }
-    }
-
-    /**
-     * 隐藏 顶踩 按钮
-     */
-    public void hideRevaluateBtn() {
-        sobot_tv_likeBtn.setVisibility(View.GONE);
-        sobot_tv_dislikeBtn.setVisibility(View.GONE);
-        sobot_ll_likeBtn.setVisibility(View.GONE);
-        sobot_ll_dislikeBtn.setVisibility(View.GONE);
-        rightEmptyRL.setVisibility(View.GONE);
-    }
-
-    /**
-     * 显示顶之后的view
-     */
-    public void showLikeWordView() {
-        sobot_tv_likeBtn.setSelected(true);
-        sobot_tv_likeBtn.setEnabled(false);
-        sobot_tv_dislikeBtn.setEnabled(false);
-        sobot_tv_dislikeBtn.setSelected(false);
-        sobot_tv_likeBtn.setVisibility(View.VISIBLE);
-        sobot_tv_dislikeBtn.setVisibility(View.GONE);
-        sobot_ll_likeBtn.setVisibility(View.VISIBLE);
-        sobot_ll_dislikeBtn.setVisibility(View.GONE);
-        rightEmptyRL.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * 显示踩之后的view
-     */
-    public void showDislikeWordView() {
-        sobot_tv_dislikeBtn.setSelected(true);
-        sobot_tv_dislikeBtn.setEnabled(false);
-        sobot_tv_likeBtn.setEnabled(false);
-        sobot_tv_likeBtn.setSelected(false);
-        sobot_tv_likeBtn.setVisibility(View.GONE);
-        sobot_tv_dislikeBtn.setVisibility(View.VISIBLE);
-        sobot_ll_likeBtn.setVisibility(View.GONE);
-        sobot_ll_dislikeBtn.setVisibility(View.VISIBLE);
-        rightEmptyRL.setVisibility(View.VISIBLE);
     }
 
 }

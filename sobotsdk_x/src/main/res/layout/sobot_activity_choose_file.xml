@@ -5,12 +5,12 @@
     android:background="@color/sobot_white"
     android:orientation="vertical">
 
-    <include layout="@layout/sobot_layout_titlebar1" />
+    <include layout="@layout/sobot_layout_common_titlebar" />
 
     <ListView
         android:id="@+id/sobot_lv_files"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:divider="@null"
         android:listSelector="@android:color/transparent"
@@ -18,16 +18,14 @@
 
     <View
         android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@color/sobot_line_1dp" />
+        android:layout_height="@dimen/sobot_line_height_dp"
+        android:background="@color/sobot_color_line_divider" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:background="@color/sobot_white"
         android:orientation="horizontal"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
         android:paddingStart="15dp"
         android:paddingEnd="15dp">
 
@@ -36,10 +34,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:textColor="@color/sobot_common_gray1" />
+            android:textColor="@color/sobot_color_text_first" />
 
         <View
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
 
@@ -48,13 +46,12 @@
             android:layout_width="60dp"
             android:layout_height="25dp"
             android:layout_gravity="center_vertical|end"
-            android:layout_marginLeft="15dp"
+            android:layout_marginStart="15dp"
             android:background="@drawable/sobot_btn_normal_selector"
             android:enabled="false"
             android:gravity="center"
-            android:textColor="@drawable/sobot_btn_text_selector"
-            android:textSize="14sp"
-            android:layout_marginStart="15dp" />
+            android:textColor="@color/sobot_white"
+            android:textSize="@dimen/sobot_text_font_14" />
 
     </LinearLayout>
 </LinearLayout>

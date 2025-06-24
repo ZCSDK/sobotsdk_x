@@ -4,20 +4,20 @@ import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
-import com.sobot.chat.utils.ResourceUtils;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 
 import java.util.List;
 import java.util.Map;
 
-public class SobotChatMsgItemSDKHistoryR extends MessageHolderBase {
+public class SobotChatMsgItemSDKHistoryR extends MsgHolderBase {
 
     private TextView sobot_sdk_history_msg;
 
     public SobotChatMsgItemSDKHistoryR(Context context, View convertView) {
         super(context, convertView);
-        sobot_sdk_history_msg = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_sdk_history_msg"));
+        sobot_sdk_history_msg = (TextView) convertView.findViewById(R.id.sobot_sdk_history_msg);
     }
 
     @Override
@@ -33,5 +33,6 @@ public class SobotChatMsgItemSDKHistoryR extends MessageHolderBase {
             }
             sobot_sdk_history_msg.setText(sbuffer);
         }
+        refreshReadStatus();
     }
 }

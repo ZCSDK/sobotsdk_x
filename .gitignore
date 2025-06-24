@@ -37,3 +37,6 @@ captures/
 *.iml
 
 .idea/
+
+# Log Files
+*.gpg

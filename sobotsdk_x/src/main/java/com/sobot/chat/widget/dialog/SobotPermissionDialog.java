@@ -17,8 +17,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.utils.ScreenUtils;
 
 /**
@@ -33,19 +33,20 @@ public class SobotPermissionDialog extends Dialog implements View.OnClickListene
     private final int screenHeight;
     private TextView titleView;
     private String title;
+    private Context mContext;
 
     public SobotPermissionDialog(Activity context, ClickViewListener itemsOnClick) {
-        super(context, ResourceUtils.getIdByName(context, "style", "sobot_noAnimDialogStyle"));
+        super(context, R.style.sobot_noAnimDialogStyle);
         this.viewListenern=itemsOnClick;
         screenHeight = ScreenUtils.getScreenHeight(context);
-
+        mContext = context;
         // 修改Dialog(Window)的弹出位置
         Window window = getWindow();
         if (window != null) {
             WindowManager.LayoutParams layoutParams = window.getAttributes();
             layoutParams.gravity = Gravity.CENTER;
             //横屏设置dialog全屏
-            if (SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
                 layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
             }
             setParams(context, layoutParams);
@@ -61,7 +62,7 @@ public class SobotPermissionDialog extends Dialog implements View.OnClickListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceUtils.getIdByName(getContext(), "layout", "sobot_permission_popup"));
+        setContentView(R.layout.sobot_permission_popup);
         initView();
     }
 
@@ -76,19 +77,24 @@ public class SobotPermissionDialog extends Dialog implements View.OnClickListene
     }
 
     private void initView() {
-        titleView=(TextView) findViewById(ResourceUtils.getIdByName(getContext(),"id","sobot_dialog_title"));
-        titleView.setText(ResourceUtils.getResString(getContext(),"sobot_no_permission_text"));
+        titleView=(TextView) findViewById(R.id.sobot_dialog_title);
+        titleView.setText(R.string.sobot_no_permission_text);
         if (!TextUtils.isEmpty(title)) {
             titleView.setText(title);
         }
-        sobot_btn_cancle_conversation = (Button) findViewById(ResourceUtils.getIdByName(getContext(), "id", "sobot_btn_left"));
-        sobot_btn_cancle_conversation.setText(ResourceUtils.getResString(getContext(),"sobot_btn_cancle"));
-        sobot_btn_temporary_leave = (Button) findViewById(ResourceUtils.getIdByName(getContext(), "id", "sobot_btn_right"));
-        sobot_btn_temporary_leave.setText(ResourceUtils.getResString(getContext(),"sobot_go_setting"));
-        coustom_pop_layout = (LinearLayout) findViewById(ResourceUtils.getIdByName(getContext(), "id", "pop_layout"));
+        sobot_btn_cancle_conversation = (Button) findViewById(R.id.sobot_btn_left);
+        sobot_btn_cancle_conversation.setText(R.string.sobot_btn_cancle);
+        sobot_btn_temporary_leave = (Button) findViewById(R.id.sobot_btn_right);
+        sobot_btn_temporary_leave.setText(R.string.sobot_go_setting);
+        coustom_pop_layout = (LinearLayout) findViewById(R.id.pop_layout);
 
         sobot_btn_cancle_conversation.setOnClickListener(this);
         sobot_btn_temporary_leave.setOnClickListener(this);
+//        if(ThemeUtils.isChangedThemeColor(mContext)){
+//            int themeColor = ThemeUtils.getThemeColor(mContext);
+//            sobot_btn_cancle_conversation.setTextColor(themeColor);
+//            sobot_btn_temporary_leave.setTextColor(themeColor);
+//        }
     }
 
     private void setParams(Context context, WindowManager.LayoutParams lay) {

@@ -15,31 +15,29 @@
             android:id="@+id/sobot_iv_face"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:scaleType="centerCrop"
             tools:src="@drawable/sobot_avatar_robot" />
 
         <TextView
             android:id="@+id/sobot_tv_unread_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:gravity="center"
             android:textColor="@color/sobot_white"
-            android:textSize="12sp"
+            android:textSize="@dimen/sobot_text_font_12"
             android:visibility="gone"
             tools:background="@drawable/sobot_message_bubble_1"
-            tools:visibility="visible"
-            android:layout_alignParentEnd="true" />
+            tools:visibility="visible" />
     </RelativeLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp">
+        android:layout_marginEnd="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/sobot_tv_title"
@@ -50,7 +48,6 @@
             android:id="@+id/sobot_tv_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:ellipsize="end"
             android:lines="1"
             android:maxLines="1" />
@@ -60,7 +57,6 @@
         android:id="@+id/sobot_tv_date"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_marginRight="10dp"
-        android:gravity="center"
-        android:layout_marginEnd="10dp" />
+        android:layout_marginEnd="10dp"
+        android:gravity="center" />
 </LinearLayout>

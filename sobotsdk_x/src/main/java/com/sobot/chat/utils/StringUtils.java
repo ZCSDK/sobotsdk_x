@@ -1,8 +1,10 @@
 package com.sobot.chat.utils;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -25,17 +27,26 @@ public final class StringUtils {
     public static boolean isURL(String str) {
         //转换为小写
         str = str.toLowerCase();
-        String regex = "^((https|http|ftp|rtsp|mms)?://)" //https、http、ftp、rtsp、mms
-                + "?(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?" //ftp的user@
-                + "(([0-9]{1,3}\\.){3}[0-9]{1,3}" // IP形式的URL- 例如：199.194.52.184
-                + "|" // 允许IP和DOMAIN（域名）
-                + "([0-9a-z_!~*'()-]+\\.)*" // 域名- www.
-                + "([0-9a-z][0-9a-z-]{0,61})?[0-9a-z]\\." // 二级域名
-                + "[a-z]{2,6})" // first level domain- .com or .museum
-                + "(:[0-9]{1,5})?" // 端口号最大为65535,5位数
-                + "((/?)|" // a slash isn't required if there is no file name
-                + "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$";
-        return str.matches(regex);
+//        String regex =  "(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]";
+//        String regex =  "^((https|http|ftp|rtsp|mms)?:\\/\\/)[^\\s]+";
+//        String regex = "^((https|http|ftp|rtsp|mms)?://)" //https、http、ftp、rtsp、mms
+//                + "?(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?" //ftp的user@
+//                + "(([0-9]{1,3}\\.){3}[0-9]{1,3}" // IP形式的URL- 例如：199.194.52.184
+//                + "|" // 允许IP和DOMAIN（域名）
+//                + "([0-9a-z_!~*'()-]+\\.)*" // 域名- www.
+//                + "([0-9a-z][0-9a-z-]{0,61})?[0-9a-z]\\." // 二级域名
+//                + "[a-z]{2,6})" // first level domain- .com or .museum
+//                + "(:[0-9]{1,5})?" // 端口号最大为65535,5位数
+//                + "((/?)|" // a slash isn't required if there is no file name
+////                + "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$";
+//                + "(/[0-9a-z_!~*'().;?{}:@&=+$,%#-]+)+/?)$";
+//        return str.matches(regex);
+//        return HtmlTools.WEB_URL3.matcher(str).find();
+        if (str.startsWith("http") || str.startsWith("https") || str.startsWith("ftp") || str.startsWith("file")) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
@@ -145,7 +156,7 @@ public final class StringUtils {
             return "";
         }
         //html.replaceAll("\\&[a-zA-Z]{0,9};", "").replaceAll("<[^>]*>", "");
-        String regEx = "<.+?>";
+        String regEx = "</?[^>]+>";
         Pattern p = Pattern.compile(regEx);
         Matcher m = p.matcher(html);
         String s = m.replaceAll("");
@@ -370,4 +381,44 @@ public final class StringUtils {
             return false;
     }
 
+    public static String getMoney(String money) {
+        try {
+            float value = Float.parseFloat(money);
+            DecimalFormat decimal = new DecimalFormat("0.00");
+            return decimal.format(value);
+        } catch (NumberFormatException e) {
+            return money;
+        } catch (Exception e) {
+            return money;
+        }
+
+    }
+
+
+    //检查字符串是否为空
+    public static boolean isEmpty(String str) {
+        if (TextUtils.isEmpty(str) || "null".equals(str) || "NULL".equals(str)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //检查字符串是否不为空
+    public static boolean isNoEmpty(String str) {
+        if (TextUtils.isEmpty(str) || "null".equals(str) || "NULL".equals(str)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    //检查字符串为空的情况，如果是空，返回 “”
+    public static String checkStringIsNull(String str) {
+        if (TextUtils.isEmpty(str) || "null".equals(str) || "NULL".equals(str)) {
+            return "";
+        } else {
+            return str;
+        }
+    }
 }

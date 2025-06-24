@@ -8,8 +8,9 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.sobot.chat.utils.ResourceUtils;
-import com.sobot.chat.widget.kpswitch.view.ChattingPanelUploadView;
+import com.sobot.chat.R;
+import com.sobot.chat.widget.image.SobotProgressImageView;
+import com.sobot.chat.widget.kpswitch.view.ChattingPanelMoreMenuView;
 import com.sobot.chat.widget.kpswitch.widget.data.PlusPageEntity;
 import com.sobot.chat.widget.kpswitch.widget.interfaces.PlusDisplayListener;
 
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 
 /**
  * 更多菜单中的 适配器
- * @author Created by jinxl on 2018/7/31.
  */
 public class PlusAdapter<T> extends BaseAdapter {
 
@@ -33,16 +33,15 @@ public class PlusAdapter<T> extends BaseAdapter {
     protected int mItemHeightMin;
     protected int mItemHeight;
     protected PlusDisplayListener mOnDisPlayListener;
-    protected ChattingPanelUploadView.SobotPlusClickListener mOnItemClickListener;
+    protected ChattingPanelMoreMenuView.SobotPlusClickListener mOnItemClickListener;
 
-    public PlusAdapter(Context context, PlusPageEntity pageEntity, ChattingPanelUploadView.SobotPlusClickListener onItemClickListener) {
+    public PlusAdapter(Context context, PlusPageEntity pageEntity, ChattingPanelMoreMenuView.SobotPlusClickListener onItemClickListener) {
         this.mContext = context;
         this.mInflater = LayoutInflater.from(context);
         this.mPlusPageEntity = pageEntity;
         this.mOnItemClickListener = onItemClickListener;
         this.mItemHeightMaxRatio = DEF_HEIGHTMAXTATIO;
-        this.mDefalutItemHeight = this.mItemHeight = (int) context.getResources().getDimension
-                (getResDimenId("sobot_item_plus_size_default"));
+        this.mDefalutItemHeight = this.mItemHeight = 80;
         this.mData.addAll(pageEntity.getDataList());
     }
 
@@ -66,10 +65,11 @@ public class PlusAdapter<T> extends BaseAdapter {
         PlusAdapter.ViewHolder viewHolder;
         if (convertView == null) {
             viewHolder = new PlusAdapter.ViewHolder();
-            convertView = mInflater.inflate(getResLayoutId("sobot_list_item_plus_menu"), null);
+            convertView = mInflater.inflate(R.layout.sobot_list_item_plus_menu, null);
             viewHolder.rootView = convertView;
-            viewHolder.ly_root = (LinearLayout) convertView.findViewById(getResId("sobot_ly_root"));
-            viewHolder.mMenu = (TextView) convertView.findViewById(getResId("sobot_plus_menu"));
+            viewHolder.ly_root = convertView.findViewById(R.id.sobot_ly_root);
+            viewHolder.mMenu = convertView.findViewById(R.id.sobot_plus_menu);
+            viewHolder.mMenuIcon = convertView.findViewById(R.id.sobot_plus_menu_icon);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (PlusAdapter.ViewHolder) convertView.getTag();
@@ -88,15 +88,12 @@ public class PlusAdapter<T> extends BaseAdapter {
 
 
     protected void updateUI(PlusAdapter.ViewHolder viewHolder, ViewGroup parent) {
-        if(mDefalutItemHeight != mItemHeight){
-            viewHolder.mMenu.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, mItemHeight));
-        }
-        mItemHeightMax = this.mItemHeightMax != 0 ? this.mItemHeightMax : (int) (mItemHeight * mItemHeightMaxRatio);
-        mItemHeightMin = this.mItemHeightMin != 0 ? this.mItemHeightMin : mItemHeight;
-        int realItemHeight = ((View) parent.getParent()).getMeasuredHeight() / mPlusPageEntity.getLine();
-        realItemHeight = Math.min(realItemHeight, mItemHeightMax);
-        realItemHeight = Math.max(realItemHeight, mItemHeightMin);
-        viewHolder.ly_root.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, realItemHeight));
+//        mItemHeightMax = this.mItemHeightMax != 0 ? this.mItemHeightMax : (int) (mItemHeight * mItemHeightMaxRatio);
+//        mItemHeightMin = this.mItemHeightMin != 0 ? this.mItemHeightMin : mItemHeight;
+//        int realItemHeight = ((View) parent.getParent()).getMeasuredHeight() / mPlusPageEntity.getLine();
+//        realItemHeight = Math.min(realItemHeight, mItemHeightMax);
+//        realItemHeight = Math.max(realItemHeight, mItemHeightMin);
+//        viewHolder.ly_root.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, realItemHeight));
     }
 
     public void setOnDisPlayListener(PlusDisplayListener mOnDisPlayListener) {
@@ -124,17 +121,6 @@ public class PlusAdapter<T> extends BaseAdapter {
         public View rootView;
         public LinearLayout ly_root;
         public TextView mMenu;
-    }
-
-    public int getResId(String name) {
-        return ResourceUtils.getIdByName(mContext, "id", name);
-    }
-
-    public int getResDimenId(String name) {
-        return ResourceUtils.getIdByName(mContext, "dimen", name);
-    }
-
-    public int getResLayoutId(String name) {
-        return ResourceUtils.getIdByName(mContext, "layout", name);
+        public SobotProgressImageView mMenuIcon;
     }
 }

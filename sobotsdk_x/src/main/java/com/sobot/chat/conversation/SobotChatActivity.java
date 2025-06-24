@@ -1,22 +1,25 @@
 package com.sobot.chat.conversation;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.KeyEvent;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
 import com.sobot.chat.utils.ZhiChiConstant;
 
-public class SobotChatActivity extends SobotBaseActivity {
+public class SobotChatActivity extends SobotChatBaseActivity {
 
     Bundle informationBundle;
     SobotChatFragment chatFragment;
-    SobotChatFSFragment chatFSFragment;
 
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_chat_act");
+        return R.layout.sobot_chat_act;
     }
 
     protected void initBundleData(Bundle savedInstanceState) {
@@ -35,24 +38,13 @@ public class SobotChatActivity extends SobotBaseActivity {
 
     @Override
     protected void initView() {
-        if (isFullScreen()){
-            chatFSFragment = (SobotChatFSFragment) getSupportFragmentManager()
-                    .findFragmentById(getResId("sobot_contentFrame"));
-            if (chatFSFragment == null) {
-                chatFSFragment = SobotChatFSFragment.newInstance(informationBundle);
-
-                addFragmentToActivity(getSupportFragmentManager(),
-                        chatFSFragment, getResId("sobot_contentFrame"));
-            }
-            return;
-        }
         chatFragment = (SobotChatFragment) getSupportFragmentManager()
-                .findFragmentById(getResId("sobot_contentFrame"));
+                .findFragmentById(R.id.sobot_contentFrame);
         if (chatFragment == null) {
             chatFragment = SobotChatFragment.newInstance(informationBundle);
 
             addFragmentToActivity(getSupportFragmentManager(),
-                    chatFragment, getResId("sobot_contentFrame"));
+                    chatFragment, R.id.sobot_contentFrame);
         }
     }
 
@@ -68,20 +60,26 @@ public class SobotChatActivity extends SobotBaseActivity {
 
     }
 
+    @SuppressLint("RestrictedApi")
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if(chatFragment.dispatchkeyEvent(event)){
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     @Override
     public void onBackPressed() {
-        if (isFullScreen()){
-            if (chatFSFragment != null) {
-                chatFSFragment.onBackPress();
-            } else {
-                super.onBackPressed();
-            }
-            return;
-        }
         if (chatFragment != null) {
             chatFragment.onLeftMenuClick();
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

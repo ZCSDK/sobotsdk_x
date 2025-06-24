@@ -1,8 +1,6 @@
 package com.sobot.chat.widget.attachment;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -10,8 +8,11 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.sobot.chat.R;
 import com.sobot.chat.api.model.SobotFileModel;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.pictureframe.SobotBitmapUtil;
 
 /**
@@ -56,12 +57,12 @@ public class AttachmentView extends FrameLayout {
 
     private void initView(Context context) {
         mContext = context;
-        rootView = inflate(context, ResourceUtils.getResLayoutId(context, "sobot_layout_attachment_view"), this);
-        sobotAttachmentRootView = (RelativeLayout) findViewById(ResourceUtils.getResId(context, "sobot_attachment_root_view"));
-        sobotFileName = (TextView) findViewById(ResourceUtils.getResId(context, "sobot_file_name"));
-        sobotFileTypeIcon = (ImageView) findViewById(ResourceUtils.getResId(context, "sobot_file_type_icon"));
-        sobotFilePreview = (TextView) findViewById(ResourceUtils.getResId(context, "sobot_file_download"));
-        sobotFilePreview.setText(ResourceUtils.getResString(context,"sobot_preview_see"));
+        rootView = inflate(context, R.layout.sobot_layout_attachment_view, this);
+        sobotAttachmentRootView = (RelativeLayout) findViewById(R.id.sobot_attachment_root_view);
+        sobotFileName = (TextView) findViewById(R.id.sobot_file_name);
+        sobotFileTypeIcon = (ImageView) findViewById(R.id.sobot_file_type_icon);
+        sobotFilePreview = (TextView) findViewById(R.id.sobot_file_download);
+        sobotFilePreview.setText(R.string.sobot_preview_see);
         rootView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,7 +80,7 @@ public class AttachmentView extends FrameLayout {
             }
         });
 
-        imageView = (ImageView) findViewById(ResourceUtils.getResId(context, "sobot_file_image_view"));
+        imageView = (ImageView) findViewById(R.id.sobot_file_image_view);
 
     }
 

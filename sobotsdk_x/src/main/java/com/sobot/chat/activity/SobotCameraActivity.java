@@ -2,14 +2,12 @@ package com.sobot.chat.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
 import com.sobot.chat.application.MyApplication;
 import com.sobot.chat.camera.StCameraView;
 import com.sobot.chat.camera.listener.StCameraListener;
@@ -17,18 +15,17 @@ import com.sobot.chat.camera.listener.StClickListener;
 import com.sobot.chat.camera.listener.StErrorListener;
 import com.sobot.chat.camera.util.FileUtil;
 import com.sobot.chat.listener.PermissionListenerImpl;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SobotPathManager;
-import com.sobot.chat.widget.statusbar.StatusBarCompat;
 
 /**
+ * 拍摄--图片--视频
  * @author Created by jinxl on 2018/12/3.
  */
-public class SobotCameraActivity extends SobotBaseActivity {
+public class SobotCameraActivity extends SobotChatBaseActivity {
     private static final String EXTRA_ACTION_TYPE = "EXTRA_ACTION_TYPE";
     private static final String EXTRA_IMAGE_FILE_PATH = "EXTRA_IMAGE_FILE_PATH";
     private static final String EXTRA_VIDEO_FILE_PATH = "EXTRA_VIDEO_FILE_PATH";
-    private static final int RESULT_CODE = 103;
+    public static final int RESULT_CODE = 103;
 
     public static final int ACTION_TYPE_PHOTO = 0;
     public static final int ACTION_TYPE_VIDEO = 1;
@@ -74,16 +71,6 @@ public class SobotCameraActivity extends SobotBaseActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        //setContentView(ResourceUtils.getIdByName(SobotCameraActivity.this, "layout", "sobot_activity_camera"));
-        //MyApplication.getInstance().addActivity(this);
-
-    }
-
-    @Override
     protected void onStart() {
         super.onStart();
 //        //全屏显示
@@ -117,22 +104,25 @@ public class SobotCameraActivity extends SobotBaseActivity {
 
     @Override
     protected void onDestroy() {
+        if (null != jCameraView) {
+            jCameraView.setErrorLisenter(null);
+        }
         MyApplication.getInstance().deleteActivity(this);
         super.onDestroy();
     }
 
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_activity_camera");
+        return R.layout.sobot_activity_camera;
     }
 
     @Override
     protected void initView() {
-        jCameraView = (StCameraView) findViewById(ResourceUtils.getIdByName(SobotCameraActivity.this, "id", "sobot_cameraview"));
+        jCameraView = (StCameraView) findViewById(R.id.sobot_cameraview);
         //设置视频保存路径
         jCameraView.setSaveVideoPath(SobotPathManager.getInstance().getVideoDir());
         jCameraView.setFeatures(StCameraView.BUTTON_STATE_BOTH);
-        jCameraView.setTip(ResourceUtils.getResString(SobotCameraActivity.this, "sobot_tap_hold_camera"));
+        jCameraView.setTip(getResources().getString(R.string.sobot_tap_hold_camera));
         jCameraView.setMediaQuality(StCameraView.MEDIA_QUALITY_MIDDLE);
         jCameraView.setErrorLisenter(new StErrorListener() {
             @Override
@@ -145,11 +135,19 @@ public class SobotCameraActivity extends SobotBaseActivity {
             public void AudioPermissionError() {
                 permissionListener = new PermissionListenerImpl() {
                 };
-                if (checkIsShowPermissionPop(getResString("sobot_microphone"), getResString("sobot_microphone_yongtu"), 2)) {
+                if (!isHasPermission(2, 3)) {
                 } else {
-                    if (!checkAudioPermission()) {
-                    }
                 }
+            }
+
+            @Override
+            public boolean checkAutoPremission() {
+                return isHasPermission(2,2);
+            }
+
+            @Override
+            public boolean checkCameraPremission() {
+                return isHasPermission(3, 3);
             }
         });
         //JCameraView监听
@@ -188,8 +186,6 @@ public class SobotCameraActivity extends SobotBaseActivity {
                 SobotCameraActivity.this.finish();
             }
         });
-
-        StatusBarCompat.setNavigationBarColor(this, 0x33000000);
     }
 
     @Override

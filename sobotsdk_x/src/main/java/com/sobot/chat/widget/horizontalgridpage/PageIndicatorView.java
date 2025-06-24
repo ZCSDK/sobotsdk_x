@@ -1,11 +1,13 @@
 package com.sobot.chat.widget.horizontalgridpage;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 
 import com.sobot.chat.api.model.ZhiChiMessageBase;
+import com.sobot.chat.utils.ThemeUtils;
 
 import java.util.ArrayList;
 
@@ -55,7 +57,8 @@ public class PageIndicatorView extends LinearLayout {
         }
         //默认选中第一页
         if (indicatorViews.size() > 0) {
-            indicatorViews.get(0).setBackgroundResource(indicatorRes[1]);
+            Drawable d = getResources().getDrawable(indicatorRes[1]);
+            indicatorViews.get(0).setBackground(ThemeUtils.applyColorToDrawable(d, ThemeUtils.getThemeColor(getContext())));
         }
     }
 
@@ -77,7 +80,8 @@ public class PageIndicatorView extends LinearLayout {
         }
         for (int i = 0; i < indicatorViews.size(); i++) {
             if (i == currentPage) {
-                indicatorViews.get(i).setBackgroundResource(indicatorRes[1]);
+                Drawable d = getResources().getDrawable(indicatorRes[1]);
+                indicatorViews.get(i).setBackground(ThemeUtils.applyColorToDrawable(d, ThemeUtils.getThemeColor(getContext())));
             } else {
                 indicatorViews.get(i).setBackgroundResource(indicatorRes[0]);
             }

@@ -1,21 +1,22 @@
 package com.sobot.chat.adapter;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.sobot.chat.fragment.SobotBaseFragment;
+import com.sobot.chat.fragment.SobotChatBaseFragment;
 
 import java.util.List;
 
 public class StViewPagerAdapter extends SmartFragmentStatePagerAdapter {
     private String[] tabs;
-    private List<SobotBaseFragment> pagers;
+    private List<SobotChatBaseFragment> pagers;
     private Context context;
 
     public StViewPagerAdapter(Context context, FragmentManager fm, String[] tabs,
-                              List<SobotBaseFragment> pagers) {
+                              List<SobotChatBaseFragment> pagers) {
         super(fm);
         this.tabs = tabs;
         this.pagers = pagers;

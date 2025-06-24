@@ -10,70 +10,85 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.sobot.chat.SobotUIConfig;
+import com.sobot.chat.R;
 import com.sobot.chat.adapter.SobotMsgAdapter;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
 import com.sobot.chat.api.model.ZhiChiReplyAnswer;
 import com.sobot.chat.utils.DateUtil;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.ZhiChiConstant;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 
 /**
  * 语音条目
- * Created by jinxl on 2017/3/17.
  */
-public class VoiceMessageHolder extends MessageHolderBase {
+public class VoiceMessageHolder extends MsgHolderBase {
     TextView voiceTimeLong;
     ImageView voicePlay;
     LinearLayout ll_voice_layout;
+    LinearLayout ll_text_layout;
+    TextView sobot_voice_change_text;
+    TextView sobot_voice_change_state;
     public ZhiChiMessageBase message;
+
     public VoiceMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        voicePlay = (ImageView) convertView.findViewById(ResourceUtils
-                .getIdByName(context, "id", "sobot_iv_voice"));
+        voicePlay = (ImageView) convertView.findViewById(R.id.sobot_iv_voice);
         voiceTimeLong = (TextView) convertView
-                .findViewById(ResourceUtils.getIdByName(context, "id",
-                        "sobot_voiceTimeLong"));
+                .findViewById(R.id.sobot_voiceTimeLong);
         ll_voice_layout = (LinearLayout) convertView
-                .findViewById(ResourceUtils.getIdByName(context, "id",
-                        "sobot_ll_voice_layout"));
-
-        if (ll_voice_layout != null && SobotUIConfig.DEFAULT != SobotUIConfig.sobot_chat_right_bgColor){
-            ScreenUtils.setBubbleBackGroud(mContext, ll_voice_layout, SobotUIConfig.sobot_chat_right_bgColor);
-        }
-
+                .findViewById(R.id.sobot_msg_content_ll);
         msgProgressBar = (ProgressBar) convertView
-                .findViewById(ResourceUtils.getIdByName(context, "id",
-                        "sobot_msgProgressBar"));
+                .findViewById(R.id.sobot_msgProgressBar);
+        //语音
+        ll_text_layout = convertView.findViewById(R.id.sobot_ll_voice_text_layout);
+        sobot_voice_change_text = convertView.findViewById(R.id.sobot_voice_change_text);
+        sobot_voice_change_state = convertView.findViewById(R.id.sobot_voice_change_state);
     }
 
     @Override
     public void bindData(final Context context, final ZhiChiMessageBase message) {
         this.message = message;
         voiceTimeLong.setText(message.getAnswer().getDuration() == null ?
-                "" : (DateUtil.stringToLongMs(message.getAnswer().getDuration()) + "″"));
-
-        applyTextViewUIConfig(voiceTimeLong);
+                "" : (DateUtil.stringToLongMs(message.getAnswer().getDuration()) == 0 ? "" : (DateUtil.stringToLongMs(message.getAnswer().getDuration()) + "''")));
         checkBackground();
         ll_voice_layout.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if(msgCallBack != null){
-                    msgCallBack.clickAudioItem(message);
+                if (msgCallBack != null) {
+                    msgCallBack.clickAudioItem(message, null, true);
                 }
             }
         });
 
         if (isRight) {
+            goneReadStatus();
             if (message.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_SUCCESS) {
                 msgStatus.setVisibility(View.GONE);
                 msgProgressBar.setVisibility(View.GONE);
                 voiceTimeLong.setVisibility(View.VISIBLE);
                 voicePlay.setVisibility(View.VISIBLE);
+                //历史数据
+                if (message.getSdkMsg() != null && message.getSdkMsg().getAnswer() != null) {
+                    int changeState = message.getSdkMsg().getAnswer().getState();
+                    if (message.getSdkMsg().getAnswer().getState() == 0) {
+                        message.getSdkMsg().getAnswer().setState(-1);
+                    }
+                    setVoiceText(changeState, message.getSdkMsg().getAnswer().getVoiceText());
+                } else {
+                    ll_text_layout.setVisibility(View.GONE);
+                }
+                //当时聊天
+                if (null != message.getAnswer()) {
+                    int changeState = message.getAnswer().getState();
+                    setVoiceText(changeState, message.getAnswer().getVoiceText());
+                } else {
+                    ll_text_layout.setVisibility(View.GONE);
+                }
+                refreshReadStatus();
             } else if (message.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_ERROR) {
+                ll_text_layout.setVisibility(View.GONE);
                 msgStatus.setVisibility(View.VISIBLE);
                 msgProgressBar.setVisibility(View.GONE);
                 voicePlay.setVisibility(View.VISIBLE);
@@ -81,42 +96,77 @@ public class VoiceMessageHolder extends MessageHolderBase {
                 stopAnim();
                 // 语音的重新发送
                 msgStatus.setOnClickListener(new RetrySendVoiceLisenter(context, message.getId(),
-                        message.getAnswer().getMsg(), message.getAnswer().getDuration(), msgStatus,msgCallBack));
+                        message.getAnswer().getMsg(), message.getAnswer().getDuration(), msgStatus, msgCallBack));
             } else if (message.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_LOADING) {// 发送中
+                ll_text_layout.setVisibility(View.GONE);
                 msgProgressBar.setVisibility(View.VISIBLE);
                 msgStatus.setVisibility(View.GONE);
-                voiceTimeLong.setVisibility(View.GONE);
-                voicePlay.setVisibility(View.GONE);
+                voiceTimeLong.setVisibility(View.VISIBLE);
+                voicePlay.setVisibility(View.VISIBLE);
             } else if (message.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_ANIM) {
+                ll_text_layout.setVisibility(View.GONE);
                 msgProgressBar.setVisibility(View.GONE);
                 msgStatus.setVisibility(View.GONE);
-                voiceTimeLong.setVisibility(View.GONE);
-                voicePlay.setVisibility(View.GONE);
+                voiceTimeLong.setVisibility(View.VISIBLE);
+                voicePlay.setVisibility(View.VISIBLE);
+            } else {
+                ll_text_layout.setVisibility(View.GONE);
             }
 
             //根据语音长短设置长度
             long duration = DateUtil.stringToLongMs(message.getAnswer().getDuration());
-            duration = duration == 0 ? 1 : duration;
-            int min = ScreenUtils.getScreenWidth((Activity) context) / 5;
-            int max = ScreenUtils.getScreenWidth((Activity) context) * 3 / 5;
+            duration = duration < 2 ? 2 : duration;
+            int min = ScreenUtils.getScreenWidth((Activity) context) / 6;
+            int max = ScreenUtils.getScreenWidth((Activity) context) * 3 / 6;
             int step = (int) ((duration < 10) ? duration : (duration / 10 + 9));
-            ll_voice_layout.getLayoutParams().width = (step == 0) ? min
-                    : (min + (max - min) / 15 * step);
+            ll_voice_layout.getLayoutParams().width = ((step == 0) ? min
+                    : (min + (max - min) / 20 * step));
+        }
+        setLongClickListener(ll_voice_layout);
+    }
+
+    public void setVoiceText(int changeState, String voiceText) {
+        if (changeState == -1) {
+            //未转换
+            ll_text_layout.setVisibility(View.GONE);
+        } else {
+            ll_text_layout.setVisibility(View.VISIBLE);
+            if (changeState == 1) {
+                //成功
+                sobot_voice_change_text.setText(voiceText);
+                sobot_voice_change_text.setVisibility(View.VISIBLE);
+                sobot_voice_change_state.setText(R.string.sobot_conversion_done);
+                Drawable img = mContext.getResources().getDrawable(R.drawable.sobot_voice_change_success);
+                if (img != null) {
+                    img.setBounds(0, 0, img.getMinimumWidth(), img.getMinimumHeight());
+                    sobot_voice_change_state.setCompoundDrawables(img, null, null, null);
+                }
+            } else {
+                //失败
+                sobot_voice_change_text.setText("");
+                sobot_voice_change_text.setVisibility(View.GONE);
+                sobot_voice_change_state.setText(R.string.sobot_conversion_failed);
+                Drawable img = mContext.getResources().getDrawable(R.drawable.sobot_voice_change_fail);
+                if (img != null) {
+                    img.setBounds(0, 0, img.getMinimumWidth(), img.getMinimumHeight());
+                    sobot_voice_change_state.setCompoundDrawables(img, null, null, null);
+                }
+            }
         }
     }
 
-    private void checkBackground() {
+    public void checkBackground() {
         if (message.isVoideIsPlaying()) {
             resetAnim();
         } else {
-            voicePlay.setImageResource(isRight ? ResourceUtils.getIdByName(mContext, "drawable", "sobot_pop_voice_send_anime_3") :
-                    ResourceUtils.getIdByName(mContext, "drawable", "sobot_pop_voice_receive_anime_3"));
+            voicePlay.setImageResource(isRight ? R.drawable.sobot_pop_voice_send_anime_3 :
+                    R.drawable.sobot_pop_voice_receive_anime_3);
         }
     }
 
     private void resetAnim() {
-        voicePlay.setImageResource(isRight ? ResourceUtils.getIdByName(mContext, "drawable", "sobot_voice_to_icon") :
-                ResourceUtils.getIdByName(mContext, "drawable", "sobot_voice_from_icon"));
+        voicePlay.setImageResource(isRight ? R.drawable.sobot_voice_to_icon :
+                R.drawable.sobot_voice_appoint_right_icon);
         Drawable playDrawable = voicePlay.getDrawable();
         if (playDrawable != null
                 && playDrawable instanceof AnimationDrawable) {
@@ -157,8 +207,8 @@ public class VoiceMessageHolder extends MessageHolderBase {
         private Context context;
         private SobotMsgAdapter.SobotMsgCallBack msgCallBack;
 
-        public RetrySendVoiceLisenter(Context context,String id, String voicePath,
-                                      String duration, ImageView image,SobotMsgAdapter.SobotMsgCallBack msgCallBack) {
+        public RetrySendVoiceLisenter(Context context, String id, String voicePath,
+                                      String duration, ImageView image, SobotMsgAdapter.SobotMsgCallBack msgCallBack) {
             super();
             this.context = context;
             this.msgCallBack = msgCallBack;
@@ -174,16 +224,16 @@ public class VoiceMessageHolder extends MessageHolderBase {
             if (img != null) {
                 img.setClickable(false);
             }
-            showReSendVoiceDialog(context,voicePath, id, duration,img);
+            showReSendVoiceDialog(context, voicePath, id, duration, img);
         }
 
-        private void showReSendVoiceDialog(final Context context,final String mvoicePath,
-                                                  final String mid, final String mduration,final ImageView msgStatus) {
-            showReSendDialog(context,msgStatus,new ReSendListener(){
+        private void showReSendVoiceDialog(final Context context, final String mvoicePath,
+                                           final String mid, final String mduration, final ImageView msgStatus) {
+            showReSendDialog(context, msgStatus, new ReSendListener() {
 
                 @Override
                 public void onReSend() {
-                    if (context != null){
+                    if (context != null) {
                         ZhiChiMessageBase msgObj = new ZhiChiMessageBase();
                         ZhiChiReplyAnswer answer = new ZhiChiReplyAnswer();
                         answer.setDuration(mduration);
@@ -191,7 +241,7 @@ public class VoiceMessageHolder extends MessageHolderBase {
                         msgObj.setId(mid);
                         msgObj.setAnswer(answer);
                         if (msgCallBack != null) {
-                            msgCallBack.sendMessageToRobot(msgObj,2 , 3,"");
+                            msgCallBack.sendMessageToRobot(msgObj, 2, 3, "");
                         }
                     }
                 }

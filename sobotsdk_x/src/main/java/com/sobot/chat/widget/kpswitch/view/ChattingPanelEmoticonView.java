@@ -1,9 +1,11 @@
 package com.sobot.chat.widget.kpswitch.view;
 
 import android.content.Context;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.sobot.chat.R;
 import com.sobot.chat.widget.emoji.DisplayEmojiRules;
 import com.sobot.chat.widget.emoji.EmojiconNew;
 import com.sobot.chat.widget.kpswitch.view.emoticon.EmoticonPageView;
@@ -33,14 +35,14 @@ public class ChattingPanelEmoticonView extends BaseChattingPanelView implements 
 
     @Override
     public View initView() {
-        final View view = View.inflate(context, getResLayoutId("sobot_emoticon_layout"), null);
+        final View view = View.inflate(context, R.layout.sobot_emoticon_layout, null);
         return view;
     }
 
     @Override
     public void initData() {
-        mEmoticonsFuncView = (EmoticonsFuncView) getRootView().findViewById(getResId("view_epv"));
-        mEmoticonsIndicatorView = ((EmoticonsIndicatorView) getRootView().findViewById(getResId("view_eiv")));
+        mEmoticonsFuncView = (EmoticonsFuncView) getRootView().findViewById(R.id.view_epv);
+        mEmoticonsIndicatorView = ((EmoticonsIndicatorView) getRootView().findViewById(R.id.view_eiv));
         mEmoticonsFuncView.setOnIndicatorListener(this);
         setAdapter();
     }
@@ -52,13 +54,18 @@ public class ChattingPanelEmoticonView extends BaseChattingPanelView implements 
         }
     }
 
+    @Override
+    public void setCountListener(SobotBasePanelCountListener listener) {
+
+    }
+
 
     public void setAdapter() {
         PageSetAdapter pageSetAdapter = new PageSetAdapter();
         EmoticonPageSetEntity kaomojiPageSetEntity
                 = new EmoticonPageSetEntity.Builder()
-                .setLine(getResInteger("sobot_emotiocon_line"))
-                .setRow(getResInteger("sobot_emotiocon_row"))
+                .setLine(context.getResources().getInteger(R.integer.sobot_emotiocon_line))
+                .setRow(context.getResources().getInteger(R.integer.sobot_emotiocon_row))
                 .setEmoticonList(DisplayEmojiRules.getListAll(context))
                 .setIPageViewInstantiateItem(new PageViewInstantiateListener<EmoticonPageEntity>() {
                     //每个表情加载的回调
@@ -103,17 +110,17 @@ public class ChattingPanelEmoticonView extends BaseChattingPanelView implements 
                     return;
                 }
                 //每个表情的背景
-                viewHolder.ly_root.setBackgroundResource(getResDrawableId("sobot_bg_emoticon"));
+//                viewHolder.ly_root.setBackgroundResource(R.drawable.sobot_bg_emoticon);
 
                 if (isDelBtn) {
                     viewHolder.iv_emoticon.setVisibility(View.VISIBLE);
                     viewHolder.tv_emoticon.setVisibility(View.GONE);
-                    viewHolder.iv_emoticon.setImageResource(getResDrawableId
-                            ("sobot_emoticon_del_selector"));
+                    viewHolder.iv_emoticon.setImageResource(R.drawable.sobot_emoticon_del_selector);
                 } else {
                     viewHolder.iv_emoticon.setVisibility(View.GONE);
                     viewHolder.tv_emoticon.setVisibility(View.VISIBLE);
                     viewHolder.tv_emoticon.setText(emoticonEntity.getEmojiCode());
+                    viewHolder.tv_emoticon.setTextSize(TypedValue.COMPLEX_UNIT_DIP,22);
                 }
 
                 viewHolder.rootView.setOnClickListener(new View.OnClickListener() {

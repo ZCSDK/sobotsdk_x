@@ -1,8 +1,11 @@
 package com.sobot.chat.activity;
 
+import static com.sobot.chat.SobotUIConfig.sobot_webview_title_display;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,17 +25,16 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.sobot.chat.activity.base.SobotBaseActivity;
+import com.sobot.chat.R;
+import com.sobot.chat.activity.base.SobotChatBaseActivity;
 import com.sobot.chat.utils.CommonUtils;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.StringUtils;
+import com.sobot.chat.utils.ThemeUtils;
 import com.sobot.chat.utils.ToastUtil;
 
-import static com.sobot.chat.SobotUIConfig.sobot_webview_title_display;
-
 @SuppressLint("SetJavaScriptEnabled")
-public class WebViewActivity extends SobotBaseActivity implements View.OnClickListener {
+public class WebViewActivity extends SobotChatBaseActivity implements View.OnClickListener {
 
     private WebView mWebView;
     private ProgressBar mProgressBar;
@@ -52,9 +54,15 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
     //根据冲入的url判断是否url   true:是；false:不是
     private boolean isUrlOrText = true;
 
+    //千人千面UI
+    private boolean isChangeThemeColor = false;
+    private int themeColor =0;
+    private boolean canGoForward = false;
+    private boolean canGoBack = false;
+
     @Override
     protected int getContentViewResId() {
-        return getResLayoutId("sobot_activity_webview");
+        return R.layout.sobot_activity_webview;
     }
 
     @Override
@@ -73,28 +81,37 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
     @Override
     protected void initView() {
         setTitle("");
-        showLeftMenu(getResDrawableId("sobot_btn_back_selector"), "", true);
-        mWebView = (WebView) findViewById(getResId("sobot_mWebView"));
-        mProgressBar = (ProgressBar) findViewById(getResId("sobot_loadProgress"));
-        sobot_rl_net_error = (RelativeLayout) findViewById(getResId("sobot_rl_net_error"));
-        sobot_webview_toolsbar = (LinearLayout) findViewById(getResId("sobot_webview_toolsbar"));
-        sobot_btn_reconnect = (Button) findViewById(getResId("sobot_btn_reconnect"));
-        sobot_btn_reconnect.setText(ResourceUtils.getResString(WebViewActivity.this, "sobot_reunicon"));
+        showLeftMenu( true);
+        isChangeThemeColor = ThemeUtils.isChangedThemeColor(this);
+        mWebView = (WebView) findViewById(R.id.sobot_mWebView);
+        mProgressBar = (ProgressBar) findViewById(R.id.sobot_loadProgress);
+        sobot_rl_net_error = (RelativeLayout) findViewById(R.id.sobot_rl_net_error);
+        sobot_webview_toolsbar = (LinearLayout) findViewById(R.id.sobot_webview_toolsbar);
+        sobot_btn_reconnect = (Button) findViewById(R.id.sobot_btn_reconnect);
+        sobot_btn_reconnect.setText(R.string.sobot_reunicon);
         sobot_btn_reconnect.setOnClickListener(this);
-        sobot_textReConnect = (TextView) findViewById(getResId("sobot_textReConnect"));
-        sobot_textReConnect.setText(ResourceUtils.getResString(WebViewActivity.this, "sobot_network_unavailable"));
-        sobot_txt_loading = (TextView) findViewById(getResId("sobot_txt_loading"));
-        sobot_webview_goback = (ImageView) findViewById(getResId("sobot_webview_goback"));
-        sobot_webview_forward = (ImageView) findViewById(getResId("sobot_webview_forward"));
-        sobot_webview_reload = (ImageView) findViewById(getResId("sobot_webview_reload"));
-        sobot_webview_copy = (ImageView) findViewById(getResId("sobot_webview_copy"));
+        sobot_textReConnect = (TextView) findViewById(R.id.sobot_textReConnect);
+        sobot_textReConnect.setText(R.string.sobot_try_again);
+        sobot_txt_loading = (TextView) findViewById(R.id.sobot_txt_loading);
+        sobot_webview_goback = (ImageView) findViewById(R.id.sobot_webview_goback);
+        sobot_webview_forward = (ImageView) findViewById(R.id.sobot_webview_forward);
+        sobot_webview_reload = (ImageView) findViewById(R.id.sobot_webview_reload);
+        sobot_webview_copy = (ImageView) findViewById(R.id.sobot_webview_copy);
         sobot_webview_goback.setOnClickListener(this);
         sobot_webview_forward.setOnClickListener(this);
         sobot_webview_reload.setOnClickListener(this);
         sobot_webview_copy.setOnClickListener(this);
+
+
+        if(isChangeThemeColor){
+            themeColor = ThemeUtils.getThemeColor(this);
+            Drawable reload = getResources().getDrawable(R.drawable.sobot_webview_btn_reload_selector);
+            Drawable copy = getResources().getDrawable(R.drawable.sobot_webview_btn_copy_selector);
+            sobot_webview_reload.setImageDrawable(ThemeUtils.applyColorToDrawable(reload,themeColor));
+            sobot_webview_copy.setImageDrawable(ThemeUtils.applyColorToDrawable(copy,themeColor));
+        }
         sobot_webview_goback.setEnabled(false);
         sobot_webview_forward.setEnabled(false);
-
         displayInNotch(mWebView);
 
         resetViewDisplay();
@@ -117,12 +134,18 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
                     "                max-height: 100%;\n" +
                     "                max-width: 100%;\n" +
                     "            }\n" +
+                    "            video{\n" +
+                    "                width: auto;\n" +
+                    "                height:auto;\n" +
+                    "                max-height: 100%;\n" +
+                    "                max-width: 100%;\n" +
+                    "            }" +
                     "        </style>\n" +
                     "    </head>\n" +
                     "    <body>" + mUrl + "  </body>\n" +
                     "</html>";
             //显示文本内容
-            mWebView.loadDataWithBaseURL("about:blank", mUrl, "text/html", "utf-8", null);
+            mWebView.loadDataWithBaseURL("about:blank", mUrl.replace("<p>","").replace("</p>","<br/>").replace("<P>","").replace("</P>","<br/>"), "text/html", "utf-8", null);
         }
         LogUtils.i("webViewActivity---" + mUrl);
     }
@@ -208,7 +231,6 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
                 Uri content = Uri.parse(url);
                 intent.setData(content);
                 startActivity(intent);
-                finish();
             }
         });
         mWebView.removeJavascriptInterface("searchBoxJavaBridge_");
@@ -227,15 +249,17 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
         //关于webview的http和https的混合请求的，从Android5.0开始，WebView默认不支持同时加载Https和Http混合模式。
         // 在API>=21的版本上面默认是关闭的，在21以下就是默认开启的，直接导致了在高版本上面http请求不能正确跳转。
         if (Build.VERSION.SDK_INT >= 21) {
-            mWebView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            mWebView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         }
 
+        //Android 4.4 以下的系统中存在一共三个有远程代码执行漏洞的隐藏接口
+        mWebView.removeJavascriptInterface("searchBoxJavaBridge_");
+        mWebView.removeJavascriptInterface("accessibility");
+        mWebView.removeJavascriptInterface("accessibilityTraversal");
 
         // 应用可以有数据库
         mWebView.getSettings().setDatabaseEnabled(true);
 
-        // 应用可以有缓存
-        mWebView.getSettings().setAppCacheEnabled(true);
         mWebView.setWebViewClient(new WebViewClient() {
 
             @Override
@@ -260,8 +284,11 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                sobot_webview_goback.setEnabled(mWebView.canGoBack());
-                sobot_webview_forward.setEnabled(mWebView.canGoForward());
+                canGoBack = mWebView.canGoBack();
+                canGoForward = mWebView.canGoForward();
+                sobot_webview_goback.setEnabled(canGoBack);
+                sobot_webview_forward.setEnabled(canGoForward);
+                refreshBtn();
                 if (isUrlOrText && !mUrl.replace("http://", "").replace("https://", "").equals(view.getTitle()) && sobot_webview_title_display) {
                     setTitle(view.getTitle());
                 }
@@ -314,6 +341,29 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
         }
         super.onPause();
     }
+    private void refreshBtn(){
+        LogUtils.d("===========canGoBack="+canGoBack+"=========canGoForward="+canGoForward);
+        if(isChangeThemeColor){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Drawable forward = getResources().getDrawable(R.drawable.sobot_webview_toolsbar_forward_disable);
+                    Drawable back = getResources().getDrawable(R.drawable.sobot_webview_toolsbar_back_disable);
+                    if(canGoBack){
+                        sobot_webview_goback.setImageDrawable(ThemeUtils.applyColorToDrawable(back,themeColor));
+                    }else{
+                        sobot_webview_goback.setImageDrawable(ThemeUtils.applyColorToDrawable(back, "#c2c4c4"));
+                    }
+                    if(canGoForward){
+                        sobot_webview_forward.setImageDrawable(ThemeUtils.applyColorToDrawable(forward,themeColor));
+                    }else{
+                        sobot_webview_forward.setImageDrawable(ThemeUtils.applyColorToDrawable(forward,"#c2c4c4"));
+                    }
+                }
+            });
+
+        }
+    }
 
     @Override
     protected void onDestroy() {
@@ -359,7 +409,8 @@ public class WebViewActivity extends SobotBaseActivity implements View.OnClickLi
     private void chooseAlbumPic() {
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
-        i.setType("image/*");
+//        i.setType("image/*");
+        i.setType("video/*;image/*");//可以选择视频或图片
         startActivityForResult(Intent.createChooser(i, "Image Chooser"), REQUEST_CODE_ALBUM);
     }
 

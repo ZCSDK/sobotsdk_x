@@ -3,8 +3,6 @@ package com.sobot.chat.adapter.base;
 import android.content.Context;
 import android.widget.BaseAdapter;
 
-import com.sobot.chat.utils.ResourceUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,18 +41,11 @@ public abstract class SobotBaseAdapter<T> extends BaseAdapter {
         return position;
     }
 
-    public String getResString(String name) {
-        return ResourceUtils.getResString(context, name);
-//		return context.getResources().getString(getResStringId(name));
-    }
 
     public List<T> getDatas() {
         return list;
     }
 
-    public int getResStringId(String name) {
-        return ResourceUtils.getIdByName(context, "string", name);
-    }
 
     public Context getContext() {
         return context;

@@ -7,7 +7,7 @@ import android.graphics.Color;
 import android.view.Gravity;
 import android.widget.TextView;
 
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
 
 /**
  * Created by jinxl on 2017/4/10.
@@ -22,9 +22,9 @@ public class SobotDialogUtils {
             return;
         }
         if (progressDialog == null) {
-            progressDialog = new SobotLoadingDialog(context, ResourceUtils.getResString(context, "sobot_loading"));
+            progressDialog = new SobotLoadingDialog(context, context.getResources().getString(R.string.sobot_loading));
         } else {
-            progressDialog.setmMessage(ResourceUtils.getResString(context, "sobot_loading"));
+            progressDialog.setmMessage(context.getResources().getString(R.string.sobot_loading));
         }
 
         try {

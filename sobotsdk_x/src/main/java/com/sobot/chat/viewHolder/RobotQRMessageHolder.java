@@ -9,13 +9,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.adapter.SobotMsgAdapter;
 import com.sobot.chat.api.model.SobotQuestionRecommend;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
-import com.sobot.chat.utils.CommonUtils;
 import com.sobot.chat.utils.HtmlTools;
-import com.sobot.chat.utils.ResourceUtils;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.utils.ScreenUtils;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 import com.sobot.pictureframe.SobotBitmapUtil;
 
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * 热点问题引导的holder
  */
-public class RobotQRMessageHolder extends MessageHolderBase {
+public class RobotQRMessageHolder extends MsgHolderBase {
 
     private TextView tv_title;
     private LinearLayout sobot_horizontal_scrollview_layout;
@@ -31,9 +31,9 @@ public class RobotQRMessageHolder extends MessageHolderBase {
 
     public RobotQRMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        tv_title = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_msg"));
-        sobot_horizontal_scrollview_layout = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_horizontal_scrollview_layout"));
-        sobot_horizontal_scrollview = (HorizontalScrollView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_horizontal_scrollview"));
+        tv_title = (TextView) convertView.findViewById(R.id.sobot_msg);
+        sobot_horizontal_scrollview_layout = (LinearLayout) convertView.findViewById(R.id.sobot_template1_horizontal_scrollview_layout);
+        sobot_horizontal_scrollview = (HorizontalScrollView) convertView.findViewById(R.id.sobot_template1_horizontal_scrollview);
     }
 
     @Override
@@ -45,7 +45,6 @@ public class RobotQRMessageHolder extends MessageHolderBase {
                 tv_title.setVisibility(View.GONE);
             } else {
                 HtmlTools.getInstance(context).setRichText(tv_title, recommend.getGuide(), getLinkTextColor());
-                applyTextViewUIConfig(tv_title);
                 tv_title.setVisibility(View.VISIBLE);
             }
             List<SobotQuestionRecommend.SobotQRMsgBean> msgResult = recommend.getMsg();
@@ -63,7 +62,7 @@ public class RobotQRMessageHolder extends MessageHolderBase {
                         convertView.setVisibility(View.VISIBLE);
                         viewHolder = (QuestionRecommendViewHolder) convertView.getTag();
                     } else {
-                        View view = View.inflate(context, ResourceUtils.getIdByName(context, "layout", "sobot_chat_msg_item_qr_item"), null);
+                        View view = View.inflate(context, R.layout.sobot_chat_msg_item_qr_item, null);
                         viewHolder = new QuestionRecommendViewHolder(context, view,msgCallBack);
                         view.setTag(viewHolder);
                         sobot_horizontal_scrollview_layout.addView(view);
@@ -74,6 +73,7 @@ public class RobotQRMessageHolder extends MessageHolderBase {
                 sobot_horizontal_scrollview.setVisibility(View.GONE);
             }
         }
+        refreshReadStatus();
     }
 
     public static class QuestionRecommendViewHolder implements OnClickListener {
@@ -86,9 +86,9 @@ public class RobotQRMessageHolder extends MessageHolderBase {
 
         private QuestionRecommendViewHolder(Context context, View convertView,SobotMsgAdapter.SobotMsgCallBack msgCallBack) {
             this.msgCallBack = msgCallBack;
-            sobotLayout = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_template1_item"));
-            sobotThumbnail = (ImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_item_thumbnail"));
-            sobotTitle = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_item_title"));
+            sobotLayout = (LinearLayout) convertView.findViewById(R.id.sobot_template1_item);
+            sobotThumbnail = (ImageView) convertView.findViewById(R.id.sobot_item_thumbnail);
+            sobotTitle = (TextView) convertView.findViewById(R.id.sobot_item_title);
         }
 
         public void bindData(final Context context, final SobotQuestionRecommend.SobotQRMsgBean qrMsgBean, boolean isLast) {
@@ -99,7 +99,7 @@ public class RobotQRMessageHolder extends MessageHolderBase {
                 sobotTitle.setText(TextUtils.isEmpty(qrMsgBean.getTitle()) ? qrMsgBean.getQuestion() : qrMsgBean.getTitle());
                 sobotLayout.setOnClickListener(this);
                 LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) sobotLayout.getLayoutParams();
-                layoutParams.setMargins(layoutParams.leftMargin, layoutParams.topMargin, isLast ? (int) CommonUtils.getDimensPix(context, "sobot_item_qr_divider") : 0, layoutParams.bottomMargin);
+                layoutParams.setMargins(layoutParams.leftMargin, layoutParams.topMargin, isLast ? (int) ScreenUtils.dip2px(mContext,15) : 0, layoutParams.bottomMargin);
                 sobotLayout.setLayoutParams(layoutParams);
             }
         }

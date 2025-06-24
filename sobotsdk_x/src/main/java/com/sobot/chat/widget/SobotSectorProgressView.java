@@ -10,7 +10,7 @@ import android.graphics.Xfermode;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
 
 
 public class SobotSectorProgressView extends ImageView {
@@ -47,7 +47,7 @@ public class SobotSectorProgressView extends ImageView {
     private void init() {
         startAngle = 270;
         fgPaint = new Paint();
-        fgColor = getContext().getResources().getColor(ResourceUtils.getIdByName(getContext(), "color", "sobot_sectorProgressView_fgColor"));
+        fgColor = getContext().getResources().getColor(R.color.sobot_sectorProgressView_fgColor);
 
         fgPaint.setColor(fgColor);
     }

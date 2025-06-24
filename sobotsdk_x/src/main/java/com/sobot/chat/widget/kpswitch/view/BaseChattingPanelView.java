@@ -4,8 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 
-import com.sobot.chat.utils.ResourceUtils;
-
 /**
  * 所有聊天面板view的基类
  */
@@ -31,6 +29,8 @@ public abstract class BaseChattingPanelView {
 
     public abstract void setListener(SobotBasePanelListener listener);
 
+    public abstract void setCountListener(SobotBasePanelCountListener listener);
+
     /**
      * 获取view
      *
@@ -38,35 +38,6 @@ public abstract class BaseChattingPanelView {
      */
     public View getRootView() {
         return rootView;
-    }
-
-    protected int getResId(String name) {
-        return ResourceUtils.getIdByName(context, "id", name);
-    }
-
-    protected int getResLayoutId(String name) {
-        return ResourceUtils.getIdByName(context, "layout", name);
-    }
-
-    protected int getResDrawableId(String name) {
-        return ResourceUtils.getIdByName(context, "drawable", name);
-    }
-
-    protected int getResIntegerId(String name) {
-        return ResourceUtils.getIdByName(context, "integer", name);
-    }
-
-    protected int getResInteger(String name) {
-        return context.getResources().getInteger(getResIntegerId(name));
-    }
-
-    protected int getResStringId(String name) {
-        return ResourceUtils.getIdByName(context, "string", name);
-    }
-
-    protected String getResString(String name) {
-        return  ResourceUtils.getResString(context,name);
-//        return context.getResources().getString(getResStringId(name));
     }
 
     /**
@@ -81,5 +52,8 @@ public abstract class BaseChattingPanelView {
     public void onViewStart(Bundle bundle){}
 
     public interface SobotBasePanelListener{
+    }
+
+    public interface SobotBasePanelCountListener{
     }
 }

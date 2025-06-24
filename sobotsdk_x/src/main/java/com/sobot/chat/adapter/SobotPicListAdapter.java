@@ -7,9 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.sobot.chat.R;
 import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.api.model.ZhiChiUploadAppFileModelResult;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.widget.image.SobotRCImageView;
 import com.sobot.pictureframe.SobotBitmapUtil;
 
@@ -39,7 +39,7 @@ public class SobotPicListAdapter extends SobotBaseAdapter<ZhiChiUploadAppFileMod
         SobotFileHolder viewHolder = null;
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(ResourceUtils.getIdByName(context, "layout", "sobot_piclist_item"), null);
+            convertView = LayoutInflater.from(context).inflate(R.layout.sobot_piclist_item, null);
             viewHolder = new SobotFileHolder(context, convertView);
             convertView.setTag(viewHolder);
         } else {
@@ -129,10 +129,10 @@ public class SobotPicListAdapter extends SobotBaseAdapter<ZhiChiUploadAppFileMod
 
         SobotFileHolder(Context context, View convertView) {
             this.mContext = context;
-            sobot_iv_pic = (SobotRCImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_iv_pic"));
-            sobot_iv_pic_add = (ImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_iv_pic_add"));
-            sobot_iv_pic_add_ll = (LinearLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_iv_pic_add_ll"));
-            sobot_remove = (ImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_iv_pic_delete"));
+            sobot_iv_pic = (SobotRCImageView) convertView.findViewById(R.id.sobot_iv_pic);
+            sobot_iv_pic_add = (ImageView) convertView.findViewById(R.id.sobot_iv_pic_add);
+            sobot_iv_pic_add_ll = (LinearLayout) convertView.findViewById(R.id.sobot_iv_pic_add_ll);
+            sobot_remove = (ImageView) convertView.findViewById(R.id.sobot_iv_pic_delete);
         }
 
         public void setListener(ViewClickListener listener) {
@@ -152,9 +152,7 @@ public class SobotPicListAdapter extends SobotBaseAdapter<ZhiChiUploadAppFileMod
                 sobot_iv_pic.setVisibility(View.VISIBLE);
                 sobot_iv_pic_add_ll.setVisibility(View.GONE);
                 sobot_remove.setVisibility(View.VISIBLE);
-                SobotBitmapUtil.display(mContext, message.getFileLocalPath(), sobot_iv_pic, ResourceUtils
-                        .getIdByName(mContext, "drawable", "sobot_default_pic"), ResourceUtils
-                        .getIdByName(mContext, "drawable", "sobot_default_pic_err"));
+                SobotBitmapUtil.display(mContext, message.getFileLocalPath(), sobot_iv_pic, R.drawable.sobot_default_pic, R.drawable.sobot_default_pic_err);
             }
 
             sobot_iv_pic.setOnClickListener(new View.OnClickListener() {

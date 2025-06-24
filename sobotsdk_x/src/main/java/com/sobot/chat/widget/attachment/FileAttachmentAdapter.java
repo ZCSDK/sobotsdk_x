@@ -1,15 +1,14 @@
 package com.sobot.chat.widget.attachment;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.sobot.chat.api.model.SobotFileModel;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ScreenUtils;
 
 import java.util.ArrayList;
 
@@ -35,9 +34,6 @@ public class FileAttachmentAdapter extends RecyclerView.Adapter<FileAttachmentAd
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = new AttachmentView(context);
-        int mWidth = (ScreenUtils.getScreenWH(context)[0] - ScreenUtils.dip2px(context, 60)) / 3;
-        ViewGroup.LayoutParams layoutParams = new FrameLayout.LayoutParams(mWidth,ScreenUtils.dip2px(context, 85));
-        view.setLayoutParams(layoutParams);
         ViewHolder viewHolder = new ViewHolder(view);
         return viewHolder;
     }

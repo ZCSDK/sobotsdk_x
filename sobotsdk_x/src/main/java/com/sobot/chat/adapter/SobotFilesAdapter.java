@@ -1,15 +1,17 @@
 package com.sobot.chat.adapter;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.format.Formatter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.utils.DateUtil;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.utils.ThemeUtils;
 
 import java.io.File;
 import java.util.List;
@@ -52,9 +54,17 @@ public class SobotFilesAdapter extends SobotBaseAdapter<File> {
         return convertView;
     }
 
+    public int getIdByName(Context context, String className,
+                                  String resName) {
+        context = context.getApplicationContext();
+        String packageName = context.getPackageName();
+        int indentify = context.getResources().getIdentifier(resName,
+                className, packageName);
+        return indentify;
+    }
     private View initView(View convertView, int itemType, int position, final File data) {
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(ResourceUtils.getIdByName(context, "layout", layoutRes[itemType]), null);
+            convertView = LayoutInflater.from(context).inflate(getIdByName(context, "layout", layoutRes[itemType]), null);
             BaseViewHolder holder;
             switch (itemType) {
                 case MSG_TYPE_FILE: {
@@ -121,14 +131,25 @@ public class SobotFilesAdapter extends SobotBaseAdapter<File> {
 
         FileViewHolder(Context context, View view) {
             super(context, view);
-            sobot_tv_descripe = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_descripe"));
-            sobot_tv_name = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_name"));
-            sobot_tv_radioBtn = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_radioBtn"));
+            sobot_tv_descripe = (TextView) view.findViewById(R.id.sobot_tv_descripe);
+            sobot_tv_name = (TextView) view.findViewById(R.id.sobot_tv_name);
+            sobot_tv_radioBtn = (TextView) view.findViewById(R.id.sobot_tv_radioBtn);
         }
 
         void bindData(File data) {
             //显示文件
             sobot_tv_radioBtn.setSelected(!(mCheckedFile == null || !mCheckedFile.equals(data)));
+            if (sobot_tv_radioBtn.isSelected()){
+                Drawable bg = context.getResources().getDrawable(R.drawable.sobot_icon_radio_btn_selected);
+                if (bg != null) {
+                    sobot_tv_radioBtn.setBackground(ThemeUtils.applyColorToDrawable(bg, ThemeUtils.getThemeColor(context)));
+                }
+            }else{
+                Drawable bg = context.getResources().getDrawable(R.drawable.sobot_icon_radio_btn_normal);
+                if (bg != null) {
+                    sobot_tv_radioBtn.setBackground(bg);
+                }
+            }
             String descripe = DateUtil.toDate(data.lastModified(), DateUtil.DATE_FORMAT) + "  " + Formatter.formatFileSize(mContext, data.length());
             sobot_tv_descripe.setText(descripe);
             sobot_tv_name.setText(data.getName());
@@ -140,7 +161,7 @@ public class SobotFilesAdapter extends SobotBaseAdapter<File> {
 
         DirViewHolder(Context context, View view) {
             super(context, view);
-            sobot_tv_name = (TextView) view.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_name"));
+            sobot_tv_name = (TextView) view.findViewById(R.id.sobot_tv_name);
         }
 
         void bindData(File data) {

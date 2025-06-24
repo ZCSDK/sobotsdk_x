@@ -6,12 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.Movie;
 import android.os.Build;
 import android.os.Environment;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.sobot.chat.R;
 import com.sobot.chat.core.HttpUtils;
@@ -46,7 +48,6 @@ public class GifView2 extends View implements View.OnTouchListener {
     boolean isPlaying;
 
 
-
     private boolean isCanTouch = false;
     private int point_num = 0;//当前触摸的点数
     public static final float SCALE_MAX = 3.0f; //最大的缩放比例
@@ -64,20 +65,19 @@ public class GifView2 extends View implements View.OnTouchListener {
     private double moveRawX = 0;
     private double moveRawY = 0;
 
-    private boolean isScale=false;
+    private boolean isScale = false;
 
     private String gifUrl;
 
     LoadFinishListener loadFinishListener;
 
 
-
     public GifView2(Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public GifView2(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs,0);
+        this(context, attrs, 0);
     }
 
     public GifView2(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -98,17 +98,16 @@ public class GifView2 extends View implements View.OnTouchListener {
         }
 
 
-
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 //        super.onMeasure(widthMeasureSpec,heightMeasureSpec);
         if (movie != null) {
-            movieMeasuredMovieWidth = ScreenUtils.formatDipToPx(getContext(),movie.width());
-            movieMeasuredMovieHeight =ScreenUtils.formatDipToPx(getContext(), movie.height());
+            movieMeasuredMovieWidth = ScreenUtils.formatDipToPx(getContext(), movie.width());
+            movieMeasuredMovieHeight = ScreenUtils.formatDipToPx(getContext(), movie.height());
 
-            if (movieMeasuredMovieWidth==0||movieMeasuredMovieHeight==0){
+            if (movieMeasuredMovieWidth == 0 || movieMeasuredMovieHeight == 0) {
                 setMeasuredDimension(getSuggestedMinimumWidth(), getSuggestedMinimumHeight());
                 return;
             }
@@ -121,7 +120,7 @@ public class GifView2 extends View implements View.OnTouchListener {
 
             int[] screen = ScreenUtils
                     .getScreenWH(getContext());
-            Log.e( "onMeasure: ","\n"+movieMeasuredMovieWidth+"\t"+movieMeasuredMovieHeight+"\n"+screen[0]+"\t"+screen[1] );
+            Log.e("onMeasure: ", "\n" + movieMeasuredMovieWidth + "\t" + movieMeasuredMovieHeight + "\n" + screen[0] + "\t" + screen[1]);
 
             int measureModeWidth = View.MeasureSpec.getMode(widthMeasureSpec);
 
@@ -130,7 +129,7 @@ public class GifView2 extends View implements View.OnTouchListener {
                 if (movieMeasuredMovieWidth > screen[0]) {
                     scaleW = movieMeasuredMovieWidth * 1.0f / screen[0];
                     movieMeasuredMovieHeight = (int) (movieMeasuredMovieHeight / scaleW);
-                    movieMeasuredMovieWidth=screen[0];
+                    movieMeasuredMovieWidth = screen[0];
                 }
             }
             /*
@@ -143,18 +142,18 @@ public class GifView2 extends View implements View.OnTouchListener {
                 int maximumHeight = View.MeasureSpec.getSize(heightMeasureSpec);
                 if (movieMeasuredMovieHeight > screen[1]) {
                     scaleH = movieMeasuredMovieHeight * 1.0f / screen[1];
-                    movieMeasuredMovieWidth = (int) (movieMeasuredMovieWidth/ scaleH);
-                    movieMeasuredMovieHeight=screen[1];
+                    movieMeasuredMovieWidth = (int) (movieMeasuredMovieWidth / scaleH);
+                    movieMeasuredMovieHeight = screen[1];
                 }
             }
             /*
              * calculate overall scale
              */
             float scale = getResources().getDisplayMetrics().density;
-            movieScale = scale/(scaleW*scaleH);
+            movieScale = scale / (scaleW * scaleH);
 //            movieMeasuredMovieWidth = (int) (movieMeasuredMovieWidth * movieScale);
 //            movieMeasuredMovieHeight = (int) (movieMeasuredMovieHeight * movieScale);
-            Log.e( "onMeasure: ","\n"+movieMeasuredMovieWidth+"\t"+movieMeasuredMovieHeight+"\n"+movieScale);
+            Log.e("onMeasure: ", "\n" + movieMeasuredMovieWidth + "\t" + movieMeasuredMovieHeight + "\n" + movieScale);
             setMeasuredDimension(movieMeasuredMovieWidth, movieMeasuredMovieHeight);
         } else {
             /*
@@ -222,7 +221,7 @@ public class GifView2 extends View implements View.OnTouchListener {
      * Draw current GIF frame
      */
     private void drawMovieFrame(Canvas canvas) {
-        if (movieMeasuredMovieHeight==0||movieMeasuredMovieHeight==0){
+        if (movieMeasuredMovieHeight == 0 || movieMeasuredMovieHeight == 0) {
             canvas.restore();
             return;
         }
@@ -308,8 +307,8 @@ public class GifView2 extends View implements View.OnTouchListener {
      * @param lessY
      */
     private void setSelfPivot(float lessX, float lessY) {
-        if (getScaleX()<=1.0){
-            return ;
+        if (getScaleX() <= 1.0) {
+            return;
         }
         float setPivotX = 0;
         float setPivotY = 0;
@@ -406,13 +405,13 @@ public class GifView2 extends View implements View.OnTouchListener {
                 point_num = 0;
                 downX = 0;
                 downY = 0;
-                if (getScaleX()<1.0f){
+                if (getScaleX() < 1.0f) {
                     setInitScale();
                 }
-                isScale=false;
+                isScale = false;
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (point_num == 1&&!isScale) {
+                if (point_num == 1 && !isScale) {
                     //只有一个手指的时候才有移动的操作
                     float lessX = (float) (downX - event.getX());
                     float lessY = (float) (downY - event.getY());
@@ -437,8 +436,8 @@ public class GifView2 extends View implements View.OnTouchListener {
             case MotionEvent.ACTION_POINTER_DOWN:
                 oldDist = spacing(event);//两点按下时的距离
                 point_num += 1;
-                if (point_num>=2){
-                    isScale=true;
+                if (point_num >= 2) {
+                    isScale = true;
                 }
                 break;
             case MotionEvent.ACTION_POINTER_UP:
@@ -452,6 +451,7 @@ public class GifView2 extends View implements View.OnTouchListener {
         File file = getFilesDir(context, "images");
         return file;
     }
+
     public File getFilesDir(Context context, String tag) {
         if (isSdCardExist() == true) {
             return context.getExternalFilesDir(tag);
@@ -459,6 +459,7 @@ public class GifView2 extends View implements View.OnTouchListener {
             return context.getFilesDir();
         }
     }
+
     public boolean isSdCardExist() {
         if (Environment.getExternalStorageState().equals(
                 Environment.MEDIA_MOUNTED)) {
@@ -473,8 +474,8 @@ public class GifView2 extends View implements View.OnTouchListener {
 
     public void setGifImage(FileInputStream in, String imageUrL) {
         setGifImage(in);
-        this.gifUrl=imageUrL;
-        if (null==movie||movie.width()==0||movie.height()==0){
+        this.gifUrl = imageUrL;
+        if (null == movie || movie.width() == 0 || movie.height() == 0) {
             File dirPath = this.getImageDir(getContext());
             String encode = MD5Util.encode(imageUrL);
             File savePath = new File(dirPath, encode);
@@ -483,31 +484,36 @@ public class GifView2 extends View implements View.OnTouchListener {
     }
 
     public void displayImage(String url, File saveFile, final GifView2 gifView) {
-        // 下载图片
-        HttpUtils.getInstance().download(url, saveFile, null, new HttpUtils.FileCallBack() {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
+        if (url.startsWith("http") || url.startsWith("https")) {
+            // 下载图片
+            HttpUtils.getInstance().download(url, saveFile, null, new HttpUtils.FileCallBack() {
 
-            @Override
-            public void onResponse(File file) {
-                LogUtils.i("down load onSuccess gif"
-                        + file.getAbsolutePath());
-                // 把图片文件打开为文件流，然后解码为bitmap
-                if (null!=loadFinishListener)
-                    loadFinishListener.endCallBack(file.getAbsolutePath());
-            }
+                @Override
+                public void onResponse(File file) {
+                    LogUtils.i("down load onSuccess gif"
+                            + file.getAbsolutePath());
+                    // 把图片文件打开为文件流，然后解码为bitmap
+                    if (null != loadFinishListener)
+                        loadFinishListener.endCallBack(file.getAbsolutePath());
+                }
 
-            @Override
-            public void onError(Exception e, String msg, int responseCode) {
-                LogUtils.w("图片下载失败:" + msg,e);
-            }
+                @Override
+                public void onError(Exception e, String msg, int responseCode) {
+                    LogUtils.w("图片下载失败:" + msg, e);
+                }
 
-            @Override
-            public void inProgress(int progress) {
-                //LogUtils.i("gif图片下载进度:" + progress);
-            }
-        });
+                @Override
+                public void inProgress(int progress) {
+                    //LogUtils.i("gif图片下载进度:" + progress);
+                }
+            });
+        }
     }
 
-    public interface LoadFinishListener{
+    public interface LoadFinishListener {
         void endCallBack(String pathAbsolute);
     }
 }

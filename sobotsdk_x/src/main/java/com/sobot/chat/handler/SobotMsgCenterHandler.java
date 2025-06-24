@@ -3,7 +3,7 @@ package com.sobot.chat.handler;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.sobot.chat.SobotApi;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.api.ZhiChiApi;
 import com.sobot.chat.api.model.SobotMsgCenterModel;
 import com.sobot.chat.core.channel.SobotMsgManager;
@@ -36,7 +36,7 @@ public class SobotMsgCenterHandler {
         SobotExecutorService.executorService().execute(new Runnable() {
             @Override
             public void run() {
-                List<SobotMsgCenterModel> msgCenterList = SobotApi.getMsgCenterList(context.getApplicationContext(), uid);
+                List<SobotMsgCenterModel> msgCenterList = ZCSobotApi.getMsgCenterList(context.getApplicationContext(), uid);
                 if (msgCenterList == null) {
                     msgCenterList = new ArrayList<>();
                 }

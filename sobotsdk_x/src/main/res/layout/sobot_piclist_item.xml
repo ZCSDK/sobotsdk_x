@@ -10,11 +10,8 @@
         android:layout_height="60dp"
         android:layout_centerHorizontal="true"
         android:contentDescription="@null"
-        android:scaleType="fitXY"
-        app:sobot_round_corner="4dp"
-
-
-        />
+        android:scaleType="centerCrop"
+        app:sobot_round_corner="4dp" />
 
     <LinearLayout
         android:id="@+id/sobot_iv_pic_add_ll"
@@ -38,8 +35,8 @@
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:layout_alignTop="@id/sobot_iv_pic"
-        android:layout_alignRight="@id/sobot_iv_pic"
+        android:layout_alignEnd="@id/sobot_iv_pic"
+        android:layout_alignParentEnd="@id/sobot_iv_pic"
         android:layout_margin="4dp"
-        android:src="@drawable/sobot_icon_remove"
-        android:layout_alignEnd="@id/sobot_iv_pic" />
+        android:src="@drawable/sobot_icon_remove" />
 </RelativeLayout>

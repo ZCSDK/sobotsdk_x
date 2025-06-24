@@ -3,6 +3,7 @@ package com.sobot.chat.activity.base;
 import android.os.Bundle;
 
 import com.sobot.chat.api.model.Information;
+import com.sobot.chat.utils.SharedPreferencesUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
 
 import java.io.Serializable;
@@ -10,7 +11,7 @@ import java.io.Serializable;
 /**
  * 帮助中心基类
  */
-public abstract class SobotBaseHelpCenterActivity extends SobotBaseActivity {
+public abstract class SobotBaseHelpCenterActivity extends SobotChatBaseActivity {
     protected Bundle mInformationBundle;
     protected Information mInfo;
 
@@ -25,6 +26,8 @@ public abstract class SobotBaseHelpCenterActivity extends SobotBaseActivity {
             Serializable sobot_info = mInformationBundle.getSerializable(ZhiChiConstant.SOBOT_BUNDLE_INFO);
             if (sobot_info instanceof Information) {
                 mInfo = (Information) sobot_info;
+                SharedPreferencesUtil.saveObject(getSobotBaseContext(),
+                        ZhiChiConstant.sobot_last_current_info, mInfo);
             }
         }
     }

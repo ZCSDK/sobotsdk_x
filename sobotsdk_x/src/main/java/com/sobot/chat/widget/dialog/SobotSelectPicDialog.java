@@ -15,8 +15,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import com.sobot.chat.MarkConfig;
-import com.sobot.chat.SobotApi;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
+import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.utils.ScreenUtils;
 
 /**
@@ -33,7 +33,7 @@ public class SobotSelectPicDialog extends Dialog {
     private final int screenHeight;
 
     public SobotSelectPicDialog(Activity context, View.OnClickListener itemsOnClick) {
-        super(context, ResourceUtils.getIdByName(context, "style", "sobot_clearHistoryDialogStyle"));
+        super(context, R.style.sobot_clearHistoryDialogStyle);
         this.context = context;
         this.itemsOnClick = itemsOnClick;
         screenHeight = ScreenUtils.getScreenHeight(context);
@@ -42,7 +42,7 @@ public class SobotSelectPicDialog extends Dialog {
         if (window != null) {
             WindowManager.LayoutParams layoutParams = window.getAttributes();
             //横屏设置dialog全屏
-            if (SobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && SobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
                 layoutParams.gravity = Gravity.CENTER;
                 layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
             } else {
@@ -56,7 +56,7 @@ public class SobotSelectPicDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceUtils.getIdByName(context, "layout", "sobot_take_pic_pop"));
+        setContentView(R.layout.sobot_take_pic_pop);
         initView();
     }
 
@@ -82,15 +82,15 @@ public class SobotSelectPicDialog extends Dialog {
     }
 
     private void initView() {
-        btn_take_photo = (Button) findViewById(ResourceUtils.getIdByName(context, "id", "btn_take_photo"));
-        btn_take_photo.setText(ResourceUtils.getResString(context,"sobot_attach_take_pic"));
-        btn_pick_photo = (Button) findViewById(ResourceUtils.getIdByName(context, "id", "btn_pick_photo"));
-        btn_pick_photo.setText(ResourceUtils.getResString(context,"sobot_choice_form_picture"));
-        btn_pick_vedio = (Button) findViewById(ResourceUtils.getIdByName(context, "id", "btn_pick_vedio"));
-        btn_pick_vedio.setText(ResourceUtils.getResString(context,"sobot_choice_form_vedio"));
-        btn_cancel = (Button) findViewById(ResourceUtils.getIdByName(context, "id", "btn_cancel"));
-        btn_cancel.setText(ResourceUtils.getResString(context,"sobot_btn_cancle"));
-        coustom_pop_layout = (LinearLayout) findViewById(ResourceUtils.getIdByName(context, "id", "pop_layout"));
+        btn_take_photo = (Button) findViewById(R.id.btn_take_photo);
+        btn_take_photo.setText(R.string.sobot_attach_take_pic);
+        btn_pick_photo = (Button) findViewById(R.id.btn_pick_photo);
+        btn_pick_photo.setText(R.string.sobot_choice_form_picture);
+        btn_pick_vedio = (Button) findViewById(R.id.btn_pick_vedio);
+        btn_pick_vedio.setText(R.string.sobot_choice_form_vedio);
+        btn_cancel = (Button) findViewById(R.id.btn_cancel);
+        btn_cancel.setText(R.string.sobot_btn_cancle);
+        coustom_pop_layout = (LinearLayout) findViewById(R.id.pop_layout);
 
 
         btn_take_photo.setOnClickListener(itemsOnClick);

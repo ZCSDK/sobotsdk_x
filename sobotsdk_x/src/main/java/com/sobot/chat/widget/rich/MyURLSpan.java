@@ -26,7 +26,11 @@ public class MyURLSpan extends URLSpan {
     public MyURLSpan(Context context, String url, int color, boolean isShowLine) {
         super(url);
         this.context = context;
-        this.color = context.getResources().getColor(color);
+        try {
+            this.color = context.getResources().getColor(color);
+        } catch (Exception e) {
+            this.color = color;
+        }
         this.isShowLine = isShowLine;
     }
 
@@ -43,12 +47,26 @@ public class MyURLSpan extends URLSpan {
                 CommonUtils.sendLocalBroadcast(context, intent);
             } else if ("sobot:SobotTicketInfo".equals(url)) {
                 Intent intent = new Intent();
-                intent.putExtra("isShowTicket", true);
-                intent.setAction(ZhiChiConstants.chat_remind_post_msg);
+                intent.setAction(ZhiChiConstants.chat_remind_ticket_list);
                 CommonUtils.sendLocalBroadcast(context, intent);
             }else if ("sobot:SobotToCustomer".equals(url)) {
                 Intent intent = new Intent();
                 intent.setAction(ZhiChiConstants.chat_remind_to_customer);
+                CommonUtils.sendLocalBroadcast(context, intent);
+            }else if (url.startsWith("sobot:SobotMuItiPostMsgActivty")) {
+                //多轮工单收集节点 点击，重复填写
+                Intent intent = new Intent();
+                intent.setAction(ZhiChiConstants.SOBOT_CHAT_MUITILEAVEMSG_RE_COMMIT);
+                String str = url.replace("sobot:SobotMuItiPostMsgActivty?", "");
+                String temp[] = str.split("::");
+                if (temp != null) {
+                    if (temp.length > 1) {
+                        intent.putExtra("templateId", temp[0]);
+                        intent.putExtra("msgId", temp[1]);
+                    } else if (temp.length == 1) {
+                        intent.putExtra("templateId", temp[0]);
+                    }
+                }
                 CommonUtils.sendLocalBroadcast(context, intent);
             }
         } else {

@@ -2,7 +2,7 @@ package com.sobot.chat.widget.timePicker.view;
 
 import android.view.View;
 
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.R;
 import com.sobot.chat.widget.timePicker.adapter.SobotNumericWheelAdapter;
 import com.sobot.chat.widget.timePicker.lib.SobotWheelView;
 import com.sobot.chat.widget.timePicker.listener.SobotOnItemSelectedListener;
@@ -81,16 +81,16 @@ public class SobotWheelTime {
         final List<String> list_big = Arrays.asList(months_big);
         final List<String> list_little = Arrays.asList(months_little);
 
-      /*  final Context context = view.getContext();*/
+        /*  final Context context = view.getContext();*/
         currentYear = year;
         // 年
-        wv_year = (SobotWheelView) view.findViewById(ResourceUtils.getIdByName(view.getContext(),"id","year"));
+        wv_year = (SobotWheelView) view.findViewById(R.id.year);
         wv_year.setAdapter(new SobotNumericWheelAdapter(startYear, endYear));// 设置"年"的显示数据
         /*wv_year.setLabel(context.getString(R.string.pickerview_year));// 添加文字*/
         wv_year.setCurrentItem(year - startYear);// 初始化时显示的数据
         wv_year.setGravity(gravity);
         // 月
-        wv_month = (SobotWheelView) view.findViewById(ResourceUtils.getIdByName(view.getContext(),"id","month"));
+        wv_month = (SobotWheelView) view.findViewById(R.id.month);
         if (startYear == endYear) {//开始年等于终止年
             wv_month.setAdapter(new SobotNumericWheelAdapter(startMonth, endMonth));
             wv_month.setCurrentItem(month + 1 - startMonth);
@@ -106,11 +106,11 @@ public class SobotWheelTime {
             wv_month.setAdapter(new SobotNumericWheelAdapter(1, 12));
             wv_month.setCurrentItem(month);
         }
-     /*   wv_month.setLabel(context.getString(R.string.pickerview_month));*/
+        /*   wv_month.setLabel(context.getString(R.string.pickerview_month));*/
 
         wv_month.setGravity(gravity);
         // 日
-        wv_day = (SobotWheelView) view.findViewById(ResourceUtils.getIdByName(view.getContext(),"id","day"));
+        wv_day = (SobotWheelView) view.findViewById(R.id.day);
 
         if (startYear == endYear && startMonth == endMonth) {
             if (list_big.contains(String.valueOf(month + 1))) {
@@ -205,25 +205,25 @@ public class SobotWheelTime {
             wv_day.setCurrentItem(day - 1);
         }
 
-       /* wv_day.setLabel(context.getString(R.string.pickerview_day));*/
+        /* wv_day.setLabel(context.getString(R.string.pickerview_day));*/
 
         wv_day.setGravity(gravity);
         //时
-        wv_hours = (SobotWheelView) view.findViewById(ResourceUtils.getIdByName(view.getContext(),"id","hour"));
+        wv_hours = (SobotWheelView) view.findViewById(R.id.hour);
         wv_hours.setAdapter(new SobotNumericWheelAdapter(0, 23));
-      /*  wv_hours.setLabel(context.getString(R.string.pickerview_hours));// 添加文字*/
+        /*  wv_hours.setLabel(context.getString(R.string.pickerview_hours));// 添加文字*/
         wv_hours.setCurrentItem(h);
         wv_hours.setGravity(gravity);
         //分
-        wv_mins = (SobotWheelView) view.findViewById(ResourceUtils.getIdByName(view.getContext(),"id","min"));
+        wv_mins = (SobotWheelView) view.findViewById(R.id.min);
         wv_mins.setAdapter(new SobotNumericWheelAdapter(0, 59));
-       /* wv_mins.setLabel(context.getString(R.string.pickerview_minutes));// 添加文字*/
+        /* wv_mins.setLabel(context.getString(R.string.pickerview_minutes));// 添加文字*/
         wv_mins.setCurrentItem(m);
         wv_mins.setGravity(gravity);
         //秒
-        wv_seconds = (SobotWheelView) view.findViewById(ResourceUtils.getIdByName(view.getContext(),"id","second"));
+        wv_seconds = (SobotWheelView) view.findViewById(R.id.second);
         wv_seconds.setAdapter(new SobotNumericWheelAdapter(0, 59));
-       /* wv_seconds.setLabel(context.getString(R.string.pickerview_seconds));// 添加文字*/
+        /* wv_seconds.setLabel(context.getString(R.string.pickerview_seconds));// 添加文字*/
         wv_seconds.setCurrentItem(s);
         wv_seconds.setGravity(gravity);
 
@@ -512,38 +512,75 @@ public class SobotWheelTime {
         wv_seconds.setCyclic(cyclic);
     }
 
-    public String getTime() {
+    public String getDateTime() {
         StringBuffer sb = new StringBuffer();
         if (currentYear == startYear) {
            /* int i = wv_month.getCurrentItem() + startMonth;
             System.out.println("i:" + i);*/
             if ((wv_month.getCurrentItem() + startMonth) == startMonth) {
                 sb.append((wv_year.getCurrentItem() + startYear)).append("-")
-                        .append((wv_month.getCurrentItem() + startMonth)).append("-")
-                        .append((wv_day.getCurrentItem() + startDay)).append(" ")
-                        .append(wv_hours.getCurrentItem()).append(":")
-                        .append(wv_mins.getCurrentItem()).append(":")
-                        .append(wv_seconds.getCurrentItem());
+                        .append(getFormatString((wv_month.getCurrentItem() + startMonth))).append("-")
+                        .append((getFormatString(wv_day.getCurrentItem() + startDay))).append(" ")
+                        .append(getFormatString(wv_hours.getCurrentItem())).append(":")
+                        .append(getFormatString(wv_mins.getCurrentItem())).append(":")
+                        .append(getFormatString(wv_seconds.getCurrentItem()));
             } else {
                 sb.append((wv_year.getCurrentItem() + startYear)).append("-")
-                        .append((wv_month.getCurrentItem() + startMonth)).append("-")
-                        .append((wv_day.getCurrentItem() + 1)).append(" ")
-                        .append(wv_hours.getCurrentItem()).append(":")
-                        .append(wv_mins.getCurrentItem()).append(":")
-                        .append(wv_seconds.getCurrentItem());
+                        .append(getFormatString((wv_month.getCurrentItem() + startMonth))).append("-")
+                        .append(getFormatString((wv_day.getCurrentItem() + 1))).append(" ")
+                        .append(getFormatString(wv_hours.getCurrentItem())).append(":")
+                        .append(getFormatString(wv_mins.getCurrentItem())).append(":")
+                        .append(getFormatString(wv_seconds.getCurrentItem()));
             }
-
 
         } else {
             sb.append((wv_year.getCurrentItem() + startYear)).append("-")
-                    .append((wv_month.getCurrentItem() + 1)).append("-")
-                    .append((wv_day.getCurrentItem() + 1)).append(" ")
-                    .append(wv_hours.getCurrentItem()).append(":")
-                    .append(wv_mins.getCurrentItem()).append(":")
-                    .append(wv_seconds.getCurrentItem());
+                    .append(getFormatString((wv_month.getCurrentItem() + 1))).append("-")
+                    .append(getFormatString((wv_day.getCurrentItem() + 1))).append(" ")
+                    .append(getFormatString(wv_hours.getCurrentItem())).append(":")
+                    .append(getFormatString(wv_mins.getCurrentItem())).append(":")
+                    .append(getFormatString(wv_seconds.getCurrentItem()));
         }
 
         return sb.toString();
+    }
+
+    public String getDate() {
+        StringBuffer sb = new StringBuffer();
+        if (currentYear == startYear) {
+           /* int i = wv_month.getCurrentItem() + startMonth;
+            System.out.println("i:" + i);*/
+            if ((wv_month.getCurrentItem() + startMonth) == startMonth) {
+                sb.append((wv_year.getCurrentItem() + startYear)).append("-")
+                        .append(getFormatString((wv_month.getCurrentItem() + startMonth))).append("-")
+                        .append((getFormatString(wv_day.getCurrentItem() + startDay))).append(" ");
+            } else {
+                sb.append((wv_year.getCurrentItem() + startYear)).append("-")
+                        .append(getFormatString((wv_month.getCurrentItem() + startMonth))).append("-")
+                        .append(getFormatString((wv_day.getCurrentItem() + 1))).append(" ");
+            }
+        } else {
+            sb.append((wv_year.getCurrentItem() + startYear)).append("-")
+                    .append(getFormatString((wv_month.getCurrentItem() + 1))).append("-")
+                    .append(getFormatString((wv_day.getCurrentItem() + 1))).append(" ");
+        }
+
+        return sb.toString();
+    }
+
+    public String getTime() {
+        StringBuffer sb = new StringBuffer();
+        sb.append(getFormatString(wv_hours.getCurrentItem())).append(":")
+                .append(getFormatString(wv_mins.getCurrentItem()));
+        return sb.toString();
+    }
+
+    private String getFormatString(int index) {
+        if (index < 10) {
+            return "0" + index;
+        } else {
+            return String.valueOf(index);
+        }
     }
 
     public View getView() {

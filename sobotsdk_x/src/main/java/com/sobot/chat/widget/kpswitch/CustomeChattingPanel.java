@@ -32,7 +32,7 @@ public class CustomeChattingPanel extends RelativeLayout {
         super(context, attrs, defStyle);
     }
 
-    public void setupView(final int btnid, Bundle bundle, BaseChattingPanelView.SobotBasePanelListener listener) {
+    public void setupView(final int btnid, Bundle bundle, BaseChattingPanelView.SobotBasePanelListener listener, BaseChattingPanelView.SobotBasePanelCountListener countListener) {
         int childCount = this.getChildCount();
         //找到tag对应的view  显示或隐藏掉view
         instanceTag = CustomeViewFactory.getInstanceTag(getContext(), btnid);
@@ -56,9 +56,10 @@ public class CustomeChattingPanel extends RelativeLayout {
             view.initView();
             view.initData();
             view.setListener(listener);
-
+            view.setCountListener(countListener);
             view.onViewStart(bundle);
         } else {
+            baseChattingPanelView.initData();
             baseChattingPanelView.onViewStart(bundle);
         }
     }

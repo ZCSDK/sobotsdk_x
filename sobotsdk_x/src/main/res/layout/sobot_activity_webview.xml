@@ -2,14 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sobot_common_gray6"
+    android:background="@color/sobot_color_bg_first"
     android:orientation="vertical">
 
-    <include layout="@layout/sobot_layout_titlebar1" />
+    <include layout="@layout/sobot_layout_common_titlebar" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -17,13 +17,11 @@
             android:id="@+id/sobot_loadProgress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="fill_parent"
-            android:layout_height="5dip"
+            android:layout_height="5dp"
             android:max="100"
-            android:paddingLeft="1dip"
-            android:paddingRight="1dip"
-            android:progress="0"
-            android:paddingEnd="1dip"
-            android:paddingStart="1dip" />
+            android:paddingStart="1dp"
+            android:paddingEnd="1dp"
+            android:progress="0" />
 
         <com.sobot.chat.widget.SobotWebview
             android:id="@+id/sobot_mWebView"
@@ -48,8 +46,6 @@
             android:layout_height="43dp"
             android:background="@color/sobot_white"
             android:orientation="horizontal"
-            android:paddingLeft="15dp"
-            android:paddingRight="15dp"
             android:paddingStart="15dp"
             android:paddingEnd="15dp">
 

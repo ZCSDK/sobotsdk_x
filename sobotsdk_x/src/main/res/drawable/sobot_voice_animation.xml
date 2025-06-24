@@ -26,5 +26,13 @@
         android:drawable="@drawable/sobot_recording_volum6"
         android:duration="150">
     </item>
+    <item
+        android:drawable="@drawable/sobot_recording_volum7"
+        android:duration="150">
+    </item>
+    <item
+        android:drawable="@drawable/sobot_recording_volum8"
+        android:duration="150">
+    </item>
 
 </animation-list>

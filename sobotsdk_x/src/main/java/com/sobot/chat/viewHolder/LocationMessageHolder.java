@@ -2,32 +2,25 @@ package com.sobot.chat.viewHolder;
 
 import android.content.Context;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.api.model.SobotLocationModel;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SobotOption;
 import com.sobot.chat.utils.StMapOpenHelper;
 import com.sobot.chat.utils.ZhiChiConstant;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 import com.sobot.chat.widget.image.SobotRCImageView;
 import com.sobot.pictureframe.SobotBitmapUtil;
 
 /**
  * 位置消息
- * Created by jinxl on 2017/3/17.
  */
-public class LocationMessageHolder extends MessageHolderBase implements View.OnClickListener {
+public class LocationMessageHolder extends MsgHolderBase implements View.OnClickListener {
     private TextView st_localName;
     private TextView st_localLabel;
     private SobotRCImageView st_snapshot;
-    private ImageView sobot_msgStatus;
-    private ProgressBar sobot_msgProgressBar;
-    private LinearLayout sobot_msg_container;
     private ZhiChiMessageBase mMessage;
     private SobotLocationModel mLocationData;
 
@@ -35,14 +28,11 @@ public class LocationMessageHolder extends MessageHolderBase implements View.OnC
 
     public LocationMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        st_localName = (TextView) convertView.findViewById(ResourceUtils.getResId(context, "st_localName"));
-        st_localLabel = (TextView) convertView.findViewById(ResourceUtils.getResId(context, "st_localLabel"));
-        sobot_msgStatus = (ImageView) convertView.findViewById(ResourceUtils.getResId(context, "sobot_msgStatus"));
-        st_snapshot = (SobotRCImageView) convertView.findViewById(ResourceUtils.getResId(context, "st_snapshot"));
-        sobot_msg_container = (LinearLayout) convertView.findViewById(ResourceUtils.getResId(context, "sobot_ll_hollow_container"));
-        sobot_msgProgressBar = (ProgressBar) convertView.findViewById(ResourceUtils.getResId(context, "sobot_msgProgressBar"));
-        sobot_msg_container.setOnClickListener(this);
-        sobot_bg_default_map = ResourceUtils.getDrawableId(context, "sobot_bg_default_map");
+        st_localName = (TextView) convertView.findViewById(R.id.st_localName);
+        st_localLabel = (TextView) convertView.findViewById(R.id.st_localLabel);
+        st_snapshot = (SobotRCImageView) convertView.findViewById(R.id.st_snapshot);
+        sobot_msg_content_ll.setOnClickListener(this);
+        sobot_bg_default_map = R.drawable.sobot_bg_default_map;
     }
 
     @Override
@@ -57,6 +47,8 @@ public class LocationMessageHolder extends MessageHolderBase implements View.OnC
                 refreshUi();
             }
         }
+        setLongClickListener(sobot_msg_content_ll);
+        refreshReadStatus();
     }
 
     private void refreshUi() {
@@ -65,16 +57,16 @@ public class LocationMessageHolder extends MessageHolderBase implements View.OnC
                 return;
             }
             if (mMessage.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_SUCCESS) {// 成功的状态
-                sobot_msgStatus.setVisibility(View.GONE);
-                sobot_msgProgressBar.setVisibility(View.GONE);
+                msgStatus.setVisibility(View.GONE);
+                msgProgressBar.setVisibility(View.GONE);
             } else if (mMessage.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_ERROR) {
-                sobot_msgStatus.setVisibility(View.VISIBLE);
-                sobot_msgProgressBar.setVisibility(View.GONE);
-                sobot_msgProgressBar.setClickable(true);
-                sobot_msgStatus.setOnClickListener(this);
+                msgStatus.setVisibility(View.VISIBLE);
+                msgProgressBar.setVisibility(View.GONE);
+                msgProgressBar.setClickable(true);
+                msgStatus.setOnClickListener(this);
             } else if (mMessage.getSendSuccessState() == ZhiChiConstant.MSG_SEND_STATUS_LOADING) {
-                sobot_msgStatus.setVisibility(View.GONE);
-                sobot_msgProgressBar.setVisibility(View.VISIBLE);
+                msgStatus.setVisibility(View.GONE);
+                msgProgressBar.setVisibility(View.VISIBLE);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,7 +75,7 @@ public class LocationMessageHolder extends MessageHolderBase implements View.OnC
 
     @Override
     public void onClick(View v) {
-        if (v == sobot_msgStatus) {
+        if (v == msgStatus) {
             showReSendDialog(mContext, msgStatus, new ReSendListener() {
 
                 @Override
@@ -95,7 +87,7 @@ public class LocationMessageHolder extends MessageHolderBase implements View.OnC
             });
         }
 
-        if (v == sobot_msg_container) {
+        if (v == sobot_msg_content_ll) {
             if (mLocationData != null) {
                 if (SobotOption.mapCardListener != null) {
                     //如果返回true,拦截;false 不拦截

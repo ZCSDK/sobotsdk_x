@@ -9,10 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.api.model.SobotMsgCenterModel;
 import com.sobot.chat.utils.DateUtil;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.pictureframe.SobotBitmapUtil;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class SobotMsgCenterAdapter extends SobotBaseAdapter<SobotMsgCenterModel>
         SobotMsgCenterModel model = list.get(position);
         SobotMsgCenterViewHolder viewHolder = null;
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(ResourceUtils.getIdByName(context, "layout", "sobot_msg_center_item"), null);
+            convertView = LayoutInflater.from(context).inflate(R.layout.sobot_msg_center_item, null);
             viewHolder = new SobotMsgCenterViewHolder(context, convertView);
             convertView.setTag(viewHolder);
         } else {
@@ -55,12 +55,12 @@ public class SobotMsgCenterAdapter extends SobotBaseAdapter<SobotMsgCenterModel>
 
         public SobotMsgCenterViewHolder(Context context, View convertView) {
             this.context = context;
-            sobot_tv_title = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_title"));
-            sobot_tv_unread_count = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_unread_count"));
-            sobot_tv_content = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_content"));
-            sobot_tv_date = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_tv_date"));
-            sobot_iv_face = (ImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_iv_face"));
-            defaultFaceId = ResourceUtils.getIdByName(context, "drawable", "sobot_chatting_default_head");
+            sobot_tv_title = (TextView) convertView.findViewById(R.id.sobot_tv_title);
+            sobot_tv_unread_count = (TextView) convertView.findViewById(R.id.sobot_tv_unread_count);
+            sobot_tv_content = (TextView) convertView.findViewById(R.id.sobot_tv_content);
+            sobot_tv_date = (TextView) convertView.findViewById(R.id.sobot_tv_date);
+            sobot_iv_face = (ImageView) convertView.findViewById(R.id.sobot_iv_face);
+            defaultFaceId = R.drawable.sobot_chatting_default_head;
 
         }
 
@@ -85,13 +85,13 @@ public class SobotMsgCenterAdapter extends SobotBaseAdapter<SobotMsgCenterModel>
         private void setUnReadNum(TextView view, int count) {
             if (count > 0) {
                 if (count <= 9) {
-                    view.setBackgroundResource(ResourceUtils.getIdByName(context, "drawable", "sobot_message_bubble_1"));
+                    view.setBackgroundResource(R.drawable.sobot_message_bubble_1);
                     view.setText(count + "");
                 } else if (count > 9 && count <= 99) {
-                    view.setBackgroundResource(ResourceUtils.getIdByName(context, "drawable", "sobot_message_bubble_2"));
+                    view.setBackgroundResource(R.drawable.sobot_message_bubble_2);
                     view.setText(count + "");
                 } else {
-                    view.setBackgroundResource(ResourceUtils.getIdByName(context, "drawable", "sobot_message_bubble_3"));
+                    view.setBackgroundResource(R.drawable.sobot_message_bubble_3);
                     view.setText("99+");
                 }
                 view.setVisibility(View.VISIBLE);

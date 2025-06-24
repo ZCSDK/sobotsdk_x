@@ -85,8 +85,13 @@ public class SobotAntoLineLayout extends ViewGroup {
                 measureChild(childItem, widthMeasureSpec, heightMeasureSpec);
             }
             int childHeight = childItem.getMeasuredHeight();
-            int childWidth = childItem.getMeasuredWidth();
-            if (curLineWidth + childWidth <= totalWidth) {
+            int childWidth = childItem.getMeasuredWidth()+6;
+            if (childItem.getVisibility() == GONE) {
+                //测量时如果控件隐藏 修改宽高 为 0
+                childHeight = 0;
+                childWidth = 0;
+            }
+            if (curLineWidth + childWidth + ((curLineChildCount - 1) > 0 ? mHorizontalGap * (curLineChildCount - 1) : 0) < totalWidth) {
                 curLineWidth += childWidth;
                 maxHeight = Math.max(childHeight, maxHeight);
                 curLineChildCount++;
@@ -97,7 +102,6 @@ public class SobotAntoLineLayout extends ViewGroup {
                 totalHeight += maxHeight;
                 maxHeight = childHeight;
             }
-
         }
         childOfLine.add(curLineChildCount);
         for (int i = 0; i < childOfLine.size(); i++) {
@@ -125,13 +129,16 @@ public class SobotAntoLineLayout extends ViewGroup {
             int target = index + childCount;
             for (; index < target; index++) {
                 View item = getChildAt(index);
-                maxHeight = Math.max(maxHeight, item.getMeasuredHeight());
-                item.setPadding(padding, item.getPaddingTop(),
-                        padding, item.getPaddingBottom());
-                item.measure(MeasureSpec.makeMeasureSpec(item.getMeasuredWidth() + padding * 2, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(item.getMeasuredHeight(), MeasureSpec.EXACTLY));
-                item.layout(lineWidth, curHeight, lineWidth + item.getMeasuredWidth(), curHeight + item.getMeasuredHeight());
-                lineWidth += item.getMeasuredWidth() + mHorizontalGap;
+                if (item.getVisibility() == VISIBLE) {
+                    //如果子控件隐藏了就不绘制了
+                    maxHeight = Math.max(maxHeight, item.getMeasuredHeight());
+                    item.setPadding(padding, item.getPaddingTop(),
+                            padding, item.getPaddingBottom());
+                    item.measure(MeasureSpec.makeMeasureSpec(item.getMeasuredWidth() + padding * 2, MeasureSpec.EXACTLY),
+                            MeasureSpec.makeMeasureSpec(item.getMeasuredHeight(), MeasureSpec.EXACTLY));
+                    item.layout(lineWidth, curHeight, lineWidth + item.getMeasuredWidth(), curHeight + item.getMeasuredHeight());
+                    lineWidth += item.getMeasuredWidth() + mHorizontalGap;
+                }
             }
             curHeight += maxHeight + mVerticalGap;
         }
@@ -147,9 +154,12 @@ public class SobotAntoLineLayout extends ViewGroup {
             int target = index + childCount;
             for (; index < target; index++) {
                 View item = getChildAt(index);
-                maxHeight = Math.max(maxHeight, item.getMeasuredHeight());
-                item.layout(lineWidth, curHeight, lineWidth + item.getMeasuredWidth(), curHeight + item.getMeasuredHeight());
-                lineWidth += item.getMeasuredWidth() + mHorizontalGap;
+                if (item.getVisibility() == VISIBLE) {
+                    //如果子控件隐藏了就不绘制了
+                    maxHeight = Math.max(maxHeight, item.getMeasuredHeight());
+                    item.layout(lineWidth, curHeight, lineWidth + item.getMeasuredWidth(), curHeight + item.getMeasuredHeight());
+                    lineWidth += item.getMeasuredWidth() + mHorizontalGap;
+                }
             }
             curHeight += maxHeight + mVerticalGap;
         }

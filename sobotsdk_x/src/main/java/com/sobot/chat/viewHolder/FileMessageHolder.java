@@ -2,21 +2,29 @@ package com.sobot.chat.viewHolder;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.sobot.chat.R;
 import com.sobot.chat.activity.SobotFileDetailActivity;
+import com.sobot.chat.adapter.SobotMsgAdapter;
 import com.sobot.chat.api.apiUtils.ZhiChiConstants;
 import com.sobot.chat.api.model.SobotCacheFile;
+import com.sobot.chat.api.model.ZhiChiInitModeBase;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
+import com.sobot.chat.api.model.ZhiChiMessageFileModel;
+import com.sobot.chat.api.model.ZhiChiMessageMsgModel;
 import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.CommonUtils;
-import com.sobot.chat.utils.ResourceUtils;
+import com.sobot.chat.utils.ScreenUtils;
+import com.sobot.chat.utils.ToastUtil;
 import com.sobot.chat.utils.ZhiChiConstant;
-import com.sobot.chat.viewHolder.base.MessageHolderBase;
+import com.sobot.chat.viewHolder.base.MsgHolderBase;
 import com.sobot.chat.widget.SobotSectorProgressView;
+import com.sobot.gson.SobotGsonUtil;
 import com.sobot.network.http.model.SobotProgress;
 import com.sobot.network.http.upload.SobotUpload;
 import com.sobot.network.http.upload.SobotUploadListener;
@@ -26,13 +34,12 @@ import com.sobot.pictureframe.SobotBitmapUtil;
 
 /**
  * 文件消息
- * Created by jinxl on 2018/11/13.
  */
-public class FileMessageHolder extends MessageHolderBase implements View.OnClickListener {
-    private SobotSectorProgressView sobot_progress;
+public class FileMessageHolder extends MsgHolderBase implements View.OnClickListener {
+
+    private SobotSectorProgressView sobot_file_icon;
     private TextView sobot_file_name;
     private TextView sobot_file_size;
-    private ImageView sobot_msgStatus;
     private RelativeLayout sobot_ll_file_container;
 
     private ZhiChiMessageBase mData;
@@ -40,18 +47,15 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
     private int mResNetError;
     private int mResRemove;
 
+
     public FileMessageHolder(Context context, View convertView) {
         super(context, convertView);
-        sobot_progress = (SobotSectorProgressView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_progress"));
-        sobot_file_name = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_file_name"));
-        sobot_file_size = (TextView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_file_size"));
-        sobot_msgStatus = (ImageView) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_msgStatus"));
-        sobot_ll_file_container = (RelativeLayout) convertView.findViewById(ResourceUtils.getIdByName(context, "id", "sobot_ll_file_container"));
-        mResNetError = ResourceUtils.getIdByName(context, "drawable", "sobot_re_send_selector");
-        mResRemove = ResourceUtils.getIdByName(context, "drawable", "sobot_icon_remove");
-        if (sobot_msgStatus != null) {
-            sobot_msgStatus.setOnClickListener(this);
-        }
+        sobot_file_icon = convertView.findViewById(R.id.sobot_file_icon);
+        sobot_file_name = convertView.findViewById(R.id.sobot_file_name);
+        sobot_file_size = convertView.findViewById(R.id.sobot_file_size);
+        sobot_ll_file_container = convertView.findViewById(R.id.sobot_ll_file_container);
+        mResNetError = R.drawable.sobot_icon_send_fail;
+        mResRemove = R.drawable.sobot_icon_remove;
         sobot_ll_file_container.setOnClickListener(this);
     }
 
@@ -62,22 +66,45 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
             SobotCacheFile cacheFile = message.getAnswer().getCacheFile();
             sobot_file_name.setText(cacheFile.getFileName());
             sobot_file_size.setText(cacheFile.getFileSize());
-            SobotBitmapUtil.display(mContext, ChatUtils.getFileIcon(mContext, cacheFile.getFileType()), sobot_progress);
+            SobotBitmapUtil.display(mContext, ChatUtils.getFileIcon(mContext, cacheFile.getFileType()), sobot_file_icon);
             mTag = cacheFile.getMsgId();
             if (isRight) {
                 if (SobotUpload.getInstance().hasTask(mTag)) {
                     SobotUploadTask uploadTask = SobotUpload.getInstance().getTask(mTag);
-                    uploadTask.register(new ListUploadListener(mTag, this));
-
+                    uploadTask.register(new ListUploadListener(mTag, this, initMode, message, msgCallBack));
                     refreshUploadUi(uploadTask.progress);
                 } else {
+                    refreshReadStatus();
                     refreshUploadUi(null);
                 }
             } else {
                 refreshUploadUi(null);
             }
         }
+        if (!isRight()) {
+            refreshItem();//左侧消息刷新顶和踩布局
+            checkShowTransferBtn();//检查转人工逻辑
+            //关联问题显示逻辑
+            if (message != null && message.getSugguestions() != null && message.getSugguestions().length > 0) {
+                resetAnswersList();
+            } else {
+                hideAnswers();
+            }
+            if (sobot_msg_content_ll != null) {
+                LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) sobot_msg_content_ll.getLayoutParams();
+                if (layoutParams != null) {
+                    layoutParams.width = ScreenUtils.dip2px(mContext, 240);
+                }
+            }
+        } else {
+            if (msgStatus != null) {
+                msgStatus.setOnClickListener(this);
+            }
+        }
+        setLongClickListener(sobot_ll_file_container);
+
     }
+
 
     @Override
     public void onClick(View v) {
@@ -92,8 +119,8 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
                 }
             }
 
-            if (sobot_msgStatus == v) {
-                if (sobot_msgStatus.isSelected()) {
+            if (msgStatus == v) {
+                if (msgStatus.isSelected()) {
                     //下载失败
                     showReSendDialog(mContext, msgStatus, new ReSendListener() {
 
@@ -131,42 +158,41 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
 
     private void refreshUploadUi(SobotProgress progress) {
         if (progress == null) {
-            if (sobot_msgStatus != null) {
-                sobot_msgStatus.setVisibility(View.GONE);
+            if (msgStatus != null) {
+                msgStatus.setVisibility(View.GONE);
                 msgProgressBar.setVisibility(View.GONE);
             }
-           // sobot_progress.setProgress(100);
+            // sobot_progress.setProgress(100);
             return;
         }
-        if (sobot_msgStatus == null) {
+        if (msgStatus == null) {
             return;
         }
         switch (progress.status) {
             case SobotProgress.NONE:
-                sobot_msgStatus.setVisibility(View.GONE);
+            case SobotProgress.FINISH:
+                msgStatus.setVisibility(View.GONE);
                 msgProgressBar.setVisibility(View.GONE);
-               // sobot_progress.setProgress(progress.fraction * 100);
+                refreshReadStatus();
+                // sobot_progress.setProgress(progress.fraction * 100);
                 break;
             case SobotProgress.ERROR:
-                sobot_msgStatus.setVisibility(View.VISIBLE);
-                sobot_msgStatus.setBackgroundResource(mResNetError);
-                sobot_msgStatus.setSelected(true);
-              //  sobot_progress.setProgress(100);
+                msgStatus.setVisibility(View.VISIBLE);
+                msgStatus.setBackgroundResource(mResNetError);
+                msgStatus.setSelected(true);
+                //  sobot_progress.setProgress(100);
                 msgProgressBar.setVisibility(View.GONE);
-                break;
-            case SobotProgress.FINISH:
-                sobot_msgStatus.setVisibility(View.GONE);
-             //   sobot_progress.setProgress(100);
-                msgProgressBar.setVisibility(View.GONE);
+                goneReadStatus();
                 break;
             case SobotProgress.PAUSE:
             case SobotProgress.WAITING:
             case SobotProgress.LOADING:
                 msgProgressBar.setVisibility(View.VISIBLE);
-                sobot_msgStatus.setVisibility(View.GONE);
-                sobot_msgStatus.setBackgroundResource(mResRemove);
-                sobot_msgStatus.setSelected(false);
-            //    sobot_progress.setProgress(progress.fraction * 100);
+                goneReadStatus();
+                msgStatus.setVisibility(View.GONE);
+                msgStatus.setBackgroundResource(mResRemove);
+                msgStatus.setSelected(false);
+                //    sobot_progress.setProgress(progress.fraction * 100);
                 break;
         }
     }
@@ -174,10 +200,16 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
     private static class ListUploadListener extends SobotUploadListener {
 
         private FileMessageHolder holder;
+        private SobotMsgAdapter.SobotMsgCallBack msgCallBack;
+        private ZhiChiInitModeBase initModel;
+        private ZhiChiMessageBase message;
 
-        ListUploadListener(Object tag, FileMessageHolder holder) {
+        ListUploadListener(Object tag, FileMessageHolder holder, ZhiChiInitModeBase initModel, ZhiChiMessageBase message, SobotMsgAdapter.SobotMsgCallBack msgCallBack) {
             super(tag);
             this.holder = holder;
+            this.msgCallBack = msgCallBack;
+            this.initModel = initModel;
+            this.message = message;
         }
 
         @Override
@@ -194,6 +226,9 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
 
         @Override
         public void onError(SobotProgress progress) {
+            if (holder.mContext != null && progress != null && progress.exception != null && !TextUtils.isEmpty(progress.exception.getMessage())) {
+                ToastUtil.showToast(holder.mContext, progress.exception.getMessage());
+            }
             if (tag == holder.getTag()) {
                 holder.refreshUploadUi(progress);
             }
@@ -203,6 +238,23 @@ public class FileMessageHolder extends MessageHolderBase implements View.OnClick
         public void onFinish(SobotUploadModelBase result, SobotProgress progress) {
             if (tag == holder.getTag()) {
                 holder.refreshUploadUi(progress);
+                if (initModel != null && initModel.getMsgAppointFlag() == 1 && message != null && message.getAnswer() != null && message.getAnswer().getCacheFile() != null) {
+                    //引用开启
+                    ZhiChiMessageMsgModel messageMsgModel = new ZhiChiMessageMsgModel();
+                    messageMsgModel.setMsgType(4);
+                    SobotCacheFile cacheFile = message.getAnswer().getCacheFile();
+                    ZhiChiMessageFileModel fileModel = new ZhiChiMessageFileModel();
+                    fileModel.setFileName(cacheFile.getFileName());
+                    fileModel.setFileSize(cacheFile.getFileSize());
+                    fileModel.setType(cacheFile.getFileType());
+                    fileModel.setUrl(progress.url);
+                    fileModel.setSize(progress.totalSize+"");
+                    messageMsgModel.setContent(fileModel);
+                    message.setMessage(SobotGsonUtil.beanToJson(messageMsgModel));
+                }
+                if (msgCallBack != null && message!=null) {
+                    msgCallBack.sendFileToRobot(message.getMsgId(),"4", progress.url);
+                }
             }
         }
 

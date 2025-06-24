@@ -8,5 +8,6 @@ import com.sobot.chat.api.model.ZhiChiMessageBase;
 public interface AudioPlayCallBack {
 
     void onPlayStart(ZhiChiMessageBase mCurrentMsg);
+
     void onPlayEnd(ZhiChiMessageBase mCurrentMsg);
 }

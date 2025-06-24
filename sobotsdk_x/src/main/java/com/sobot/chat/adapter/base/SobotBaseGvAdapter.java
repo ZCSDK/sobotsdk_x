@@ -6,8 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.sobot.chat.utils.ResourceUtils;
-
 import java.util.List;
 
 public abstract class SobotBaseGvAdapter<T> extends SobotBaseAdapter {
@@ -23,8 +21,7 @@ public abstract class SobotBaseGvAdapter<T> extends SobotBaseAdapter {
     public View getView(final int position, View convertView, ViewGroup parent) {
         BaseViewHolder holder;
         if (convertView == null) {
-            convertView = mInflater.inflate(ResourceUtils
-                    .getResLayoutId(context, getContentLayoutName()), null);
+            convertView = mInflater.inflate(getContentLayoutId(), null);
             holder = getViewHolder(context,convertView);
             convertView.setTag(holder);
         } else {
@@ -50,7 +47,7 @@ public abstract class SobotBaseGvAdapter<T> extends SobotBaseAdapter {
      *
      * @return
      */
-    protected abstract String getContentLayoutName();
+    protected abstract int getContentLayoutId();
 
     /**
      * 获取Viewholder

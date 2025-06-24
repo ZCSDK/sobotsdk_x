@@ -4,9 +4,9 @@
     <solid android:color="@color/sobot_lable_nomal_bg_color" />
 
     <stroke
-        android:width="0.6dp"
+        android:width="1dp"
         android:color="@color/sobot_lable_stroke_color" />
 
-    <corners android:radius="15dip" />
+    <corners android:radius="16dp" />
 
 </shape>

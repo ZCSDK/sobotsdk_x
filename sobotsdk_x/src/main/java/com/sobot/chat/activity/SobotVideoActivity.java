@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.fragment.app.FragmentActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
@@ -13,14 +12,16 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.fragment.app.FragmentActivity;
+
+import com.sobot.chat.R;
 import com.sobot.chat.api.model.SobotCacheFile;
 import com.sobot.chat.application.MyApplication;
 import com.sobot.chat.camera.StVideoView;
 import com.sobot.chat.camera.listener.StVideoListener;
 import com.sobot.chat.utils.LogUtils;
-import com.sobot.chat.utils.ResourceUtils;
 import com.sobot.chat.utils.SobotPathManager;
-import com.sobot.network.http.HttpUtils;
+import com.sobot.network.http.HttpBaseUtils;
 import com.sobot.network.http.db.SobotDownloadManager;
 import com.sobot.network.http.download.SobotDownload;
 import com.sobot.network.http.download.SobotDownloadListener;
@@ -71,12 +72,12 @@ public class SobotVideoActivity extends FragmentActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        setContentView(ResourceUtils.getResLayoutId(getApplicationContext(), "sobot_activity_video"));
+        setContentView(R.layout.sobot_activity_video);
         MyApplication.getInstance().addActivity(this);
-        mVideoView = (StVideoView) findViewById(ResourceUtils.getResId(getApplicationContext(), "sobot_videoview"));
-        st_tv_play = (TextView) findViewById(ResourceUtils.getResId(getApplicationContext(), "st_tv_play"));
-        st_iv_pic = (ImageView) findViewById(ResourceUtils.getResId(getApplicationContext(), "st_iv_pic"));
-        progressBar = (ProgressBar) findViewById(ResourceUtils.getResId(getApplicationContext(), "sobot_msgProgressBar"));
+        mVideoView = (StVideoView) findViewById(R.id.sobot_videoview);
+        st_tv_play = (TextView) findViewById(R.id.st_tv_play);
+        st_iv_pic = (ImageView) findViewById(R.id.st_iv_pic);
+        progressBar = (ProgressBar) findViewById(R.id.sobot_msgProgressBar);
         st_tv_play.setOnClickListener(this);
         mDownloadListener = new SobotDownloadListener(SOBOT_TAG_DOWNLOAD_ACT_VIDEO) {
             @Override
@@ -136,7 +137,7 @@ public class SobotVideoActivity extends FragmentActivity implements View.OnClick
         try {
             Intent intent = getIntent();
             mCacheFile = (SobotCacheFile) intent.getSerializableExtra(EXTRA_VIDEO_FILE_DATA);
-            if (mCacheFile == null || TextUtils.isEmpty(mCacheFile.getMsgId())) {
+            if (mCacheFile == null) {
                 return;
             }
 
@@ -157,7 +158,7 @@ public class SobotVideoActivity extends FragmentActivity implements View.OnClick
      */
     private void restoreTask() {
         //更新数据
-        SobotProgress progress = SobotDownloadManager.getInstance().get(mCacheFile.getMsgId());
+        SobotProgress progress = SobotDownloadManager.getInstance().get(mCacheFile.getUrl());
         if (progress != null) {
             if (progress.status != SobotProgress.FINISH) {
                 downloadFile(progress);
@@ -180,7 +181,7 @@ public class SobotVideoActivity extends FragmentActivity implements View.OnClick
                 mTask.remove(true);
             }
         }
-        mTask = HttpUtils.getInstance().addDownloadFileTask(mCacheFile.getMsgId(), mCacheFile.getUrl(), mCacheFile.getFileName(), null,null);
+        mTask = HttpBaseUtils.getInstance().addDownloadFileTask(mCacheFile.getUrl(), mCacheFile.getUrl(), mCacheFile.getFileName(), null,null);
         if (mTask != null) {
             mTask.register(mDownloadListener).start();
         }
