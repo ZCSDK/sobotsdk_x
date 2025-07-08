@@ -43,16 +43,19 @@ public class AndroidPNotchScreen implements INotchScreen {
         contentView.post(new Runnable() {
             @Override
             public void run() {
-                WindowInsets windowInsets = contentView.getRootWindowInsets();
-                if (windowInsets != null) {
-                    DisplayCutout cutout = windowInsets.getDisplayCutout();
-                    if (cutout != null) {
-                        List<Rect> rects = cutout.getBoundingRects();
-                        callback.onResult(rects);
-                        return;
+                try {
+                    WindowInsets windowInsets = contentView.getRootWindowInsets();
+                    if (windowInsets != null) {
+                        DisplayCutout cutout = windowInsets.getDisplayCutout();
+                        if (cutout != null) {
+                            List<Rect> rects = cutout.getBoundingRects();
+                            callback.onResult(rects);
+                            return;
+                        }
                     }
+                    callback.onResult(null);
+                } catch (NoSuchMethodError e) {
                 }
-                callback.onResult(null);
             }
         });
     }

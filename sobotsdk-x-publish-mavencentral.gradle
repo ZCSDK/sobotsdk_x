@@ -14,7 +14,7 @@ ext {
     PUBLISH_GROUP_ID = "com.sobot.chat"        //项目包名
 //    PUBLISH_ARTIFACT_ID = 'sdk_demo'            //项目名
     PUBLISH_ARTIFACT_ID = 'sobotsdk_x'            //项目名
-    PUBLISH_VERSION = '4.2.4.6'                    //版本号
+    PUBLISH_VERSION = '4.2.6'                    //版本号
 }
 
 publishing {
@@ -56,6 +56,23 @@ publishing {
                     //分支地址：
                     url = 'https://github.com/ZCSDK/sobotsdk_x/master'
                 }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    //跳过“unspecified”的依赖项
+                    //避免出现问题:
+                    //Execution failed for task ':sample:checkDebugAarMetadata'.
+                    //> Could not resolve all files for configuration ':sample:debugRuntimeClasspath'.
+                    //   > Could not find :unspecified:.
+                    //     Required by:
+                    project.configurations.implementation.allDependencies.each {
+                        if (it.name != 'unspecified') {
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', it.group)
+                            dependencyNode.appendNode('artifactId', it.name)
+                            dependencyNode.appendNode('version', it.version)
+                        }
+                    }
+                }
             }
         }
     }
@@ -72,5 +89,5 @@ mavenCentral {
     // 当发布类型为 'AUTOMATIC' 时，状态API获取 'PUBLISHING' 或 'PUBLISHED' 状态的最大等待时间
     // 或者当发布类型为 'USER_MANAGED' 时，获取 'VALIDATED' 状态。
     // 该属性是可选的，默认为60秒。
-    maxWait = 60
+    maxWait = 220
 }

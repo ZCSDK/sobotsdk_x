@@ -191,6 +191,7 @@ public class HtmlTools {
         if (TextUtils.isEmpty(content)) {
             return;
         }
+        content = content.trim();
         while (!TextUtils.isEmpty(content) && content.length() > 5 && "<br/>".equals(content.substring(0, 5))) {
             content = content.substring(5, content.length());
         }
@@ -217,21 +218,22 @@ public class HtmlTools {
         if (TextUtils.isEmpty(content)) {
             return;
         }
+        content = content.trim();
+        if (content.contains("&nbsp;")) {
+            content = content.replaceAll("&nbsp;", " ");
+        }
+        if (content.contains("\n")) {
+            content = content.replaceAll("\n", "<br/>");
+        }
         if (content.contains("<p>")) {
             content = content.replaceAll("<p>", "").replaceAll("</p>", "<br/>").replaceAll("\n", "<br/>");
         }
-        while (content.length() > 5 && "<br/>".equals(content.substring(content.length() - 5, content.length()))) {
-            content = content.substring(0, content.length() - 5);
+        if (content.startsWith("<br/>") && content.length() >= 5) {
+            content = content.substring(5);// 去掉开头的<br/>
         }
-        if (!TextUtils.isEmpty(content) && content.length() > 0 && "\n".equals(content.substring(content.length() - 1, content.length()))) {
-            for (int i = 0; i < content.length(); i++) {
-                int aa = content.lastIndexOf("\n");
-                if (aa == (content.length() - 1)) {
-                    content = content.substring(0, content.length() - 1);
-                } else {
-                    break;
-                }
-            }
+
+        while (content.length() > 5 && "<br/>".equals(content.substring(content.length() - 5, content.length()))) {
+            content = content.substring(0, content.length() - 5);// 去掉结尾的<br/>
         }
 
         widget.setMovementMethod(LinkMovementClickMethod.getInstance());

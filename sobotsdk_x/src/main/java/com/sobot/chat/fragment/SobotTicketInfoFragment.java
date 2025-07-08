@@ -84,7 +84,6 @@ public class SobotTicketInfoFragment extends SobotChatBaseFragment {
     }
 
     protected void initView(View rootView) {
-
         recyclerView = rootView.findViewById(R.id.sobot_listview);
         mEmptyView = rootView.findViewById(R.id.sobot_empty);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);

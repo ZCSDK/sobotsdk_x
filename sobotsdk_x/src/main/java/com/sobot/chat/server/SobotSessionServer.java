@@ -592,9 +592,4 @@ public class SobotSessionServer extends Service {
             task = null;
         }
     }
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-        stopSelf();
-    }
 }

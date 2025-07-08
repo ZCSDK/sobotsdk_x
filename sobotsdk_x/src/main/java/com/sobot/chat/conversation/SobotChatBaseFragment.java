@@ -20,16 +20,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
-import android.view.OrientationEventListener;
 import android.view.View;
-import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import androidx.annotation.Nullable;
 
 import com.sobot.chat.MarkConfig;
 import com.sobot.chat.R;
@@ -89,7 +85,7 @@ import com.sobot.chat.utils.StringUtils;
 import com.sobot.chat.utils.ToastUtil;
 import com.sobot.chat.utils.Util;
 import com.sobot.chat.utils.ZhiChiConstant;
-import com.sobot.gson.SobotGsonUtil;
+import com.sobot.chat.gson.SobotGsonUtil;
 import com.sobot.network.http.callback.StringResultCallBack;
 import com.sobot.utils.SobotStringUtils;
 
@@ -200,53 +196,16 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
 
     public String robotWelcomeMsgId = "";//欢迎语 或者非置顶通告的消息id,用户第一次拉取历史数据（有值）滚动到该位置
 
-    // 判断手机屏幕方向
-    private int lastReportedOrientation = -1;//缓存方向
-    public LinearLayout sobot_header_right_ll; // tittle右边区域
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        OrientationEventListener orientationEventListener = new OrientationEventListener(getSobotActivity()) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                if (orientation == -1) return;
-                // 处理真正的角度变化
-                if (orientation > 45 && orientation < 135) {
-                    if (lastReportedOrientation != 1) {
-                        lastReportedOrientation = 1;
-                        // 横屏向右
-//                        LogUtils.d("========横屏向右=");
-                        if (sobot_header_right_ll != null) {
-                            displayInNotchRight(sobot_header_right_ll);
-                        }
-                    }
-                } else if (orientation > 225 && orientation < 315) {
-                    if (lastReportedOrientation != 2) {
-                        lastReportedOrientation = 2;
-                        // 横屏向左
-//                        LogUtils.d("========横屏向左=");
-                        if (sobot_header_right_ll != null) {
-                            displayInNotchRight(sobot_header_right_ll);
-                        }
-                    }
-                }
-            }
-        };
-        // 启动监听
-        orientationEventListener.enable();
-    }
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mAppContext = getContext().getApplicationContext();
-        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH)) {
-            // 支持显示到刘海区域
-            NotchScreenManager.getInstance().setDisplayInNotch(getActivity());
-            // 设置Activity全屏
-            getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
+//        if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH)) {
+//            // 支持显示到刘海区域
+//            NotchScreenManager.getInstance().setDisplayInNotch(getActivity());
+//            // 设置Activity全屏
+//            getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        }
     }
 
     public void setMsgHandler(SobotMsgHandler msgHandler) {
@@ -281,44 +240,36 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
 
         }
     }
-
     public void displayInNotchRight(final View view) {
-        if (lastReportedOrientation < 0) return;
-        int hight = 90;//默认90
-        if (getSobotActivity() != null && ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH)) {
-            //横屏 底部在右边
-            hight = ScreenUtils.getNavigationBarHeight(getSobotActivity()) + 30;
-        }
-        if (lastReportedOrientation == 1) {
-            //横屏 底部在上面，考虑状态栏高度
-            hight = 160;
+        ScreenUtils.getNavigationBarHeight(getSobotActivity());
+        int height = 90;
+        if(getSobotActivity()!=null && ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH)) {
+            height = ScreenUtils.getNavigationBarHeight(getSobotActivity()) + 30;
         }
         if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH) && view != null) {
             // 获取刘海屏信息
-            final int finalHight = hight;
-//            LogUtils.d("========finalHight==="+finalHight);
-            if(getSobotActivity()!=null) {
-                NotchScreenManager.getInstance().getNotchInfo(getSobotActivity(), new INotchScreen.NotchScreenCallback() {
-                    @Override
-                    public void onResult(INotchScreen.NotchScreenInfo notchScreenInfo) {
-                        if (notchScreenInfo.hasNotch) {
-                            for (Rect rect : notchScreenInfo.notchRects) {
-                                if (view instanceof WebView && view.getParent() instanceof LinearLayout) {
-                                    LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) view.getLayoutParams();
-                                    layoutParams.rightMargin = finalHight;
-                                    view.setLayoutParams(layoutParams);
-                                } else if (view instanceof WebView && view.getParent() instanceof RelativeLayout) {
-                                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-                                    layoutParams.rightMargin = finalHight;
-                                    view.setLayoutParams(layoutParams);
-                                } else {
-                                    view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), finalHight, view.getPaddingBottom());
-                                }
+            final int finalHeight = height;
+            NotchScreenManager.getInstance().getNotchInfo(getActivity(), new INotchScreen.NotchScreenCallback() {
+                @Override
+                public void onResult(INotchScreen.NotchScreenInfo notchScreenInfo) {
+                    if (notchScreenInfo.hasNotch) {
+                        for (Rect rect : notchScreenInfo.notchRects) {
+                            if (view instanceof WebView && view.getParent() instanceof LinearLayout) {
+                                LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) view.getLayoutParams();
+                                layoutParams.rightMargin = (rect.right > 90 ? finalHeight : rect.right) + 14;
+                                view.setLayoutParams(layoutParams);
+                            } else if (view instanceof WebView && view.getParent() instanceof RelativeLayout) {
+                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+                                layoutParams.rightMargin = (rect.right > 90 ? finalHeight : rect.right) + 14;
+                                view.setLayoutParams(layoutParams);
+                            } else {
+                                view.setPadding( view.getPaddingLeft(), view.getPaddingTop(), (rect.right > 90 ? finalHeight : rect.right) + view.getPaddingRight(), view.getPaddingBottom());
                             }
                         }
                     }
-                });
-            }
+                }
+            });
+
         }
     }
 
@@ -754,7 +705,7 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
                             if (handler != null) {
                                 Message message = handler.obtainMessage();
                                 message.what = ZhiChiConstant.hander_ai_robot_message_fail;
-                                message.obj=msgId;
+                                message.obj = msgId;
                                 handler.sendMessage(message);
                             }
                         }
@@ -1406,57 +1357,100 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
     protected void sendVoice(final String voiceMsgId, final String voiceTimeLongStr,
                              String cid, String uid, final String filePath, final Handler handler) {
         if (current_client_model == ZhiChiConstant.client_model_robot) {
-            zhiChiApi.sendVoiceToRobot(filePath, voiceMsgId, uid, cid, initModel.getRobotid() + "", voiceTimeLongStr, "msgType", new ResultCallBack<ZhiChiMessage>() {
-                @Override
-                public void onSuccess(ZhiChiMessage zhiChiMessage) {
-                    if (!isActive()) {
-                        return;
-                    }
-                    LogUtils.i("发送给机器人语音---sobot---" + zhiChiMessage.getMsg());
-                    // 语音发送成功
-                    String id = System.currentTimeMillis() + "";
-                    isAboveZero = true;
-                    restartMyTimeTask(handler);
-                    if (!TextUtils.isEmpty(zhiChiMessage.getMsg())) {
-                        sendTextMessageToHandler(voiceMsgId, zhiChiMessage.getMsg(), handler, 1, UPDATE_TEXT_VOICE);//语音通过服务器转为文字，发送给页面
-                    } else {
-                        sendVoiceMessageToHandler(voiceMsgId, filePath, voiceTimeLongStr, 1, UPDATE_VOICE, handler);
-                    }
+            if (initModel.isAiAgent()) {
+                //大模型机器人发送语音消息
+                if (SobotStringUtils.isNoEmpty(filePath) && messageAdapter != null) {
+                    zhiChiApi.sendFile(initModel.getReadFlag(), voiceMsgId, cid, uid, filePath, voiceTimeLongStr, current_client_model,
+                            new ResultCallBack<ZhiChiMessage>() {
+                                @Override
+                                public void onSuccess(ZhiChiMessage zhiChiMessage) {
+                                    if (!isActive()) {
+                                        return;
+                                    }
+                                    LogUtils.i("发送给大模型机器人语音---sobot---" + zhiChiMessage.getMsg());
+                                    // 语音发送成功
+                                    String id = System.currentTimeMillis() + "";
+                                    isAboveZero = true;
+                                    restartMyTimeTask(handler);
+                                    sendVoiceMessageToHandler(voiceMsgId, filePath, voiceTimeLongStr, 1, UPDATE_VOICE, handler);
+                                    //如果当前模式是机器人模式，就把上传的语音的url 发给机器人，只显示问答的结果
+                                    sendHttpRobotMessage("2", voiceMsgId, filePath, initModel.getPartnerid(),
+                                            initModel.getCid(), "", handler, 1, "", info.getLocale(), "", null);
 
-                    ZhiChiMessageBase simpleMessage = zhiChiMessage.getData();
-                    if (simpleMessage.getUstatus() == ZhiChiConstant.result_fail_code) {
-                        //机器人超时下线
-                        customerServiceOffline(initModel, 4);
-                    } else {
-                        isAboveZero = true;
-                        simpleMessage.setId(id);
-                        simpleMessage.setMsgId(id);
-                        simpleMessage.setSenderName(initModel.getRobotName());
-                        simpleMessage.setSender(initModel.getRobotName());
-                        simpleMessage.setSenderFace(initModel.getRobotLogo());
-                        simpleMessage.setSenderType(ZhiChiConstant.message_sender_type_robot);
-                        Message message = handler.obtainMessage();
-                        message.what = ZhiChiConstant.hander_robot_message;
-                        message.obj = simpleMessage;
-                        handler.sendMessage(message);
-                    }
-                }
+                                }
 
-                @Override
-                public void onFailure(Exception e, String des) {
-                    if (!isActive()) {
-                        return;
-                    }
-                    LogUtils.i("发送语音error:" + des + "exception:" + e.toString());
+                                @Override
+                                public void onFailure(Exception e, String des) {
+                                    if (!isActive()) {
+                                        return;
+                                    }
+                                    LogUtils.i("发送语音error:" + des + "exception:" + e.toString());
+                                    sendVoiceMessageToHandler(voiceMsgId, filePath, voiceTimeLongStr, 0, UPDATE_VOICE, handler);
+                                }
+
+                                @Override
+                                public void onLoading(long total, long current,
+                                                      boolean isUploading) {
+
+                                }
+                            });
+                } else {
+                    LogUtils.d("发送语音error:" + "filePath 为空 或者messageAdapter = null");
                     sendVoiceMessageToHandler(voiceMsgId, filePath, voiceTimeLongStr, 0, UPDATE_VOICE, handler);
                 }
+            } else {
+                zhiChiApi.sendVoiceToRobot(filePath, voiceMsgId, uid, cid, initModel.getRobotid() + "", voiceTimeLongStr, "msgType", new ResultCallBack<ZhiChiMessage>() {
+                    @Override
+                    public void onSuccess(ZhiChiMessage zhiChiMessage) {
+                        if (!isActive()) {
+                            return;
+                        }
+                        LogUtils.i("发送给机器人语音---sobot---" + zhiChiMessage.getMsg());
+                        // 语音发送成功
+                        String id = System.currentTimeMillis() + "";
+                        isAboveZero = true;
+                        restartMyTimeTask(handler);
+                        if (!TextUtils.isEmpty(zhiChiMessage.getMsg())) {
+                            sendTextMessageToHandler(voiceMsgId, zhiChiMessage.getMsg(), handler, 1, UPDATE_TEXT_VOICE);//语音通过服务器转为文字，发送给页面
+                        } else {
+                            sendVoiceMessageToHandler(voiceMsgId, filePath, voiceTimeLongStr, 1, UPDATE_VOICE, handler);
+                        }
 
-                @Override
-                public void onLoading(long total, long current,
-                                      boolean isUploading) {
+                        ZhiChiMessageBase simpleMessage = zhiChiMessage.getData();
+                        if (simpleMessage.getUstatus() == ZhiChiConstant.result_fail_code) {
+                            //机器人超时下线
+                            customerServiceOffline(initModel, 4);
+                        } else {
+                            isAboveZero = true;
+                            simpleMessage.setId(id);
+                            simpleMessage.setMsgId(id);
+                            simpleMessage.setSenderName(initModel.getRobotName());
+                            simpleMessage.setSender(initModel.getRobotName());
+                            simpleMessage.setSenderFace(initModel.getRobotLogo());
+                            simpleMessage.setSenderType(ZhiChiConstant.message_sender_type_robot);
+                            Message message = handler.obtainMessage();
+                            message.what = ZhiChiConstant.hander_robot_message;
+                            message.obj = simpleMessage;
+                            handler.sendMessage(message);
+                        }
+                    }
 
-                }
-            });
+                    @Override
+                    public void onFailure(Exception e, String des) {
+                        if (!isActive()) {
+                            return;
+                        }
+                        LogUtils.i("发送语音error:" + des + "exception:" + e.toString());
+                        sendVoiceMessageToHandler(voiceMsgId, filePath, voiceTimeLongStr, 0, UPDATE_VOICE, handler);
+                    }
+
+                    @Override
+                    public void onLoading(long total, long current,
+                                          boolean isUploading) {
+
+                    }
+                });
+            }
         } else if (current_client_model == ZhiChiConstant.client_model_customService) {
             LogUtils.i("发送给人工语音---sobot---" + filePath);
             zhiChiApi.sendFile(initModel.getReadFlag(), voiceMsgId, cid, uid, filePath, voiceTimeLongStr, current_client_model,
@@ -1972,10 +1966,6 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
 //            } else {
             //v6常见问题
             sobotHotIssue(handler, 1);
-            LogUtils.d("===========processAutoSendMsg===");
-//            if (config.isProcessAutoSendMsg) {
-                processAutoSendMsg(info);
-//            }
             processNewTicketMsg(handler);
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -1984,6 +1974,8 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
                     if (info.getCustomCard() != null && info.getCustomCard().isShowCustomCardAllMode() == true) {
                         checkSendCardContent(handler);
                     }
+                    //自动发送
+                    processAutoSendMsg(info);
                 }
             }, 1000);
 

@@ -25,7 +25,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -34,7 +33,6 @@ import com.sobot.chat.R;
 import com.sobot.chat.activity.base.SobotDialogBaseActivity;
 import com.sobot.chat.api.ZhiChiApi;
 import com.sobot.chat.api.apiUtils.ZhiChiConstants;
-import com.sobot.chat.api.model.CommonModel;
 import com.sobot.chat.api.model.Information;
 import com.sobot.chat.api.model.SobotCommentParam;
 import com.sobot.chat.api.model.SobotOrderEvaluateModel;

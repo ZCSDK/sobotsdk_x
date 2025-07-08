@@ -205,6 +205,7 @@ public class SobotTicketDetailActivity extends SobotChatBaseActivity implements 
                     mTicketInfo.setTime(datas.getTime());
                     mTicketInfo.setTimeStr(datas.getTimeStr());
                     mTicketInfo.setTicketStatus(datas.getTicketStatus());
+                    mTicketInfo.setFileList(datas.getTicketFileList());
                     mList.add(mTicketInfo);
                     if (datas.getReplyList() != null && datas.getReplyList().size() > 0) {
                         mList.addAll(datas.getReplyList());

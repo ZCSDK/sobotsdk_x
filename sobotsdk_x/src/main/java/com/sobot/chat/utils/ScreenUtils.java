@@ -250,7 +250,6 @@ public class ScreenUtils {
         int resourceId = resources.getIdentifier( "navigation_bar_height_landscape", "dimen", "android");
         if (resourceId > 0) {
             int hight = resources.getDimensionPixelSize(resourceId);
-            LogUtils.d("=========="+hight);
             return hight;
         }
         return 0;

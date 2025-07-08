@@ -444,7 +444,7 @@ public class SobotTicketDetailAdapter extends RecyclerView.Adapter {
         private LinearLayout sobot_ll_container;
         private LinearLayout sobot_tv_content_ll;
         private View sobot_top_line_view;
-//        private LinearLayout sobot_ll_root;
+        //        private LinearLayout sobot_ll_root;
         private RecyclerView recyclerView;
 
         DetailViewHolder(View view) {

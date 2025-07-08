@@ -56,7 +56,7 @@ import com.sobot.chat.core.channel.SobotMsgManager;
 import com.sobot.chat.notchlib.utils.RomUtils;
 import com.sobot.chat.server.SobotSessionServer;
 import com.sobot.chat.widget.dialog.SobotDialogUtils;
-import com.sobot.gson.SobotGsonUtil;
+import com.sobot.chat.gson.SobotGsonUtil;
 import com.sobot.network.http.callback.StringResultCallBack;
 import com.sobot.pictureframe.SobotBitmapUtil;
 import com.sobot.utils.SobotStringUtils;
@@ -84,7 +84,7 @@ import java.util.regex.Pattern;
 public class ChatUtils {
 
     public static final int REQUEST_CODE_CAMERA = 108;
-    private static  List<SobotTicketStatus> statusList;
+    private static List<SobotTicketStatus> statusList;//工单状态集合
 
     public static void setStatusList(List<SobotTicketStatus> statusList) {
         ChatUtils.statusList = statusList;
@@ -153,11 +153,11 @@ public class ChatUtils {
             return;
         }
         Intent intent;
-        if (Build.VERSION.SDK_INT < 19 || RomUtils.isOppo() || RomUtils.isOnePlus()) {
+        if (Build.VERSION.SDK_INT < 27 || RomUtils.isOppo() || RomUtils.isOnePlus() || RomUtils.isVivo()) {
             intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("video/*");
         } else {
-            intent = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+            intent = new Intent(Intent.ACTION_PICK);
             intent.setDataAndType(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, "video/*");
         }
         try {
@@ -185,11 +185,11 @@ public class ChatUtils {
             return;
         }
         Intent intent;
-        if (Build.VERSION.SDK_INT < 19 || RomUtils.isOppo() || RomUtils.isOnePlus()) {
+        if (Build.VERSION.SDK_INT < 27 || RomUtils.isOppo() || RomUtils.isOnePlus() || RomUtils.isVivo()) {
             intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("video/*");
         } else {
-            intent = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+            intent = new Intent(Intent.ACTION_PICK);
             intent.setDataAndType(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, "video/*");
         }
         try {
@@ -407,7 +407,7 @@ public class ChatUtils {
     public static String getMessageContentByOutLineType(Context context, ZhiChiInitModeBase
             initModel, int type) {
         Resources resources = context.getResources();
-        if (1 == type ||2 == type) {// 1:是客服下线导致的用户离线，2:是客服主动把用户离线了
+        if (1 == type || 2 == type) {// 1:是客服下线导致的用户离线，2:是客服主动把用户离线了
             return initModel.isServiceEndPushFlag() && !TextUtils.isEmpty(initModel.getServiceEndPushMsg()) ? initModel.getServiceEndPushMsg() : ResourceUtils.getResString(context, "sobot_outline_closed");//ResourceUtils.getResString(context,"sobot_outline_leverByManager");
         } else if (3 == type) { // 被加入黑名单
             return ResourceUtils.getResString(context, "sobot_outline_leverByManager");
@@ -524,12 +524,12 @@ public class ChatUtils {
         return zhichiMessage;
     }
 
-    public static Map<String, Object> getSendAiCardParameter(String btnText, SobotChatCustomGoods goods, SobotChatCustomCard card) {
-        Map<String, Object> parame = new HashMap<>();
+    public static HashMap<String, Object> getSendAiCardParameter(String btnText, SobotChatCustomGoods goods, SobotChatCustomCard card) {
+        HashMap<String, Object> parame = new HashMap<>();
         try {
             JSONArray questionArray = new JSONArray();
             card.setCardStyle(0);//代表时客户发的
-            if (goods!=null && goods.getParamInfos() != null) {
+            if (goods != null && goods.getParamInfos() != null) {
                 for (int i = 0; i < goods.getParamInfos().size(); i++) {
                     JSONObject object = new JSONObject();
                     object.put("nodeId", card.getNodeId());
@@ -542,29 +542,32 @@ public class ChatUtils {
                 List<SobotChatCustomGoods> list = new ArrayList<>();
                 list.add(goods);
                 card.setCustomCards(list);
-            }else{
+            } else {
                 JSONObject object = new JSONObject();
                 object.put("nodeId", card.getNodeId());
                 object.put("processId", card.getProcessId());
                 object.put("variableId", "");
-                object.put("variableValue","");
+                object.put("variableValue", "");
                 object.put("customCardButtonName", btnText);
                 questionArray.put(object);
             }
             String cardOriginalInfo = card.getOriginalInfo();
-            if(goods!=null && SobotStringUtils.isNoEmpty(cardOriginalInfo)){
+            if (goods != null && SobotStringUtils.isNoEmpty(cardOriginalInfo)) {
                 JSONObject object = new JSONObject(cardOriginalInfo);
                 JSONArray array = object.getJSONArray("customCards");
                 array.put(new JSONObject(goods.getOriginalString()));
                 object.remove("customCards");
                 object.put("customCards", array);
-                cardOriginalInfo = object.toString();
+                cardOriginalInfo = SobotJsonUtils.object2Json(object);
             }
-
-            parame.put("question", questionArray.toString());//String 点击卡片的节点
+            parame.put("question", SobotJsonUtils.object2Json(questionArray));//String 点击卡片的节点
             parame.put("showQuestion", cardOriginalInfo);//String 点击卡片的所有属性
             parame.put("inputTypeEnum", "PROCESS_CARD_CLICK");
-            parame.put("interfaceInfo", card.getInterfaceInfo());//全量的对象
+            if(SobotStringUtils.isNoEmpty(card.getInterfaceInfo())) {
+                parame.put("interfaceInfo", SobotGsonUtil.jsonToMaps(card.getInterfaceInfo()));//全量的对象
+            }else{
+                parame.put("interfaceInfo", "");//全量的对象
+            }
             parame.put("objMsgType", "21");
         } catch (Exception e) {
             e.printStackTrace();
@@ -846,6 +849,31 @@ public class ChatUtils {
             return null;
         }
         ZhiChiMessageBase base = new ZhiChiMessageBase();
+        base.setAction(ZhiChiConstant.action_remind_connt_success);
+        base.setT(Calendar.getInstance().getTime().getTime() + "");
+        base.setSenderName(TextUtils.isEmpty(aname) ? "" : aname);
+        base.setSenderFace(TextUtils.isEmpty(aface) ? "" : aface);
+        ZhiChiReplyAnswer reply = new ZhiChiReplyAnswer();
+        reply.setMsgType(ZhiChiConstant.message_type_text);
+        base.setSenderType(ZhiChiConstant.message_sender_type_service);
+        reply.setMsg(content);
+        base.setAnswer(reply);
+        return base;
+    }
+
+    /**
+     * 获取大模型转人工提示语的对象
+     *
+     * @param aname   客服名称
+     * @param aface   客服头像
+     * @param content 提示语内容
+     * @return
+     */
+    public static ZhiChiMessageBase getAIAgentTransferTip(String aname, String aface, String content) {
+        if (TextUtils.isEmpty(content)) {
+            return null;
+        }
+        ZhiChiMessageBase base = new ZhiChiMessageBase();
         base.setT(Calendar.getInstance().getTime().getTime() + "");
         base.setSenderName(TextUtils.isEmpty(aname) ? "" : aname);
         base.setSenderFace(TextUtils.isEmpty(aface) ? "" : aface);
@@ -963,7 +991,7 @@ public class ChatUtils {
             Integer type = Integer.valueOf(msg.getAnswerType());
             String[] mulArr = manualType.split(",");
             if (msg.getSpecialMsgFlag() == 1) {
-                if (mulArr.length>=5 && "1".equals(mulArr[4])) {
+                if (mulArr.length >= 5 && "1".equals(mulArr[4])) {
                     return true;
                 }
             } else if ((type == 1 && "1".equals(mulArr[0])) || (type == 9 && "1".equals(mulArr[0])) || (type == 11 && "1".equals(mulArr[0])) || (type == 12 && "1".equals(mulArr[0])) || (type == 14 && "1".equals(mulArr[0])) || (type == 2 && "1".equals(mulArr[1]))
