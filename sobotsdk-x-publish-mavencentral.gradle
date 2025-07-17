@@ -14,7 +14,7 @@ ext {
     PUBLISH_GROUP_ID = "com.sobot.chat"        //项目包名
 //    PUBLISH_ARTIFACT_ID = 'sdk_demo'            //项目名
     PUBLISH_ARTIFACT_ID = 'sobotsdk_x'            //项目名
-    PUBLISH_VERSION = '4.2.6'                    //版本号
+    PUBLISH_VERSION = '4.2.6.1'                    //版本号
 }
 
 publishing {
@@ -85,7 +85,7 @@ mavenCentral {
     authToken = rootProject.ext.has("authTokenValue") ? rootProject.ext.authTokenValue : ""
     // 上传是否应该自动发布。如果您希望手动执行此操作，请使用 'USER_MANAGED'。
     // 该属性是可选的，默认为 'AUTOMATIC'。
-    publishingType = "USER_MANAGED"
+    publishingType = "AUTOMATIC"
     // 当发布类型为 'AUTOMATIC' 时，状态API获取 'PUBLISHING' 或 'PUBLISHED' 状态的最大等待时间
     // 或者当发布类型为 'USER_MANAGED' 时，获取 'VALIDATED' 状态。
     // 该属性是可选的，默认为60秒。
