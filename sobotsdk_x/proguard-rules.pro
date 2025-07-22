@@ -33,6 +33,13 @@
 -keep class com.facebook.fresco.** { *; }
 -keep class com.facebook.imagepipeline.** { *; }
 
+## ----------------------------------
+##      UIL相关
+## ----------------------------------
+-keep class com.nostra13.universalimageloader.** { *; }
+-keepclassmembers class com.nostra13.universalimageloader.** {*;}
+-dontwarn com.nostra13.universalimageloader.**
+
 # 保留所有 TypeToken 子类不被混淆，防止泛型信息丢失
 -keep class com.sobot.chat.gson.reflect.TypeToken {
     *;
