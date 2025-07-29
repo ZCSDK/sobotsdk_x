@@ -1022,8 +1022,7 @@ public class SobotMsgAdapter extends RecyclerView.Adapter<MsgHolderBase> {
         }
         ZhiChiMessageBase info = getMsgInfo(id);
         if (info != null) {
-            if (StringUtils.isNoEmpty(data.getRobotAnswerMessageType()) && !"SENSITIVE_WORD".equals(data.getRobotAnswerType())) {
-                //SENSITIVE_WORD 如果是敏感词，就拼接，直接覆盖显示
+            if (StringUtils.isNoEmpty(data.getRobotAnswerMessageType()) && data.getRobotAnswerMessageType().equals("MESSAGE")) {
                 //拼接消息
                 String oldDate = info.getContent();
                 String newDate = data.getContent();
