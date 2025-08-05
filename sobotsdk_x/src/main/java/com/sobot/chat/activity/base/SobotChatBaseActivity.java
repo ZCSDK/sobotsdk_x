@@ -49,6 +49,7 @@ import com.sobot.chat.activity.SobotSelectPicAndVideoActivity;
 import com.sobot.chat.api.ZhiChiApi;
 import com.sobot.chat.api.apiUtils.SobotApp;
 import com.sobot.chat.api.apiUtils.SobotBaseUrl;
+import com.sobot.chat.api.model.HelpConfigModel;
 import com.sobot.chat.api.model.ZhiChiInitModeBase;
 import com.sobot.chat.application.MyApplication;
 import com.sobot.chat.core.HttpUtils;
@@ -852,7 +853,21 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
      */
     private void setToolBarDefBg() {
         try {
-            int[] colors = new int[]{getResources().getColor(R.color.sobot_color_title_bar_left_bg), getResources().getColor(R.color.sobot_color_title_bar_bg)};
+            HelpConfigModel configModel = (HelpConfigModel) SharedPreferencesUtil.getObject(getSobotBaseActivity(), "SobotHelpConfigModel");
+            int[] colors = null;
+            if (configModel != null && StringUtils.isNoEmpty(configModel.getTopBarColor())) {
+                String topBarColor[] = configModel.getTopBarColor().split(",");
+                if (topBarColor.length > 1) {
+                    colors = new int[topBarColor.length];
+                    for (int i = 0; i < topBarColor.length; i++) {
+                        colors[i] = Color.parseColor(topBarColor[i]);
+                    }
+                } else {
+                    colors = new int[]{Color.parseColor(topBarColor[0])};
+                }
+            } else {
+                colors = new int[]{getResources().getColor(R.color.sobot_color_title_bar_left_bg), getResources().getColor(R.color.sobot_color_title_bar_bg)};
+            }
             GradientDrawable gradientDrawable = new GradientDrawable();
             gradientDrawable.setShape(GradientDrawable.RECTANGLE);
             gradientDrawable.setColors(colors); //添加颜色组

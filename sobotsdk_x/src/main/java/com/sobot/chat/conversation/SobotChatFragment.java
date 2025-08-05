@@ -1370,7 +1370,7 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                     ViewCompat.setOnApplyWindowInsetsListener(decorView, new OnApplyWindowInsetsListener() {
                         @Override
                         public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
-                            int statusBarHeight = insets.getSystemWindowInsetTop();
+                            int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
                             StatusBarUtil.SOBOT_STATUS_HIGHT = statusBarHeight;
                             if (SobotApp.getApplicationContext() != null) {
                                 SobotSharedPreferencesUtil.getInstance(SobotApp.getApplicationContext()).put("SobotStatusBarHeight", statusBarHeight);

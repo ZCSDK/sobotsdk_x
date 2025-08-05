@@ -14,7 +14,7 @@ ext {
     PUBLISH_GROUP_ID = "com.sobot.chat"        //项目包名
 //    PUBLISH_ARTIFACT_ID = 'sdk_demo'            //项目名
     PUBLISH_ARTIFACT_ID = 'sobotsdk_x'            //项目名
-    PUBLISH_VERSION = '4.2.7.1'                    //版本号
+    PUBLISH_VERSION = '4.2.7.0'                    //版本号
 }
 
 publishing {

@@ -6,6 +6,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.sobot.chat.MarkConfig;
 import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.api.model.Information;
 
@@ -17,12 +18,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         qidong=findViewById(R.id.qidong);
+//        ZCSobotApi.setSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN,true);
         qidong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Information info=new Information();
                 info.setApp_key("1c1da2c0aad047d7ba1d14ecd18ae4f6");
-                ZCSobotApi.openZCChat(MainActivity.this,info);
+                ZCSobotApi.openZCServiceCenter(MainActivity.this,info);
             }
         });
 
