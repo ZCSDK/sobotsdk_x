@@ -23,8 +23,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Information info=new Information();
+                info.setPartnerid("jiaqian");
                 info.setApp_key("1c1da2c0aad047d7ba1d14ecd18ae4f6");
-                ZCSobotApi.openZCServiceCenter(MainActivity.this,info);
+                ZCSobotApi.setInternationalLanguage(MainActivity.this,"zh",true);
+                ZCSobotApi.openZCChat(MainActivity.this,info);
             }
         });
 
