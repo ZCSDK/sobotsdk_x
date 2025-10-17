@@ -18,9 +18,9 @@ dependencies {
 
 
     //--------------智齿相关依赖 start-----------
-//    implementation project(':sobotsdk_x')
+    implementation project(':sobotsdk_x')
     // 普通版 AndroidX：
-    implementation  'com.sobot.chat:sdk_demo:4.2.8.15'
+//    implementation  'com.sobot.chat:sobotsdk_g:4.2.8.1'
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'

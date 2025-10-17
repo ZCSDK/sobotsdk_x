@@ -1070,8 +1070,8 @@ public class ChatUtils {
         }
     }
 
-    public static void sendPicByUriPost(Context context, Uri selectedImage, SobotSendFileListener listener, boolean isCamera) {
-        String picturePath = ImageUtils.getPath(context, selectedImage);
+    public static void sendPicByUriPost(Activity context, Uri selectedImage, SobotSendFileListener listener, boolean isCamera,Intent dataIntent) {
+        String picturePath = ImageUtils.getPath(context, selectedImage,dataIntent);
         if (!TextUtils.isEmpty(picturePath)) {
             sendPicByFilePath(context, picturePath, listener, isCamera);
         } else {

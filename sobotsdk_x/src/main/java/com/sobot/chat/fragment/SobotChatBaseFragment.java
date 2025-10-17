@@ -30,7 +30,6 @@ import com.sobot.chat.MarkConfig;
 import com.sobot.chat.R;
 import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.activity.SobotCameraActivity;
-import com.sobot.chat.activity.SobotSelectPicAndVideoActivity;
 import com.sobot.chat.api.ZhiChiApi;
 import com.sobot.chat.core.HttpUtils;
 import com.sobot.chat.core.channel.SobotMsgManager;
@@ -45,13 +44,12 @@ import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.widget.toast.ToastUtil;
 
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * @author Created by jinxl on 2018/2/1.
  */
 public abstract class SobotChatBaseFragment extends Fragment {
-
+    public static final int REQUEST_CODE_CAMERA = 108;
     public ZhiChiApi zhiChiApi;
     protected File cameraFile;
 
@@ -135,33 +133,6 @@ public abstract class SobotChatBaseFragment extends Fragment {
         switch (requestCode) {
             case ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_CODE:
                 try {
-                    //android 14 api 34 以上 部分权限直接打开“选择图片和视频界面”
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && grantResults.length > 1) {
-                        boolean isAllGranted = true;
-                        for (int i = 0; i < grantResults.length; i++) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                isAllGranted = false;
-                            }
-                        }
-                        if (!isAllGranted) {
-                            //如果android 14 有部分权限，直接启动“选择图片和视频界面”
-                            for (int i = 0; i < grantResults.length; i++) {
-                                if (permissions[i] != null && permissions[i].equals(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                    int selectType;
-                                    if (Arrays.asList(permissions).contains(Manifest.permission.READ_MEDIA_IMAGES) && Arrays.asList(permissions).contains(Manifest.permission.READ_MEDIA_VIDEO)) {
-                                        selectType = 3;//部分视频和图片
-                                    } else if (Arrays.asList(permissions).contains(Manifest.permission.READ_MEDIA_VIDEO)) {
-                                        selectType = 2;//部分视频
-                                    } else {
-                                        selectType = 1;//部分图片
-                                    }
-                                    openSelectPic(selectType);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-
                     for (int i = 0; i < grantResults.length; i++) {
                         //判断权限的结果，如果有被拒绝，就return
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
@@ -173,16 +144,6 @@ public abstract class SobotChatBaseFragment extends Fragment {
                                 return;
                             } else if (permissions[i] != null && permissions[i].equals(Manifest.permission.CAMERA)) {
                                 showPerssionSettingUi();
-                                return;
-                            } else if (permissions[i] != null && permissions[i].equals(Manifest.permission.READ_MEDIA_IMAGES)) {
-                                showPerssionSettingUi();
-                                return;
-                            } else if (permissions[i] != null && permissions[i].equals(Manifest.permission.READ_MEDIA_VIDEO)) {
-                                showPerssionSettingUi();
-                                return;
-                            }
-                            if (permissions[i] != null && !permissions[i].equals(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)) {
-                                //不处理 READ_MEDIA_VISUAL_USER_SELECTED权限，如果是Android13 全部允许权限时，这个权限返回的还是-1
                                 return;
                             }
                         }
@@ -211,17 +172,6 @@ public abstract class SobotChatBaseFragment extends Fragment {
             int result = checkStoragePermission(checkPermissionType);
             if (result == 0) {
                 isHasPermission = true;
-            } else if (result == 2) {
-                //部分权限
-                isHasPermission = false;
-                if (checkPermissionType == 3) {
-                    //1:部分图片 2:部分视频 3:部分视频和图片
-                    openSelectPic(3);
-                } else if (checkPermissionType == 1) {
-                    openSelectPic(2);
-                } else {
-                    openSelectPic(1);
-                }
             } else {
                 isHasPermission = false;
                 if (checkPermissionType == 3) {
@@ -229,58 +179,18 @@ public abstract class SobotChatBaseFragment extends Fragment {
                 } else {
                     showPerssionUi(0);
                 }
-                if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
-                    //横屏
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            hidePerssionUi();
-                            //申请权限
-                            requestStoragePermission(checkPermissionType);
-                        }
-                    }, 2000);
-                } else {
-                    //申请权限
-                    requestStoragePermission(checkPermissionType);
-                }
+                //申请权限
+                requestStoragePermission(checkPermissionType);
             }
         } else if (type == 2) {
             isHasPermission = checkAudioPermission();
             if (!isHasPermission) {
                 showPerssionUi(2);
-                if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
-                    //横屏
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            hidePerssionUi();
-                            //申请麦克风权限
-                            requestAudioPermission();
-                        }
-                    }, 2000);
-                } else {
-                    //申请麦克风权限
-                    requestAudioPermission();
-                }
             }
         } else if (type == 3) {
             isHasPermission = checkCameraPermission();
             if (!isHasPermission) {
                 showPerssionUi(3);
-                if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
-                    //横屏
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            hidePerssionUi();
-                            //申请相机权限
-                            requestCameraPermission();
-                        }
-                    }, 2000);
-                } else {
-                    //申请相机权限
-                    requestCameraPermission();
-                }
             }
         }
         return isHasPermission;
@@ -387,19 +297,6 @@ public abstract class SobotChatBaseFragment extends Fragment {
      */
     public void requestStoragePermission(int checkType) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                if (checkType == 0) {
-                    this.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED}, ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_CODE);
-                } else if (checkType == 1) {
-                    this.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED}, ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_CODE);
-                }
-            } else {
-                if (checkType == 0) {
-                    this.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES}, ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_CODE);
-                } else if (checkType == 1) {
-                    this.requestPermissions(new String[]{Manifest.permission.READ_MEDIA_VIDEO}, ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_CODE);
-                }
-            }
         } else {
             //申请READ_EXTERNAL_STORAGE权限
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -416,38 +313,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
      */
     public int checkStoragePermission(int checkType) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            //android 13 api 33 以上
-            if (checkType == 0 || checkType == 1) {
-                //检测是否有图片权限
-                if (ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_MEDIA_IMAGES)
-                        == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_MEDIA_VIDEO)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    //有权限
-                    return 0;
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    //android 14 有部分权限
-                    return 2;
-                } else {
-                    //没有权限
-                    return 1;
-                }
-            } else {
-                //检测是否有图片权限
-                if (ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_MEDIA_IMAGES)
-                        == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_MEDIA_VIDEO)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    //有权限
-                    return 0;
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    //android 14 有部分权限
-                    return 2;
-                } else {
-                    //没有权限
-                    return 1;
-                }
-            }
+            return 0; //有权限
         } else {
             // android 13 api33 以前
             if (ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -457,19 +323,6 @@ public abstract class SobotChatBaseFragment extends Fragment {
                 return 1; //没有权限
             }
         }
-    }
-
-    /**
-     * android 14 部分权限情况下，回显照片或者视频
-     *
-     * @param selectType 1:部分图片 2:部分视频 3:部分视频和图片
-     */
-    private void openSelectPic(int selectType) {
-        //隐藏权限提示蒙层
-        hidePerssionUi();
-        Intent intent = new Intent(getSobotActivity(), SobotSelectPicAndVideoActivity.class);
-        intent.putExtra("selectType", selectType);
-        startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
     }
 
     /**

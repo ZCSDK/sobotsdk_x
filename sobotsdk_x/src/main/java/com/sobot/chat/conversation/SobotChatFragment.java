@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
@@ -1373,27 +1374,6 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
             reply.setMsg(keyWordTransfer.getTransferTips());
             base.setAnswer(reply);
             messageAdapter.justAddData(base);
-        }
-    }
-
-    /**
-     * 设置加载中导航栏渐变色
-     */
-    private void setLoadingToolBarDefBg() {
-        try {
-            int[] colors = new int[]{getResources().getColor(R.color.sobot_color_chat_bg), getResources().getColor(R.color.sobot_color_chat_bg)};
-            GradientDrawable gradientDrawable = new GradientDrawable();
-            gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-            gradientDrawable.setColors(colors); //添加颜色组
-            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);//设置线性渐变
-            gradientDrawable.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);//设置渐变方向
-            relative.setBackground(gradientDrawable);
-            GradientDrawable aDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors);
-            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH)) {
-            } else {
-                StatusBarUtil.setColor(getSobotActivity(), aDrawable);
-            }
-        } catch (Exception e) {
         }
     }
 
@@ -5469,7 +5449,13 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
     @Override
     public void btnPicture() {
         hidePanelAndKeyboard(mPanelLayout);
-        selectPicFromLocal();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+            intent.setType("image/*");
+            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+        } else {
+            selectPicFromLocal();
+        }
         gotoLastItem();
     }
 
@@ -5480,7 +5466,13 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
     @Override
     public void btnVedio() {
         hidePanelAndKeyboard(mPanelLayout);
-        selectVedioFromLocal();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+            intent.setType("video/*");
+            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+        } else {
+            selectVedioFromLocal();
+        }
         gotoLastItem();
     }
 
@@ -7136,7 +7128,7 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                                     if (initModel.getInvalidSessionFlag() == 1 && type == ZhiChiConstant.type_custom_only && customerState != CustomerState.Online) {
                                         //使用留言的上传
                                         tmpMsgType = 3;
-                                        ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false);
+                                        ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false, data);
                                     } else {
                                         uploadVideo(videoFile, selectedImage, messageAdapter);
                                     }
@@ -7148,7 +7140,7 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                             if (type == ZhiChiConstant.type_custom_only && customerState != CustomerState.Online) {
                                 //使用留言的上传
                                 tmpMsgType = 1;
-                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false);
+                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false, data);
                             } else {
                                 ChatUtils.sendPicByUri(getSobotActivity(), isOpenUnread && current_client_model == ZhiChiConstant.client_model_customService ? 1 : 0, handler, selectedImage, initModel, messageAdapter, false, current_client_model, info);
                             }
@@ -7212,7 +7204,7 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                                 //文件的上传
                                 tmpMsgType = 4;
                                 selectedImage = ImageUtils.getMediaUriFromPath(getSobotActivity(), selectedFile.getAbsolutePath());
-                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false);
+                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false,data);
                             } else {
                                 uploadFile(selectedFile, handler, messageAdapter, false);
                             }
@@ -7231,7 +7223,7 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                             if (type == ZhiChiConstant.type_custom_only && customerState != CustomerState.Online) {
                                 //使用留言的上传
                                 tmpMsgType = 4;
-                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false);
+                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false,data);
                             } else {
                                 uploadFile(selectedFile, handler, messageAdapter, true);
                             }
@@ -8967,5 +8959,26 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                 onInitResult(initModel);
             }
         });
+    }
+
+    /**
+     * 设置加载中导航栏渐变色
+     */
+    private void setLoadingToolBarDefBg() {
+        try {
+            int[] colors = new int[]{getResources().getColor(R.color.sobot_color_chat_bg), getResources().getColor(R.color.sobot_color_chat_bg)};
+            GradientDrawable gradientDrawable = new GradientDrawable();
+            gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+            gradientDrawable.setColors(colors); //添加颜色组
+            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);//设置线性渐变
+            gradientDrawable.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);//设置渐变方向
+            relative.setBackground(gradientDrawable);
+            GradientDrawable aDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors);
+            if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN) && ZCSobotApi.getSwitchMarkStatus(MarkConfig.DISPLAY_INNOTCH)) {
+            } else {
+                StatusBarUtil.setColor(getSobotActivity(), aDrawable);
+            }
+        } catch (Exception e) {
+        }
     }
 }

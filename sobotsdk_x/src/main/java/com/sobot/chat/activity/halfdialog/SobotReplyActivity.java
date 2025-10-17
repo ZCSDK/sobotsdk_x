@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -330,6 +332,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
     }
 
     // 为弹出窗口popupwindow实现监听类
+    // 为弹出窗口popupwindow实现监听类
     private View.OnClickListener itemsOnClick = new View.OnClickListener() {
         public void onClick(View v) {
             menuWindow.dismiss();
@@ -338,33 +341,44 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
                 selectPicFromCamera();
 
             }
-            if (v.getId() == R.id.btn_pick_photo){
+            if (v.getId() == R.id.btn_pick_photo) {
                 LogUtils.i("选择照片");
-                permissionListener = new PermissionListenerImpl() {
-                    @Override
-                    public void onPermissionSuccessListener() {
-                        ChatUtils.openSelectPic(SobotReplyActivity.this);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+                } else {
+                    permissionListener = new PermissionListenerImpl() {
+                        @Override
+                        public void onPermissionSuccessListener() {
+                            ChatUtils.openSelectPic(SobotReplyActivity.this);
+                        }
+                    };
+                    if (!isHasPermission(1, 0)) {
+                        return;
                     }
-                };
-                if (!isHasPermission( 1, 0)) {
-                    return;
+                    ChatUtils.openSelectPic(SobotReplyActivity.this);
                 }
-                ChatUtils.openSelectPic(SobotReplyActivity.this);
             }
-            if (v.getId() == R.id.btn_pick_vedio){
+            if (v.getId() == R.id.btn_pick_vedio) {
                 LogUtils.i("选择视频");
-                permissionListener = new PermissionListenerImpl() {
-                    @Override
-                    public void onPermissionSuccessListener() {
-                        ChatUtils.openSelectVedio(SobotReplyActivity.this, null);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+                    intent.setType("video/*");
+                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+                } else {
+                    permissionListener = new PermissionListenerImpl() {
+                        @Override
+                        public void onPermissionSuccessListener() {
+                            ChatUtils.openSelectVedio(SobotReplyActivity.this, null);
+                        }
+                    };
+                    if (!isHasPermission(1, 1)) {
+                        return;
                     }
-                };
-                if (!isHasPermission(1, 1)) {
-                    return;
+                    ChatUtils.openSelectVedio(SobotReplyActivity.this, null);
                 }
-                ChatUtils.openSelectVedio(SobotReplyActivity.this, null);
             }
-
         }
     };
 
@@ -411,7 +425,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
                     if (selectedImage == null) {
                         selectedImage = ImageUtils.getUri(data, SobotReplyActivity.this);
                     }
-                    String path = ImageUtils.getPath(this, selectedImage);
+                    String path = ImageUtils.getPath(this, selectedImage,data);
                     if (MediaFileUtils.isVideoFileType(path)) {
                         try {
                             File selectedFile = new File(path);
@@ -439,7 +453,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
 
                     } else {
                         SobotDialogUtils.startProgressDialog(this);
-                        ChatUtils.sendPicByUriPost(this, selectedImage, sendFileListener, false);
+                        ChatUtils.sendPicByUriPost(this, selectedImage, sendFileListener, false,data);
                     }
                 } else {
                     showHint(getContext().getResources().getString(R.string.sobot_did_not_get_picture_path));

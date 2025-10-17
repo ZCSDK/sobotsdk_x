@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
@@ -896,7 +897,7 @@ public class SobotMuItiPostMsgActivty extends SobotDialogBaseActivity implements
                     if (selectedImage == null) {
                         selectedImage = ImageUtils.getUri(data, getSobotBaseActivity());
                     }
-                    String path = ImageUtils.getPath(getSobotBaseActivity(), selectedImage);
+                    String path = ImageUtils.getPath(getSobotBaseActivity(), selectedImage,data);
                     if (!StringUtils.isEmpty(path)) {
                         if (MediaFileUtils.isVideoFileType(path)) {
                             try {
@@ -925,7 +926,7 @@ public class SobotMuItiPostMsgActivty extends SobotDialogBaseActivity implements
 
                         } else {
                             SobotDialogUtils.startProgressDialog(getSobotBaseActivity());
-                            ChatUtils.sendPicByUriPost(getSobotBaseActivity(), selectedImage, sendFileListener, false);
+                            ChatUtils.sendPicByUriPost(getSobotBaseActivity(), selectedImage, sendFileListener, false,data);
                         }
                     } else {
                         showHint(getResources().getString(R.string.sobot_did_not_get_picture_path));
@@ -1004,13 +1005,24 @@ public class SobotMuItiPostMsgActivty extends SobotDialogBaseActivity implements
             }
             if (v.getId() == R.id.btn_pick_photo) {
                 LogUtils.i("选择照片");
-                selectPicFromLocal();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+                } else {
+                    selectPicFromLocal();
+                }
             }
             if (v.getId() == R.id.btn_pick_vedio) {
                 LogUtils.i("选择视频");
-                selectVedioFromLocal();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+                    intent.setType("video/*");
+                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+                } else {
+                    selectVedioFromLocal();
+                }
             }
-
         }
     };
 
