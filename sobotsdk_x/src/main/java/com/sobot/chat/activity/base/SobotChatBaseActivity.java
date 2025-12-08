@@ -86,7 +86,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
     private int initMode;
     private View overlay;//权限用途提示蒙层
     private ViewGroup viewGroup;//根view content
-
+    public boolean isContinueShooting = false;//是否点击过继续拍摄
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -524,6 +524,25 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
                     requestCameraPermission();
                 }
             }
+        } else if (type == 4) {
+            isHasPermission = checkAudioPermission();
+            if (!isHasPermission) {
+                showPerssionUi(4);
+                if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+                    //横屏
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hidePerssionUi();
+                            //申请麦克风权限
+                            requestAudioPermission();
+                        }
+                    }, 2000);
+                } else {
+                    //申请麦克风权限
+                    requestAudioPermission();
+                }
+            }
         }
         return isHasPermission;
     }
@@ -534,6 +553,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
      * @param type 0：照片和视频 1：文件 2：麦克风 3：相机
      */
     public void showPerssionUi(int type) {
+        isContinueShooting = false;
         overlay = LayoutInflater.from(getSobotBaseActivity()).inflate(R.layout.sobot_layout_overlay, null);
         if (overlay != null) {
             final LinearLayout ll_info = overlay.findViewById(R.id.ll_info);
@@ -559,6 +579,12 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
                 tv_content.setText("\"" + CommonUtils.getAppName(getSobotBaseActivity()) + "\" " + getResources().getString(R.string.sobot_camera_permission_yongtu));
                 tv_setting_title.setText(getResources().getString(R.string.sobot_please_open_camera));
                 tv_setting_content.setText(getResources().getString(R.string.sobot_use_camera));
+            }else if (type == 4) {
+                tv_content.setText("\"" + CommonUtils.getAppName(getSobotBaseActivity()) + "\" " + getResources().getString(R.string.sobot_microphone_permission_yongtu_camera));
+                tv_setting_title.setText(getResources().getString(R.string.sobot_no_microphone));
+               String tempStr= getResources().getString(R.string.sobot_no_microphone_des);
+                tv_setting_content.setText(String.format(tempStr, CommonUtils.getAppName(getSobotBaseActivity())));
+                btn_left.setText(getResources().getString(R.string.sobot_continue_shooting));
             }
             viewGroup = getSobotBaseActivity().findViewById(android.R.id.content);
             viewGroup.addView(overlay);
@@ -580,6 +606,9 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     hidePerssionUi();
+                    if (getResources().getString(R.string.sobot_continue_shooting).equals(btn_left.getText().toString())) {
+                        isContinueShooting = true;
+                    }
                 }
             });
             btn_right.setOnClickListener(new View.OnClickListener() {
@@ -903,11 +932,12 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
             }
             if (initModel.getVisitorScheme() != null) {
                 //导航条显示1 开启 0 关闭
-                if (initModel.getVisitorScheme().getTopBarFlag() == 1) {
-                    getToolBar().setVisibility(View.VISIBLE);
-                } else {
-                    getToolBar().setVisibility(View.GONE);
-                }
+//                if (initModel.getVisitorScheme().getTopBarFlag() == 1) {
+//                    getToolBar().setVisibility(View.VISIBLE);
+//                } else {
+//                    getToolBar().setVisibility(View.GONE);
+//                }
+                getToolBar().setVisibility(View.VISIBLE);
             }
             if (initModel.getVisitorScheme() != null) {
                 //服务端返回的导航条背景颜色

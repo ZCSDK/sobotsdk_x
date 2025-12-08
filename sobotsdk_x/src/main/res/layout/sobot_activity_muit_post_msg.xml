@@ -336,7 +336,8 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:hint="+86"
+                                android:text="+86"
+                                android:textColor="@color/sobot_color_text_first"
                                 android:paddingTop="3dp"
                                 android:paddingBottom="3dp"
                                 android:textSize="@dimen/sobot_text_font_14" />

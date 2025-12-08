@@ -273,7 +273,6 @@ public class SobotFormInfoActivity extends SobotDialogBaseActivity implements Vi
                 }
             }
         } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
 
         Intent intent = new Intent(this, SobotFromSearchDialog.class);

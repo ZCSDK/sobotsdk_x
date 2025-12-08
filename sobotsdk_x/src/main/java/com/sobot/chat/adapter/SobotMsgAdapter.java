@@ -1022,6 +1022,7 @@ public class SobotMsgAdapter extends RecyclerView.Adapter<MsgHolderBase> {
             return;
         }
         ZhiChiMessageBase info = getMsgInfo(id);
+        info.setAiAgentReceiveMsgEnd(isEnd);
         if (info != null) {
             if (StringUtils.isNoEmpty(data.getRobotAnswerType()) && "SENSITIVE_WORD".equals(data.getRobotAnswerType())) {
                 //SENSITIVE_WORD 是敏感词，直接覆盖显示
@@ -1082,7 +1083,7 @@ public class SobotMsgAdapter extends RecyclerView.Adapter<MsgHolderBase> {
             List<ChatMessageRichListModel> richList = new ArrayList<>();
             for (int i = 0; i < temp.length; i++) {
                 ChatMessageRichListModel model = new ChatMessageRichListModel();
-                if (SobotStringUtils.isNoEmpty(temp[0])) {
+                if (StringUtils.isNoEmpty(temp[i])) {
                     if (temp[i].startsWith("http")) {
                         //图片
                         model.setMsg(temp[i]);

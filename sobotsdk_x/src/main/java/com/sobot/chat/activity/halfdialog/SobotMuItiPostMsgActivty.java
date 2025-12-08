@@ -486,25 +486,12 @@ public class SobotMuItiPostMsgActivty extends SobotDialogBaseActivity implements
         }
 
         if (mConfig.isTelShowFlag()) {
+            phoneCode = sobot_tv_phone_code.getText().toString();
+            userPhone = sobot_post_phone.getText().toString();
             if (mConfig.isTelFlag()) {
-                if (SobotStringUtils.isEmpty(phoneCode)) {
-                    showHint(getContext().getResources().getString(R.string.sobot_phone_code_hint));
-                    return;
-                }
-                if (TextUtils.isEmpty(sobot_post_phone.getText().toString().trim())) {
+                if (TextUtils.isEmpty(userPhone)) {
                     showHint(getContext().getResources().getString(R.string.sobot_phone_hint));
                     return;
-                }
-                userPhone = phoneCode + sobot_post_phone.getText().toString();
-            } else {
-                String phoneStr = sobot_post_phone.getText().toString().trim();
-                if (SobotStringUtils.isNoEmpty(phoneCode) && SobotStringUtils.isEmpty(phoneStr)) {
-                    showHint(getContext().getResources().getString(R.string.sobot_phone_hint));
-                    return;
-                }
-                if (!TextUtils.isEmpty(sobot_post_phone.getText().toString().trim())) {
-
-                    userPhone = phoneCode + phoneStr;
                 }
             }
         }
@@ -563,6 +550,7 @@ public class SobotMuItiPostMsgActivty extends SobotDialogBaseActivity implements
         postParam.setTicketContent(sobot_et_content.getText().toString());
         postParam.setCustomerEmail(userEamil);
         postParam.setCustomerPhone(userPhone);
+        postParam.setRegionCode(phoneCode);
         postParam.setTicketTitle(title);
         postParam.setCompanyId(mConfig.getCompanyId());
         postParam.setFileStr(getFileStr());

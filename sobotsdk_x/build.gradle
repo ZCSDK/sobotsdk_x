@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdk 34
-
+    compileSdk 35
+    namespace 'com.sobot.chat'
     defaultConfig {
         minSdkVersion 21
     }

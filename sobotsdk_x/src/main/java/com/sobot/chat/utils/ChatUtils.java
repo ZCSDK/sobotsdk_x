@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -17,18 +19,22 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.sobot.chat.MarkConfig;
 import com.sobot.chat.R;
 import com.sobot.chat.ZCSobotApi;
 import com.sobot.chat.adapter.SobotMsgAdapter;
 import com.sobot.chat.api.ResultCallBack;
 import com.sobot.chat.api.ZhiChiApi;
 import com.sobot.chat.api.apiUtils.GsonUtil;
+import com.sobot.chat.api.model.ChatMessageRichListModel;
 import com.sobot.chat.api.model.CommonModel;
 import com.sobot.chat.api.model.Information;
 import com.sobot.chat.api.model.SatisfactionSet;
@@ -39,6 +45,7 @@ import com.sobot.chat.api.model.SobotMsgCenterModel;
 import com.sobot.chat.api.model.SobotMultiDiaRespInfo;
 import com.sobot.chat.api.model.SobotQuestionRecommend;
 import com.sobot.chat.api.model.SobotTicketStatus;
+import com.sobot.chat.api.model.SobotTypeModel;
 import com.sobot.chat.api.model.ZhiChiInitModeBase;
 import com.sobot.chat.api.model.ZhiChiMessage;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
@@ -1496,7 +1503,7 @@ public class ChatUtils {
 
     //markdown 里边是否有图片 true ：有，fasel:没有
     public static boolean isHasPictureInMarkdown(String markdownText) {
-        if (SobotStringUtils.isEmpty(markdownText)) {
+        if (StringUtils.isEmpty(markdownText)) {
             return false;
         }
         if (markdownText.contains("<img src")) {
@@ -1517,18 +1524,211 @@ public class ChatUtils {
         if (StringUtils.isEmpty(markdownText)) {
             return strArr;
         }
+
+        // 处理图片
         markdownText = convertMarkdownPicToHtml(markdownText);
         if (markdownText.contains("<img src")) {
-            markdownText = convertHtmlPic(markdownText);
+            markdownText = extractAndReplaceImages(markdownText);
         }
         String newContent = convertMarkdownPicToHtml(markdownText);
-        strArr = newContent.split("<img>");
-        return strArr;
+
+        // 提取表格数据
+        List<String> result = new ArrayList<>();
+        String[] parts = newContent.split("<img>");
+
+        for (String part : parts) {
+            result.add(part);
+        }
+        return result.toArray(new String[0]);
     }
+// 在 ChatUtils 类中添加以下方法
+
+    /**
+     * 提取 Markdown 中的多组表格数据，并保留非表格内容
+     *
+     * @param markdownText 包含多组表格和非表格内容的 Markdown 文本
+     * @return 包含HTML格式表格和其他内容的字符串列表
+     */
+    public static List<String> extractMultipleMarkdownTables(String markdownText) {
+        try {
+            List<String> result = new ArrayList<>();
+            if (StringUtils.isEmpty(markdownText)) {
+                return result;
+            }
+
+            String[] lines = markdownText.split("\n");
+            List<String> currentTableLines = new ArrayList<>();
+            List<String> nonTableContent = new ArrayList<>();
+            boolean inTable = false;
+            boolean tableStarted = false;
+
+            for (String line : lines) {
+                // 检查是否是表格行(包含至少两个|符号)
+                if (line.contains("|") && line.length() - line.replace("|", "").length() >= 2) {
+                    // 如果是非表格内容积累阶段，先处理掉这些内容
+                    if (!nonTableContent.isEmpty()) {
+                        result.add(String.join("\n", nonTableContent));
+                        nonTableContent.clear();
+                    }
+
+                    // 如果是分隔行(| --- | --- |)
+                    if (line.contains("---")) {
+                        tableStarted = true;
+                        currentTableLines.add(line);
+                    } else {
+                        // 表格内容行
+                        currentTableLines.add(line);
+                        inTable = true;
+                    }
+                } else {
+                    // 非表格行
+                    if (inTable && tableStarted) {
+                        // 表格正在进行中，继续收集非表格行，可能是表格结束
+                        nonTableContent.add(line);
+                    } else if (inTable) {
+                        // 在表格定义中但还没遇到分隔行，这可能不是有效表格，回退到非表格内容
+                        nonTableContent.addAll(currentTableLines);
+                        nonTableContent.add(line);
+                        currentTableLines.clear();
+                        inTable = false;
+                    } else {
+                        // 纯非表格内容
+                        nonTableContent.add(line);
+                    }
+
+                    // 检查是否是表格结束点（非表格内容为空行或者其他明显非表格内容）
+                    if (inTable && tableStarted && !currentTableLines.isEmpty()) {
+                        // 检查下一个非表格行是否确实是表格结束信号
+                        if (!line.trim().isEmpty() &&
+                                !(line.contains("|") && line.length() - line.replace("|", "").length() >= 2)) {
+                            // 结束当前表格
+                            String htmlTable = convertMarkdownTableToHtml(new ArrayList<>(currentTableLines));
+                            if (!StringUtils.isEmpty(htmlTable)) {
+                                result.add(htmlTable);
+                            }
+                            // 添加当前非表格行
+                            if (!line.trim().isEmpty()) {
+                                result.add(line);
+                            }
+                            currentTableLines.clear();
+                            inTable = false;
+                            tableStarted = false;
+                        }
+                    }
+                }
+            }
+
+            // 处理剩余的非表格内容
+            if (!nonTableContent.isEmpty()) {
+                String content = String.join("\n", nonTableContent);
+                if (!content.trim().isEmpty()) {
+                    result.add(content);
+                }
+            }
+
+            // 处理最后一个表格（如果文本以表格结束）
+            if (inTable && tableStarted && !currentTableLines.isEmpty()) {
+                String htmlTable = convertMarkdownTableToHtml(new ArrayList<>(currentTableLines));
+                if (!StringUtils.isEmpty(htmlTable)) {
+                    result.add(htmlTable);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+
+    /**
+     * 将 Markdown 表格行转换为 HTML 表格
+     *
+     * @param tableLines 表格行数据
+     * @return HTML 格式的表格
+     */
+    private static String convertMarkdownTableToHtml(List<String> tableLines) {
+        if (tableLines == null || tableLines.size() < 2) {
+            return "";
+        }
+
+        StringBuilder html = new StringBuilder();
+        html.append("<table border='1' cellspacing='0' cellpadding='5'>");
+
+        boolean isHeaderProcessed = false;
+
+        for (int i = 0; i < tableLines.size(); i++) {
+            String line = tableLines.get(i).trim();
+            if (line.startsWith("|")) {
+                line = line.substring(1);
+            }
+            if (line.endsWith("|")) {
+                line = line.substring(0, line.length() - 1);
+            }
+
+            String[] cells = line.split("\\|");
+
+            // 处理表头
+            if (!isHeaderProcessed) {
+                html.append("<thead><tr>");
+                for (String cell : cells) {
+                    html.append("<th>").append(cell.trim()).append("</th>");
+                }
+                html.append("</tr></thead><tbody>");
+                isHeaderProcessed = true;
+                continue;
+            }
+
+            // 处理分隔行(| --- | --- |)
+            if (line.contains("---")) {
+                continue;
+            }
+
+            // 处理数据行
+            html.append("<tr>");
+            for (String cell : cells) {
+                html.append("<td>").append(cell.trim()).append("</td>");
+            }
+            html.append("</tr>");
+        }
+
+        html.append("</tbody></table>");
+        return html.toString();
+    }
+
+    /**
+     * 检查文本是否包含 Markdown 表格
+     *
+     * @param text 待检查的文本
+     * @return true 表示包含表格，false 表示不包含
+     */
+    public static boolean isMarkdownTable(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return false;
+        }
+
+        String[] lines = text.split("\n");
+        int tableLineCount = 0;
+
+        for (String line : lines) {
+            line = line.trim();
+            // 检查是否是表格行(至少包含两个|符号，且不是分隔行)
+            if (line.contains("|") && line.length() - line.replace("|", "").length() >= 2) {
+                // 检查是否是表头分隔行(| --- | --- |)
+                if (line.contains("|") && line.contains("---")) {
+                    continue;
+                }
+                tableLineCount++;
+            }
+        }
+
+        // 至少需要有表头和一行数据
+        return tableLineCount >= 2;
+    }
+
 
     //解析MarkDown数据 转成Html
     public static String parseMarkdownData(String tempContent) {
-        if (SobotStringUtils.isEmpty(tempContent)) {
+        if (StringUtils.isEmpty(tempContent)) {
             return "";
         }
         String[] arrStr = tempContent.replace("1. **", "**1.")
@@ -1555,7 +1755,7 @@ public class ChatUtils {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < arrStr.length; i++) {
             String tempStr = arrStr[i];
-            if (SobotStringUtils.isEmpty(arrStr[i])) {
+            if (StringUtils.isEmpty(arrStr[i])) {
                 tempStr = "";
             }
             if (arrStr[i].startsWith("######")) {
@@ -1678,28 +1878,6 @@ public class ChatUtils {
         return sb.toString();
     }
 
-    //处理图片
-    public static String convertHtmlPic(String markdownText) {
-        if (StringUtils.isEmpty(markdownText)) {
-            return "";
-        }
-        // 正则表达式匹配Markdown格式的超链接
-        String regex = "<img src=(.*?)>";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(markdownText);
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()) {
-            // 获取图片的文本和URL
-            String imgUrl = matcher.group(1);
-            // 使用StringBuilder构建新的<img>标签
-            StringBuilder replacement = new StringBuilder();
-            replacement.append("<img>").append(imgUrl).append("<img>");
-            matcher.appendReplacement(sb, replacement.toString());
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
-    }
-
     //处理超链接
     public static String convertMarkdownLinkToHtml(String markdownText) {
         // 正则表达式匹配Markdown格式的超链接
@@ -1765,5 +1943,136 @@ public class ChatUtils {
         // 设置文字
         textView1.setText(text1);
         textView2.setText(text2);
+    }
+
+    //通过设置为 false 来禁用 Android 15 (API 35) 新增的语言区域感知行高功能 (不然android15 光标变高了)
+    public static void useLocalePreferredLineHeightForMinimum(EditText editText) {
+        if (editText != null && Build.VERSION.SDK_INT >= 35) {
+            editText.setLocalePreferredLineHeightForMinimumUsed(false);
+        }
+    }
+
+    //判断在线客服座席是否是默认头像
+    public static boolean isDefaultFace(String adminFace) {
+        return StringUtils.isNoEmpty(adminFace) && (adminFace.contains("static-resource/account/image/admin.png") || adminFace.contains("console/common/face/admin.png") || adminFace.contains("static-resource/main/image/admin.png"));
+    }
+
+
+    public static Uri getUri(Context context, File file) {
+        Uri uri;
+        if (Build.VERSION.SDK_INT >= 24) {
+            uri = FileProvider.getUriForFile(context, context.getPackageName() + ".sobot_fileprovider", file);
+        } else {
+            uri = Uri.fromFile(file);
+        }
+        return uri;
+    }
+
+    public static void main(String[] args) {
+        // 测试数据
+        String data1 = "dsfdsj<img src=\\\"https://img-hk.sobot.com/5fb7495819ee4b7dbba8ec41ae3af49e/common/cca16bb0f95578bbefc71f85c374be1e_1762398835585.jpeg\\\"/> jsaldjfksjd ;f";
+        String data2 = "撒旦范德萨<img src=https://img.zhichidata.com/12f6404c8f0a4dbd93327a559bc3a424/aigc/2c9e5cbf9339415d8a6b628d642ba4c8/image5.png>";
+
+        System.out.println("原始数据1: " + data1);
+        System.out.println("处理结果1: " + extractAndReplaceImages(data1));
+        System.out.println();
+        System.out.println("原始数据2: " + data2);
+        System.out.println("处理结果2: " + extractAndReplaceImages(data2));
+    }
+
+    /**
+     * 从文本中提取并替换图片地址
+     *
+     * @param text 输入文本
+     * @return 处理后的文本
+     */
+    public static String extractAndReplaceImages(String text) {
+        // 步骤1：正则匹配<img />标签
+        try {
+            String imgTagRegex = "<img\\s+[^>]*src\\s*=\\s*[\"']?([^\"'\\s>]+)[\"']?[^>]*>";
+            Pattern imgTagPattern = Pattern.compile(imgTagRegex, Pattern.CASE_INSENSITIVE);
+            Matcher imgTagMatcher = imgTagPattern.matcher(text);
+            StringBuffer result = new StringBuffer();
+            while (imgTagMatcher.find()) {
+                String imgTag = imgTagMatcher.group(0); // 完整的<img>标签
+                // 步骤2：从src值中提取图片URL
+                String imageUrl = extractImageUrl(imgTag);
+                if (imageUrl != null) {
+                    // 步骤3：替换为新的<img>标签
+                    String replacement = "<img>" + imageUrl + "<img>";
+                    imgTagMatcher.appendReplacement(result, replacement);
+                } else {
+                    // 如果没有找到有效的图片URL，保留原标签
+                    imgTagMatcher.appendReplacement(result, imgTag);
+                }
+            }
+            imgTagMatcher.appendTail(result);
+            return result.toString();
+        } catch (Exception e) {
+        }
+        return text;
+    }
+
+    /**
+     * 从src属性值中提取图片URL
+     *
+     * @param srcContent src完整数据
+     * @return 提取的图片URL，如果没有找到返回null
+     */
+    public static String extractImageUrl(String srcContent) {
+        // 正则匹配图片URL
+        try {
+            String imageUrlRegex = "https?://[^\\\"']*\\.(png|jpg|jpeg|gif|bmp|webp|svg|ico|tiff|tif|heic|heif|raw|psd|ai)";
+            Pattern imageUrlPattern = Pattern.compile(imageUrlRegex, Pattern.CASE_INSENSITIVE);
+            Matcher imageUrlMatcher = imageUrlPattern.matcher(srcContent);
+            if (imageUrlMatcher.find()) {
+                return imageUrlMatcher.group(0);
+            }
+        } catch (Exception e) {
+        }
+        return srcContent;
+    }
+
+    /**
+     * 判断当前是否是阿拉伯语
+     * 注意：如果用户禁止了镜像，也返回不是阿语
+     *
+     * @param context
+     * @return
+     */
+    public static final boolean isRtl(Context context) {
+        if (context == null) {
+            return false;
+        }
+        if (!isSupportsRtl(context)) {
+            LogUtils.d("用户主项目不支持布局镜像");
+            return false;
+        }
+        //是否使用国际化语言
+        try {
+            Locale language = (Locale) SharedPreferencesUtil.getObject(context, ZhiChiConstant.SOBOT_LANGUAGE);
+            if (language != null) {
+                String languageCode = language.getLanguage();
+                //希伯来语(he), 波斯语(fa)
+                if ("ar".equals(languageCode) || "he".equals(languageCode) || "fa".equals(languageCode)) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    // 获取 Application 清单文件 属性值 supportsRtl，是否支持镜像RTL
+    public static boolean isSupportsRtl(Context context) {
+        try {
+            ApplicationInfo appInfo = context.getPackageManager()
+                    .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            // 检查 ApplicationInfo 的 flags 是否包含 FLAG_SUPPORTS_RTL
+            return (appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_RTL) != 0;
+        } catch (PackageManager.NameNotFoundException e) {
+            // 默认情况下，如果未明确设置或发生错误，可以假设不支持或根据API级别处理
+            return false;
+        }
     }
 }

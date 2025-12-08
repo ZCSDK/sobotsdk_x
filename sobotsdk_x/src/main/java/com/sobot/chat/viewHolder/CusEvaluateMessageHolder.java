@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * 客服主动邀请客户评价
  */
-public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGroup.OnCheckedChangeListener,  CompoundButton.OnCheckedChangeListener {
+public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGroup.OnCheckedChangeListener, CompoundButton.OnCheckedChangeListener {
     private TextView sobot_center_title;
     private RadioGroup sobot_readiogroup;
     private RadioButton sobot_btn_ok_robot;
@@ -93,15 +93,15 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
         super(context, convertView);
         v_top = convertView.findViewById(R.id.v_top);
         sobot_text_other_problem = convertView.findViewById(R.id.sobot_text_other_problem);
-        sobot_center_title =  convertView.findViewById(R.id.sobot_center_title);
+        sobot_center_title = convertView.findViewById(R.id.sobot_center_title);
         sobot_readiogroup = convertView.findViewById(R.id.sobot_readiogroup);
-         sobot_btn_ok_robot =  convertView.findViewById(R.id.sobot_btn_ok_robot);
+        sobot_btn_ok_robot = convertView.findViewById(R.id.sobot_btn_ok_robot);
         sobot_btn_ok_robot.setText(context.getResources().getString(R.string.sobot_evaluate_yes));
-        sobot_btn_no_robot =   convertView.findViewById(R.id.sobot_btn_no_robot);
+        sobot_btn_no_robot = convertView.findViewById(R.id.sobot_btn_no_robot);
         sobot_btn_no_robot.setText(R.string.sobot_evaluate_no);
         sobot_tv_star_title = (TextView) convertView.findViewById(R.id.sobot_tv_star_title);
         sobot_tv_star_title.setText(R.string.sobot_please_evaluate);
-        sobot_ratingBar =  convertView.findViewById(R.id.sobot_ratingBar);
+        sobot_ratingBar = convertView.findViewById(R.id.sobot_ratingBar);
         sobot_ten_root_ll = convertView.findViewById(R.id.sobot_ten_root_ll);
         sobot_ten_very_dissatisfied = convertView.findViewById(R.id.sobot_ten_very_dissatisfied);
         sobot_ten_very_satisfaction = convertView.findViewById(R.id.sobot_ten_very_satisfaction);
@@ -123,7 +123,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             themeColor = ThemeUtils.getThemeColor(context);
             sobot_submit.setTextColor(themeColor);
         }
-        if (!TextUtils.isEmpty(initMode.getVisitorScheme().getRebotTheme())) {
+        if (initMode.getVisitorScheme() != null && !TextUtils.isEmpty(initMode.getVisitorScheme().getRebotTheme())) {
             String themeColor[] = initMode.getVisitorScheme().getRebotTheme().split(",");
             if (themeColor.length > 1) {
                 if (mContext.getResources().getColor(R.color.sobot_gradient_start) != Color.parseColor(themeColor[0]) || mContext.getResources().getColor(R.color.sobot_gradient_end) != Color.parseColor(themeColor[1])) {
@@ -144,6 +144,13 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                         v_top.setBackground(aDrawable);
                     }
                 }
+            }
+        } else {
+            int[] colors = new int[]{mContext.getResources().getColor(R.color.sobot_chat_right_bgColor_start), mContext.getResources().getColor(R.color.sobot_chat_right_bgColor_end)};
+            GradientDrawable aDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors);
+            aDrawable.setCornerRadius(mContext.getResources().getDimension(R.dimen.sobot_msg_corner_radius));
+            if (v_top != null) {
+                v_top.setBackground(aDrawable);
             }
         }
         sobot_readiogroup.setOnCheckedChangeListener(this);
@@ -166,7 +173,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                         ToastUtil.showToast(mContext, mContext.getResources().getString(R.string.sobot_the_label_is_required));//标签必选
                         return;
                     }
-                } else if(ratingType == 1){
+                } else if (ratingType == 1) {
                     if (deftaultScore >= 0 && satisFactionList != null && satisFactionList.size() == 11 && deftaultScore < satisFactionList.size()
                             && satisfactionSetBase.getIsInputMust()) {
                         //校验10分评价建议是否必填写，如果是，弹出评价pop再去提交
@@ -181,22 +188,22 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                         return;
                     }
 
-                }else if(ratingType == 2){
+                } else if (ratingType == 2) {
                     int score = 0;
                     if (sobot_btn_satisfied.isSelected()) {
-                        score =5;
-                    }else if(sobot_btn_dissatisfied.isSelected()){
-                        score =1;
+                        score = 5;
+                    } else if (sobot_btn_dissatisfied.isSelected()) {
+                        score = 1;
                     }
                     deftaultScore = score;
-                    if (deftaultScore >= 0   && satisfactionSetBase.getIsInputMust()) {
+                    if (deftaultScore >= 0 && satisfactionSetBase.getIsInputMust()) {
                         doEvaluate(false, deftaultScore);
                         return;
                     }
                     //校验评价标签是否必选
                     if (TextUtils.isEmpty(checkBoxIsChecked())
                             && satisfactionSetBase.getIsTagMust()
-                            && !TextUtils.isEmpty(satisfactionSetBase.getLabelName()) ) {
+                            && !TextUtils.isEmpty(satisfactionSetBase.getLabelName())) {
                         ToastUtil.showToast(mContext, mContext.getResources().getString(R.string.sobot_the_label_is_required));//标签必选
                         return;
                     }
@@ -284,12 +291,12 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
         sobot_ratingBar.setOnClickItemListener(new SobotFiveStarsLayout.OnClickItemListener() {
             @Override
             public void onClickItem(int selectIndex) {
-                int score = selectIndex+1;
+                int score = selectIndex + 1;
                 if (score > 5) {
                     score = 5;
                 }
-                if (score < 0 ) {
-                    score=0;
+                if (score < 0) {
+                    score = 0;
                 }
                 LogUtils.i(sobotEvaluateModel.getScore() + "-----" + deftaultScore + "=====" + score);
                 if (sobotEvaluateModel != null && 0 == sobotEvaluateModel.getEvaluateStatus() && score > 0) {
@@ -358,7 +365,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             score = (mSatisfactionSet.getDefaultType() == 0) ? 5 : 0;
             deftaultScore = score;
             sobotEvaluateModel.setScore(deftaultScore);
-            sobot_ratingBar.init(score,false,32);
+            sobot_ratingBar.init(score, false, 32);
             sobot_ten_root_ll.setVisibility(View.GONE);
             ll_2_type.setVisibility(View.GONE);
             sobot_ratingBar.setVisibility(View.VISIBLE);
@@ -366,7 +373,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             if (mSatisfactionSet.getDefaultType() == 0 && score > 0) {
                 sobot_submit.setVisibility(View.VISIBLE);
             }
-        } else if(mSatisfactionSet.getScoreFlag() == 1){
+        } else if (mSatisfactionSet.getScoreFlag() == 1) {
             //十分
             sobot_ten_root_ll.setVisibility(View.VISIBLE);
             ll_2_type.setVisibility(View.GONE);
@@ -390,7 +397,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             if (sobot_ten_rating_ll.isInit()) {
                 sobot_ten_rating_ll.init(score, false, 20);
             }
-        }else if(mSatisfactionSet.getScoreFlag() == 2){
+        } else if (mSatisfactionSet.getScoreFlag() == 2) {
             //二级评价
             ratingType = 2;//二级评价
             sobot_ten_root_ll.setVisibility(View.GONE);
@@ -403,7 +410,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                 Drawable img = mContext.getResources().getDrawable(R.drawable.sobot_icon_manyi_sel);
                 if (img != null) {
                     img.setBounds(0, 0, img.getMinimumWidth(), img.getMinimumHeight());
-                    sobot_btn_satisfied.setCompoundDrawables(null, img,null,  null);
+                    sobot_btn_satisfied.setCompoundDrawables(null, img, null, null);
                 }
                 sobot_btn_satisfied.setSelected(true);
                 sobot_btn_satisfied.setTextColor(mContext.getResources().getColor(R.color.sobot_color_text_first));
@@ -415,7 +422,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                 Drawable img = mContext.getResources().getDrawable(R.drawable.sobot_icon_no_manyi_sel);
                 if (img != null) {
                     img.setBounds(0, 0, img.getMinimumWidth(), img.getMinimumHeight());
-                    sobot_btn_dissatisfied.setCompoundDrawables(null, img,null,  null);
+                    sobot_btn_dissatisfied.setCompoundDrawables(null, img, null, null);
                 }
                 sobot_btn_dissatisfied.setSelected(true);
                 sobot_btn_dissatisfied.setTextColor(mContext.getResources().getColor(R.color.sobot_color_text_first));
@@ -425,14 +432,14 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             } else if (mSatisfactionSet.getDefaultType() == 2) {
                 score = -1;
             }
-            if ( score > 0) {
+            if (score > 0) {
                 sobot_submit.setVisibility(View.VISIBLE);
             }
             deftaultScore = score;
         }
 
         SatisfactionSetBase satisfactionSetBase = getSatisFaction(score, satisFactionList);
-        if(satisfactionSetBase!=null) {
+        if (satisfactionSetBase != null) {
             if (ratingType == 0) {
                 if (0 == score) {
                     sobot_hide_layout.setVisibility(View.GONE);
@@ -485,7 +492,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             }
         }
         //是否是默认提交按钮
-        if(mSatisfactionSet!=null && mSatisfactionSet.getIsDefaultButton()==0 && !TextUtils.isEmpty(mSatisfactionSet.getButtonDesc())){
+        if (mSatisfactionSet != null && mSatisfactionSet.getIsDefaultButton() == 0 && !TextUtils.isEmpty(mSatisfactionSet.getButtonDesc())) {
             sobot_submit.setText(mSatisfactionSet.getButtonDesc());
         }
         //标签引导语
@@ -508,7 +515,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                 tmpData[i] = satisfactionSetBase.getTags().get(i).getLabelName();
             }
             setLableViewVisible(tmpData);
-        } else if  (satisfactionSetBase != null && !TextUtils.isEmpty(satisfactionSetBase.getLabelName())) {
+        } else if (satisfactionSetBase != null && !TextUtils.isEmpty(satisfactionSetBase.getLabelName())) {
             String tmpData[] = convertStrToArray(satisfactionSetBase.getLabelName());
             setLableViewVisible(tmpData);
         } else {
@@ -541,15 +548,15 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                     int width2 = sobot_btn_no_robot.getMeasuredWidth();
                     sobot_btn_ok_robot.getPaddingStart();
                     if (width1 < width2) {
-                        int pading = (width2-width1)/2+ScreenUtils.dip2px(mContext, 16);
+                        int pading = (width2 - width1) / 2 + ScreenUtils.dip2px(mContext, 16);
                         int paddingTop = ScreenUtils.dip2px(mContext, 7);
-                        LogUtils.d("==pading=="+pading+"====16="+ScreenUtils.dip2px(mContext, 16));
-                        sobot_btn_ok_robot.setPadding(pading, paddingTop,pading ,paddingTop );
+                        LogUtils.d("==pading==" + pading + "====16=" + ScreenUtils.dip2px(mContext, 16));
+                        sobot_btn_ok_robot.setPadding(pading, paddingTop, pading, paddingTop);
                     } else if (width1 > width2) {
-                        int pading = (width1-width2)/2+ScreenUtils.dip2px(mContext, 16);
+                        int pading = (width1 - width2) / 2 + ScreenUtils.dip2px(mContext, 16);
                         int paddingTop = ScreenUtils.dip2px(mContext, 7);
-                        LogUtils.d("==pading=="+pading+"====16="+ScreenUtils.dip2px(mContext, 16));
-                        sobot_btn_no_robot.setPadding(pading,paddingTop ,pading ,paddingTop );
+                        LogUtils.d("==pading==" + pading + "====16=" + ScreenUtils.dip2px(mContext, 16));
+                        sobot_btn_no_robot.setPadding(pading, paddingTop, pading, paddingTop);
                     }
                 }
             });
@@ -603,21 +610,19 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
         if (sobotEvaluateModel == null) {
             return;
         }
-//        if (sobot_readiogroup.getVisibility() == View.VISIBLE) {
-            sobot_btn_ok_robot.setVisibility(View.VISIBLE);
-            sobot_btn_no_robot.setVisibility(View.VISIBLE);
-            //是否解决问题 0:已解决，1：未解决，-1：都不选
-            if (sobotEvaluateModel.getIsResolved() == 0) {
-                sobot_btn_ok_robot.setChecked(true);
-                sobot_btn_no_robot.setChecked(false);
-            } else if (sobotEvaluateModel.getIsResolved() == 1) {
-                sobot_btn_ok_robot.setChecked(false);
-                sobot_btn_no_robot.setChecked(true);
-            } else if (sobotEvaluateModel.getIsResolved() == -1) {
-                sobot_btn_ok_robot.setChecked(false);
-                sobot_btn_no_robot.setChecked(false);
-            }
-//        }
+        sobot_btn_ok_robot.setVisibility(View.VISIBLE);
+        sobot_btn_no_robot.setVisibility(View.VISIBLE);
+        //是否解决问题 0:已解决，1：未解决，-1：都不选
+        if (sobotEvaluateModel.getIsResolved() == 1) {
+            sobot_btn_ok_robot.setChecked(true);
+            sobot_btn_no_robot.setChecked(false);
+        } else if (sobotEvaluateModel.getIsResolved() == 0) {
+            sobot_btn_ok_robot.setChecked(false);
+            sobot_btn_no_robot.setChecked(true);
+        } else {
+            sobot_btn_ok_robot.setChecked(false);
+            sobot_btn_no_robot.setChecked(false);
+        }
         sobot_ratingBar.setEnabled(true);
     }
 
@@ -632,7 +637,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
             message.getSobotEvaluateModel().setScore(score);
             message.getSobotEvaluateModel().setScoreFlag(ratingType);
             SatisfactionSetBase satisfactionSetBase = getSatisFaction(score, satisFactionList);
-            if(satisfactionSetBase!=null){
+            if (satisfactionSetBase != null) {
                 message.getSobotEvaluateModel().setScoreExplainLan(satisfactionSetBase.getScoreExplainLan());
                 message.getSobotEvaluateModel().setScoreExplain(satisfactionSetBase.getScoreExplain());
                 message.getSobotEvaluateModel().setTagsJson(getCheckedLable(score));
@@ -750,7 +755,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
                             // 修改边框颜色
                             GradientDrawable shapeDrawable = (GradientDrawable) drawable;
                             shapeDrawable.setStroke(2, themeColor); // 修改边框的宽度和颜色
-                            shapeDrawable.setColor(ThemeUtils.modifyAlpha(themeColor,10));
+                            shapeDrawable.setColor(ThemeUtils.modifyAlpha(themeColor, 10));
                         }
                     }
                 }
@@ -779,6 +784,7 @@ public class CusEvaluateMessageHolder extends MsgHolderBase implements RadioGrou
         }
         return str + "";
     }
+
     //检测选中的标签
     private String getCheckedLable(int sorce) {
         SatisfactionSetBase satisfactionSetBase = getSatisFaction(sorce, satisFactionList);

@@ -31,6 +31,7 @@ import com.sobot.chat.utils.HtmlTools;
 import com.sobot.chat.utils.MD5Util;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.SobotOption;
+import com.sobot.chat.utils.StringUtils;
 import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.viewHolder.base.MsgHolderBase;
 import com.sobot.chat.widget.SobotSectorProgressView;
@@ -358,21 +359,27 @@ public class RichTextMessageHolder extends MsgHolderBase implements View.OnClick
                             }
                             sobot_rich_ll.addView(textView);
                         }
-                    } else if (richListModel.getType() == 1 && HtmlTools.isHasPatterns(richListModel.getMsg())) {
-                        LinearLayout.LayoutParams mlayoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        if (i != 0) {
-                            mlayoutParams.setMargins(0, ScreenUtils.dip2px(context, 10), 0, 0);
+                    } else if (richListModel.getType() == 1) {
+
+                        int imgHeight = ViewGroup.LayoutParams.WRAP_CONTENT;
+                        if (StringUtils.isNoEmpty(message.getServant()) && "aiagent".equals(message.getServant()) && !message.isAiAgentReceiveMsgEnd()) {
+                            //图片如果是大模型消息里，同时消息还在接收，图片高度固定
+                            imgHeight = 500;
                         }
-                        ImageView imageView = new ImageView(mContext);
-                        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        imageView.setMaxWidth(msgMaxWidth);
-                        imageView.setAdjustViewBounds(true);
-                        imageView.setLayoutParams(mlayoutParams);
-                        SobotBitmapUtil.display(mContext, richListModel.getMsg(), imageView);
-                        imageView.setOnClickListener(new ImageClickLisenter(context, richListModel.getMsg(), isRight));
-                        sobot_rich_ll.addView(imageView);
+                        View imageView = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_item_rich_image_view, sobot_rich_ll, false);
+                        SobotProgressImageView image = imageView.findViewById(R.id.sobot_iv_picture);
+                        if (!TextUtils.isEmpty(richListModel.getMsg())) {
+                            image.setImageUrlWithScaleType(richListModel.getMsg(), ImageView.ScaleType.FIT_START);
+                            image.setImageWidthAndHeight(msgMaxWidth, imgHeight);
+                        }
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(msgMaxWidth, imgHeight);
+                        if (i != 0) {
+                            layoutParams.setMargins(0, ScreenUtils.dip2px(mContext, 10), 0, 0);
+                        }
+                        image.setOnClickListener(new ImageClickLisenter(context, richListModel.getMsg(), isRight));
+                        sobot_rich_ll.addView(imageView, layoutParams);
                         setLongClickListener(imageView);
-                    } else if (richListModel.getType() == 3 && HtmlTools.isHasPatterns(richListModel.getMsg())) {
+                    } else if (richListModel.getType() == 3) {
                         View videoView = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_item_rich_vedio_view, sobot_rich_ll, false);
                         SobotProgressImageView sobot_video_first_image = videoView.findViewById(R.id.sobot_video_first_image);
                         if (!TextUtils.isEmpty(richListModel.getVideoImgUrl())) {

@@ -315,7 +315,6 @@
     <string name="sobot_goods_count">商品数</string>
     <string name="sobot_card_more_info">更多信息</string>
     <string name="sobot_see_more">查看更多</string>
-    <!--    4.2.11 -->
     <string name="sobot_no_microphone">麦克风权限未开启</string>
     <string name="sobot_no_microphone_des">无法录制声音，前往“设置 > 应用 > %s >权限”中打开麦克风权限</string>
     <string name="sobot_continue_shooting">继续拍摄</string>
