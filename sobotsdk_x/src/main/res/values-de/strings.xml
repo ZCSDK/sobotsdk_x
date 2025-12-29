@@ -306,4 +306,6 @@
     <string name="sobot_continue_shooting">Aufnahme fortsetzen</string>
     <string name="sobot_audio_go_setting">Mikrofon nicht aktiviert. Das Audio kann nicht aufgenommen werden.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Die Mikrofonnutzungsberechtigung wird angefordert. Nach der Genehmigung können beim Chat mit dem Agenten und bei der Nachrichtenhinterlassung aufgenommene Videos gesendet/hochgeladen werden.</string>
+    <string name="sobot_agree_agreement">Ich habe die %s gelesen und stimme ihnen zu.</string>
+    <string name="sobot_agree">Zustimmen</string>
 </resources>

@@ -302,8 +302,10 @@
     <string name="sobot_card_more_info">Daha fazla bilgi</string>
     <string name="sobot_see_more">Daha fazla gör</string>
     <string name="sobot_no_microphone">Mikrofona erişilemiyor</string>
-    <string name="sobot_no_microphone_des">Ses kaydı yapmak için, cihazınızın “Ayarlar” > “Uygulamalar” > “%s” > “İzinler” bölümünden\nmikrofon iznini açın.</string>
+    <string name="sobot_no_microphone_des">Ses kaydı yapmak için, cihazınızın \“Ayarlar\” > \“Uygulamalar\” > \“%s\” > \“İzinler\” bölümünden mikrofon iznini açın.</string>
     <string name="sobot_continue_shooting">Kayda devam et</string>
     <string name="sobot_audio_go_setting">Mikrofon etkin değil. Ses kaydedilemiyor.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Mikrofon kullanım izni talep ediliyor. İzin verildikten sonra, müşteri hizmetlerine başvururken ve mesaj bırakırken kaydedilen videoyu gönderebilir/yükleyebilirsiniz.</string>
+    <string name="sobot_agree_agreement">%s\'ı okudum ve kabul ediyorum.</string>
+    <string name="sobot_agree">Kabul Et</string>
 </resources>

@@ -94,6 +94,7 @@ public class SobotCameraActivity extends SobotChatBaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        changeAppLanguage();
         jCameraView.onResume();
         boolean hasPermission = checkAudioPermission();
         if (hasPermission){

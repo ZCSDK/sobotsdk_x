@@ -306,4 +306,6 @@
     <string name="sobot_continue_shooting">Terus Merekam</string>
     <string name="sobot_audio_go_setting">Mikrofon tidak diaktifkan. Tidak dapat merekam audio.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Sedang mengajukan izin untuk menggunakan mikrofon. Setelah diizinkan, Anda dapat mengirim/mengunggah video yang direkam saat berkonsultasi dengan agen dan meninggalkan pesan.</string>
+    <string name="sobot_agree_agreement">Saya telah membaca dan menyetujui %s.</string>
+    <string name="sobot_agree">Setuju</string>
 </resources>

@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -237,6 +239,8 @@ public class WebViewActivity extends SobotChatBaseActivity implements View.OnCli
                 startActivity(intent);
             }
         });
+        // 注册键盘监听器
+        mWebView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardLayoutListener);
         mWebView.removeJavascriptInterface("searchBoxJavaBridge_");
         mWebView.getSettings().setDefaultFontSize(16);
         mWebView.getSettings().setTextZoom(100);
@@ -394,6 +398,7 @@ public class WebViewActivity extends SobotChatBaseActivity implements View.OnCli
     @Override
     protected void onDestroy() {
         if (mWebView != null) {
+            mWebView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardLayoutListener);
             mWebView.removeAllViews();
             final ViewGroup viewGroup = (ViewGroup) mWebView.getParent();
             if (viewGroup != null) {
@@ -517,4 +522,63 @@ public class WebViewActivity extends SobotChatBaseActivity implements View.OnCli
             }
         }
     }
+    // 键盘真正显示，避免多次走回调
+    private boolean isKeyboardShown = false;
+
+    private ViewTreeObserver.OnGlobalLayoutListener keyboardLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            try {
+                Rect r = new Rect();
+                mWebView.getWindowVisibleDisplayFrame(r);
+                int screenHeight = mWebView.getRootView().getHeight();
+                // 计算键盘高度，考虑工具栏
+                int keypadHeight = screenHeight - r.bottom;
+                //自定义导航栏高度
+                View toolBar = getToolBar();
+                if (toolBar != null && toolBar.getVisibility() == View.VISIBLE) {
+                    keypadHeight -= toolBar.getHeight();
+                }
+                if (keypadHeight < 0) {
+                    keypadHeight = 0;
+                }
+                LogUtils.i("键盘高度===========" + keypadHeight);
+                boolean currentlyKeyboardShown = keypadHeight > screenHeight * 0.15;
+                // 只有状态真正改变时才处理
+                if (currentlyKeyboardShown && !isKeyboardShown) {
+                    // 键盘刚显示
+                    isKeyboardShown = true;
+                    adjustWebViewForKeyboard(keypadHeight);
+                } else if (!currentlyKeyboardShown && isKeyboardShown) {
+                    // 键盘刚隐藏
+                    isKeyboardShown = false;
+                    resetWebViewLayout();
+                }
+            } catch (Exception e) {
+            }
+        }
+    };
+
+    //webview高度 - 键盘高度
+    private void adjustWebViewForKeyboard(int keyboardHeight) {
+        try {
+            //LinearLayout.LayoutParams 需要自己判断具体的类型
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mWebView.getLayoutParams();
+            params.height = mWebView.getHeight() - keyboardHeight;
+            mWebView.setLayoutParams(params);
+        } catch (Exception e) {
+        }
+    }
+
+    //webview高度 还原
+    private void resetWebViewLayout() {
+        try {
+            //LinearLayout.LayoutParams 需要自己判断具体的类型
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mWebView.getLayoutParams();
+            params.height = LinearLayout.LayoutParams.MATCH_PARENT;
+            mWebView.setLayoutParams(params);
+        } catch (Exception e) {
+        }
+    }
+
 }

@@ -2,13 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sobot.chat">
     <!-- 访问权限 -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- To handle the reselection within the app on Android 14 (API level 34) or higher -->
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-    <!-- Devices running Android 13 (API level 33) or higher -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- To handle the reselection within the app on Android 14 (API level 34) or higher -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" /> <!-- Devices running Android 13 (API level 33) or higher -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <!-- Devices running Android 12L (API level 32) or lower  -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> <!-- Devices running Android 12L (API level 32) or lower -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -27,6 +24,12 @@
         android:xlargeScreens="true" />
 
     <application>
+        <activity
+            android:name=".activity.SobotPrivacyAgreementActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|touchscreen|navigation|locale|fontScale|uiMode|screenLayout|smallestScreenSize"
+            android:screenOrientation="behind"
+            android:theme="@style/sobot_activity_def_theme"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".conversation.SobotChatActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|touchscreen|navigation|locale|fontScale|uiMode|screenLayout|smallestScreenSize"

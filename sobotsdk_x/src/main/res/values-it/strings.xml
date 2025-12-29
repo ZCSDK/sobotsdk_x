@@ -306,4 +306,6 @@
     <string name="sobot_continue_shooting">Continua a registrare</string>
     <string name="sobot_audio_go_setting">Microfono non abilitato. Impossibile registrare.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Sto richiedendo il permesso per l\'uso del microfono. Una volta concesso, sarà possibile inviare/caricare video registrati durante la consultazione con l\'agente e quando si lascia un messaggio.</string>
+    <string name="sobot_agree_agreement">Ho letto e accetto i %s.</string>
+    <string name="sobot_agree">Accetta</string>
 </resources>

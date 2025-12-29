@@ -306,4 +306,6 @@
     <string name="sobot_continue_shooting">ทำการบันทึกต่อไป</string>
     <string name="sobot_audio_go_setting">ไม่ได้เปิดใช้งานไมโครโฟน ไม่สามารถบันทึกเสียงได้</string>
     <string name="sobot_microphone_permission_yongtu_camera">กำลังขออนุญาตใช้ไมโครโฟน หลังจากอนุญาตแล้ว คุณสามารถส่ง/อัปโหลดวิดีโอที่บันทึกไว้เมื่อติดต่อฝ่ายบริการลูกค้าหรือฝากข้อความได้</string>
+    <string name="sobot_agree_agreement">ฉันได้อ่านและยอมรับ%sแล้ว</string>
+    <string name="sobot_agree">ยอมรับ</string>
 </resources>

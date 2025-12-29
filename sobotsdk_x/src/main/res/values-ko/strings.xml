@@ -302,8 +302,10 @@
     <string name="sobot_card_more_info">추가 정보</string>
     <string name="sobot_see_more">더 보기</string>
     <string name="sobot_no_microphone">마이크에 액세스할 수 없습니다</string>
-    <string name="sobot_no_microphone_des">오디오를 녹음하려면 장치의 \"설정\" > \"앱\" > \"%s\" > \"권한\"에서 마이크 권한을 허용합니다.</string>
+    <string name="sobot_no_microphone_des">오디오를 녹음하려면 장치의 \"설정\" > \"앱\" > \" %s \" > \"권한\" 에서 마이크 권한을 허용합니다.</string>
     <string name="sobot_continue_shooting">계속 촬영</string>
     <string name="sobot_audio_go_setting">눌러서 사진 촬영 및 길게 눌러서 영상 기록</string>
     <string name="sobot_microphone_permission_yongtu_camera">마이크 사용 권한을 요청하고 있습니다. 허용하면 고객센터 상담 및 메시지 남기기 시 녹화된 동영상을 전송/업로드할 수 있습니다.</string>
+    <string name="sobot_agree_agreement">%s 을(를) 읽었으며 동의합니다.</string>
+    <string name="sobot_agree">동의함</string>
 </resources>

@@ -432,7 +432,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
                     if (permissionListener != null) {
                         permissionListener.onPermissionSuccessListener();
                     }
-                    hidePerssionUi();
+                    removePerssionUi();
                 } catch (Exception e) {
 //                    e.printStackTrace();
                 }
@@ -556,6 +556,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
         isContinueShooting = false;
         overlay = LayoutInflater.from(getSobotBaseActivity()).inflate(R.layout.sobot_layout_overlay, null);
         if (overlay != null) {
+            overlay.setVisibility(View.VISIBLE);
             final LinearLayout ll_info = overlay.findViewById(R.id.ll_info);
             final LinearLayout ll_setting = overlay.findViewById(R.id.ll_setting);
             TextView tv_content = overlay.findViewById(R.id.tv_content);
@@ -599,13 +600,13 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
             overlay.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hidePerssionUi();
+                    removePerssionUi();
                 }
             });
             btn_left.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hidePerssionUi();
+                    removePerssionUi();
                     if (getResources().getString(R.string.sobot_continue_shooting).equals(btn_left.getText().toString())) {
                         isContinueShooting = true;
                     }
@@ -614,7 +615,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
             btn_right.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hidePerssionUi();
+                    removePerssionUi();
                     Uri packageURI = Uri.parse("package:" + getSobotBaseActivity().getPackageName());
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
                     startActivity(intent);
@@ -627,6 +628,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
     public void showPerssionSettingUi() {
         String permissionTitle = "";
         if (overlay != null) {
+            overlay.setVisibility(View.VISIBLE);
             LinearLayout ll_info = overlay.findViewById(R.id.ll_info);
             LinearLayout ll_setting = overlay.findViewById(R.id.ll_setting);
             TextView tv_content = overlay.findViewById(R.id.tv_content);
@@ -642,12 +644,19 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
     }
 
     //移除权限提示蒙层
-    public void hidePerssionUi() {
+    public void removePerssionUi() {
         if (overlay != null) {
             if (viewGroup == null) {
                 viewGroup = findViewById(android.R.id.content);
             }
             viewGroup.removeView(overlay);
+        }
+    }
+
+    //隐藏权限提示蒙层
+    public void hidePerssionUi() {
+        if (overlay != null) {
+            overlay.setVisibility(View.GONE);
         }
     }
 
@@ -739,7 +748,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
      */
     private void openSelectPic(int selectType) {
         //隐藏权限提示蒙层
-        hidePerssionUi();
+        removePerssionUi();
         Intent intent = new Intent(getSobotBaseActivity(), SobotSelectPicAndVideoActivity.class);
         intent.putExtra("selectType", selectType);
         startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);

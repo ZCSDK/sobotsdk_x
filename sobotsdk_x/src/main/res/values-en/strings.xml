@@ -302,8 +302,10 @@
     <string name="sobot_card_more_info">More Information</string>
     <string name="sobot_see_more">View More</string>
     <string name="sobot_no_microphone">Cannot Access Microphone</string>
-    <string name="sobot_no_microphone_des">To record audio, allow microphone permissions in your device\'s \"Settings\" > \"Apps\" > \"%s\" >\"Permissions\".</string>
+    <string name="sobot_no_microphone_des">To record audio, allow microphone permissions in your device\'s \"Settings\" > \"Apps\" > \"%s\" > \"Permissions\".</string>
     <string name="sobot_continue_shooting">Keep Recording</string>
     <string name="sobot_audio_go_setting">Microphone not enabled. Cannot record audio.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Applying for microphone access permission. Once allowed, you can send/upload recorded videos when consulting with the agent or leaving a message.</string>
+    <string name="sobot_agree_agreement">I have read and agree to the %s.</string>
+    <string name="sobot_agree">Agree</string>
 </resources>

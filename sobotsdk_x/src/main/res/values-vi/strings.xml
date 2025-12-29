@@ -302,8 +302,10 @@
     <string name="sobot_card_more_info">Thông tin thêm</string>
     <string name="sobot_see_more">Xem thêm</string>
     <string name="sobot_no_microphone">Không thể truy cập micro</string>
-    <string name="sobot_no_microphone_des">Để ghi âm, hãy cho phép quyền micro trong\n“Cài đặt” > “Ứng dụng” > “%s” > “Quyền”.</string>
+    <string name="sobot_no_microphone_des">Để ghi âm, hãy cho phép quyền micro trong \“Cài đặt\” > \“Ứng dụng\” > \“%s\” > \“Quyền\”.</string>
     <string name="sobot_continue_shooting">Tiếp tục ghi âm</string>
     <string name="sobot_audio_go_setting">Micro chưa được bật. Không thể ghi âm.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Đang yêu cầu quyền sử dụng microphone. Sau khi được phép, bạn có thể gửi/tải lên video đã ghi khi liên hệ với bộ phận hỗ trợ khách hàng và để lại tin nhắn.</string>
+    <string name="sobot_agree_agreement">Tôi đã đọc và đồng ý với %s.</string>
+    <string name="sobot_agree">Đồng ý</string>
 </resources>

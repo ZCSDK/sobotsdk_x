@@ -306,4 +306,6 @@
     <string name="sobot_continue_shooting">Teruskan Rekod</string>
     <string name="sobot_audio_go_setting">Mikrofon tidak didayakan. Tidak dapat merekod audio.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Sedang memohon kebenaran untuk menggunakan mikrofon. Setelah dibenarkan, anda boleh menghantar/muat naik video yang direkodkan semasa berkomunikasi dengan khidmat pelanggan dan meninggalkan pesanan.</string>
+    <string name="sobot_agree_agreement">Saya telah membaca dan bersetuju dengan %s.</string>
+    <string name="sobot_agree">Setuju</string>
 </resources>

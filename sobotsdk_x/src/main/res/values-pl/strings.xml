@@ -302,8 +302,10 @@
     <string name="sobot_card_more_info">Więcej informacji</string>
     <string name="sobot_see_more">Zobacz więcej</string>
     <string name="sobot_no_microphone">Uprawnienia do mikrofonu nie są włączone</string>
-    <string name="sobot_no_microphone_des">Nie można nagrać dźwięku. Przejdź do „Ustawienia > Aplikacje > %s > Uprawnienia” i włącz uprawnienia do mikrofonu.</string>
+    <string name="sobot_no_microphone_des">Nie można nagrać dźwięku. Przejdź do „Ustawienia > Aplikacje > %s > Uprawnienia\” i włącz uprawnienia do mikrofonu.</string>
     <string name="sobot_continue_shooting">Kontynuuj nagrywanie</string>
     <string name="sobot_audio_go_setting">Mikrofon nie jest włączony, nie można nagrać dźwięku.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Trwa żądanie uprawnień do korzystania z mikrofonu. Po zezwoleniu, podczas kontaktu z obsługą klienta i składania wiadomości, będzie można wysłać/przesłać nagrane filmy.</string>
+    <string name="sobot_agree_agreement">Zapoznałem/am się z %s i wyrażam na nie zgodę.</string>
+    <string name="sobot_agree">Zgadzam się</string>
 </resources>

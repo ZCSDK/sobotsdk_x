@@ -302,8 +302,10 @@
     <string name="sobot_card_more_info">Больше информации</string>
     <string name="sobot_see_more">Посмотреть больше</string>
     <string name="sobot_no_microphone">Невозможно получить доступ к микрофону</string>
-    <string name="sobot_no_microphone_des">Для записи звука откройте на вашем устройстве меню \"Параметры\" > \"Приложения\" > \"%s\" > \"Разрешения\" и предоставьте доступ к микрофону.</string>
+    <string name="sobot_no_microphone_des">Для записи звука откройте на вашем устройстве меню \"Параметры\" > \"Приложения" > \"%s\" > \"Разрешения\" и предоставьте доступ к микрофону.</string>
     <string name="sobot_continue_shooting">Продолжить запись</string>
     <string name="sobot_audio_go_setting">Микрофон выключен. Невозможно записать аудио.</string>
     <string name="sobot_microphone_permission_yongtu_camera">Запрашивается разрешение на использование микрофона. После разрешения можно отправлять/загружать записанные видео при консультации с агентом и оставлении сообщений.</string>
+    <string name="sobot_agree_agreement">Я прочитал(а) и согласен(на) с %s.</string>
+    <string name="sobot_agree">Согласен(-на)</string>
 </resources>

@@ -1022,8 +1022,8 @@ public class SobotMsgAdapter extends RecyclerView.Adapter<MsgHolderBase> {
             return;
         }
         ZhiChiMessageBase info = getMsgInfo(id);
-        info.setAiAgentReceiveMsgEnd(isEnd);
         if (info != null) {
+            info.setAiAgentReceiveMsgEnd(isEnd);
             if (StringUtils.isNoEmpty(data.getRobotAnswerType()) && "SENSITIVE_WORD".equals(data.getRobotAnswerType())) {
                 //SENSITIVE_WORD 是敏感词，直接覆盖显示
                 updateMsgDataByMsgId(id, data);

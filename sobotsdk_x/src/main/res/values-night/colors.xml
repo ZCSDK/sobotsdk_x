@@ -264,6 +264,7 @@
     <!--    二级评级-->
     <color name="sobot_evaluate_text_unselect">@color/sobot_color_text_third</color>
     <color name="sobot_evaluate_text_select">@color/sobot_color_text_first</color>
+    <color name="sobot_policy_text">#7AFFFFFF</color>
 
 
 </resources>

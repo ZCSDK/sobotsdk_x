@@ -306,4 +306,6 @@
     <string name="sobot_continue_shooting">撮影を続ける</string>
     <string name="sobot_audio_go_setting">機能が有効になっていません。音声を録音できません。</string>
     <string name="sobot_microphone_permission_yongtu_camera">マイクの使用許可を申請中です。許可されると、コンサルティングエージェントへの相談時やメッセージを送る際に録画した動画を送信/アップロードできます。</string>
+    <string name="sobot_agree_agreement">%sを読み同意します。</string>
+    <string name="sobot_agree">同意する</string>
 </resources>
