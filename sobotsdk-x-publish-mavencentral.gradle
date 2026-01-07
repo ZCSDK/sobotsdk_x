@@ -15,7 +15,7 @@ ext {
 //    PUBLISH_ARTIFACT_ID = 'sobotsdk_g'            //项目名
 //    PUBLISH_ARTIFACT_ID = 'sdk_demo'            //项目名
     PUBLISH_ARTIFACT_ID = 'sobotsdk_x'            //项目名
-    PUBLISH_VERSION = '4.2.13.1'                    //版本号
+    PUBLISH_VERSION = '4.2.13.2'                    //版本号
 }
 
 publishing {
