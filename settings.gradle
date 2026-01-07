@@ -1,1 +1,1 @@
-include ':sobotsdkdemo', ':sobotsdk_x'
+include ':sobotsdkdemo', ':sobotsdk_g'
