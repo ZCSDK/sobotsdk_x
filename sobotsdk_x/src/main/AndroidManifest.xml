@@ -2,10 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sobot.chat">
     <!-- 访问权限 -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Devices running Android 12L (API level 32) or lower  -->
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- To handle the reselection within the app on Android 14 (API level 34) or higher -->
     <uses-permission android:name="com.google.android.apps.photos.permission.GOOGLE_PHOTOS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -21,6 +18,12 @@
         android:xlargeScreens="true" />
 
     <application>
+        <activity
+            android:name=".activity.SobotPrivacyAgreementActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|touchscreen|navigation|locale|fontScale|uiMode|screenLayout|smallestScreenSize"
+            android:screenOrientation="behind"
+            android:theme="@style/sobot_activity_def_theme"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".conversation.SobotChatActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|touchscreen|navigation|locale|fontScale|uiMode|screenLayout|smallestScreenSize"

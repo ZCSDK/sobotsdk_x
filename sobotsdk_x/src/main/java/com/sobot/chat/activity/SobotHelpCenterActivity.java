@@ -35,7 +35,9 @@ import com.sobot.network.http.callback.StringResultCallBack;
 import com.sobot.utils.SobotSharedPreferencesUtil;
 import com.sobot.utils.SobotStringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 帮助中心
@@ -114,7 +116,34 @@ public class SobotHelpCenterActivity extends SobotBaseHelpCenterActivity impleme
         if (configModel != null) {
             setToobar(configModel);
         }
-        SobotMsgManager.getInstance(getApplicationContext()).getZhiChiApi().getHelpConfig(this, mInfo.getApp_key(), mInfo.getPartnerid(), new SobotResultCallBack<HelpConfigModel>() {
+        Map<String, Object> param = new HashMap();
+        param.put("appId", mInfo.getApp_key());
+        param.put("partnerId", mInfo.getPartnerid());
+        if (!TextUtils.isEmpty(mInfo.getMulti_params())) {
+            param.put("multiParams", mInfo.getMulti_params());
+        }
+        if (!TextUtils.isEmpty(mInfo.getIsVip())) {
+            param.put("isVip", mInfo.getIsVip());
+        }
+        if (!TextUtils.isEmpty(mInfo.getVip_level())) {
+            param.put("vipLevel", mInfo.getVip_level());
+        }
+        if (!TextUtils.isEmpty(mInfo.getUser_label())) {
+            param.put("userLabel", mInfo.getUser_label());
+        }
+        if (!TextUtils.isEmpty(mInfo.getParams())) {
+            param.put("params", mInfo.getParams());
+        }
+        if (!TextUtils.isEmpty(mInfo.getCustomer_fields())) {
+            param.put("customerFields", mInfo.getCustomer_fields());
+        }
+        if (!TextUtils.isEmpty(mInfo.getSystemLanguage())) {
+            param.put("language", mInfo.getSystemLanguage());
+        }
+        if (!TextUtils.isEmpty(mInfo.getLocale())) {
+            param.put("locale", mInfo.getLocale());
+        }
+        SobotMsgManager.getInstance(getApplicationContext()).getZhiChiApi().getHelpConfig(this,param, new SobotResultCallBack<HelpConfigModel>() {
 
             @Override
             public void onSuccess(HelpConfigModel o) {

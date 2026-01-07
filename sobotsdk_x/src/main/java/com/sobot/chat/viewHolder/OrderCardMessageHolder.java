@@ -20,6 +20,7 @@ import com.sobot.chat.utils.DateUtil;
 import com.sobot.chat.utils.LogUtils;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.SobotOption;
+import com.sobot.chat.utils.StringUtils;
 import com.sobot.chat.utils.ThemeUtils;
 import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.viewHolder.base.MsgHolderBase;
@@ -43,6 +44,7 @@ public class OrderCardMessageHolder extends MsgHolderBase implements View.OnClic
     private View mGoodsOrderSplit;
     private View mSeeAllSplitTV;
     private TextView mSeeAllTV;
+    private LinearLayout sobot_goods_order_status_ll;//
     private OrderCardContentModel orderCardContent;
 
     public OrderCardMessageHolder(Context context, View convertView) {
@@ -57,6 +59,7 @@ public class OrderCardMessageHolder extends MsgHolderBase implements View.OnClic
         mOrderCreatetime = (TextView) convertView.findViewById(R.id.sobot_order_createtime);
         mSeeAllSplitTV = convertView.findViewById(R.id.sobot_see_all_split);
         mSeeAllTV = convertView.findViewById(R.id.sobot_order_see_all);
+        sobot_goods_order_status_ll = convertView.findViewById(R.id.sobot_goods_order_status_ll);
     }
 
     @SuppressLint("SetTextI18n")
@@ -91,18 +94,13 @@ public class OrderCardMessageHolder extends MsgHolderBase implements View.OnClic
             } else {
                 mGoodsOrderSplit.setVisibility(View.GONE);
             }
-
+            String statusStr = "";
             if (orderCardContent.getOrderStatus() == 0) {
                 if (!TextUtils.isEmpty(orderCardContent.getStatusCustom())) {
-                    mOrderStatus.setVisibility(View.VISIBLE);
-                    mOrderStatus.setText(orderCardContent.getStatusCustom());
-                } else {
-                    mOrderStatus.setVisibility(View.GONE);
+                    statusStr = orderCardContent.getStatusCustom();
                 }
             } else {
-                mOrderStatus.setVisibility(View.VISIBLE);
                 //待付款: 1   待发货: 2   运输中: 3   派送中: 4   已完成: 5   待评价: 6   已取消: 7
-                String statusStr = "";
                 switch (orderCardContent.getOrderStatus()) {
                     case 1:
                         statusStr = context.getResources().getString(R.string.sobot_order_status_1);
@@ -126,7 +124,15 @@ public class OrderCardMessageHolder extends MsgHolderBase implements View.OnClic
                         statusStr = context.getResources().getString(R.string.sobot_order_status_7);
                         break;
                 }
-                mOrderStatus.setText(statusStr);
+            }
+            //状态为空，不显示状态
+            if (null!=statusStr && !StringUtils.isEmpty(statusStr)) {
+                sobot_goods_order_status_ll.setVisibility(View.VISIBLE);
+                mOrderStatus.setVisibility(View.VISIBLE);
+                mOrderStatus.setText(orderCardContent.getStatusCustom());
+            } else {
+                mOrderStatus.setVisibility(View.GONE);
+                sobot_goods_order_status_ll.setVisibility(View.GONE);
             }
 
             StringBuilder s = new StringBuilder();

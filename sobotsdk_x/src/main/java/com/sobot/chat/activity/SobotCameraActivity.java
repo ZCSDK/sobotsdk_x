@@ -1,5 +1,6 @@
 package com.sobot.chat.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -93,7 +94,12 @@ public class SobotCameraActivity extends SobotChatBaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        changeAppLanguage();
         jCameraView.onResume();
+        boolean hasPermission = checkAudioPermission();
+        if (hasPermission){
+            jCameraView.setGotoSettingVisible(false);
+        }
     }
 
     @Override
@@ -128,7 +134,7 @@ public class SobotCameraActivity extends SobotChatBaseActivity {
             @Override
             public void onError() {
                 //错误监听
-                finish();
+//                finish();
             }
 
             @Override
@@ -138,7 +144,16 @@ public class SobotCameraActivity extends SobotChatBaseActivity {
 
             @Override
             public boolean checkAutoPremission() {
-                return isHasPermission(2,2);
+                if (isContinueShooting) {
+                    return true;
+                }
+                boolean hasPermission = isHasPermission(4, 2);
+                if (hasPermission){
+                    jCameraView.setGotoSettingVisible(false);
+                }else {
+                    jCameraView.setGotoSettingVisible(true);
+                }
+                return hasPermission;
             }
 
             @Override
@@ -182,6 +197,17 @@ public class SobotCameraActivity extends SobotChatBaseActivity {
                 SobotCameraActivity.this.finish();
             }
         });
+        permissionListener=new PermissionListenerImpl(){
+            @Override
+            public void onPermissionSuccessListener() {
+                jCameraView.setGotoSettingVisible(false);
+            }
+
+            @Override
+            public void onPermissionErrorListener(Activity activity, String title) {
+                jCameraView.setGotoSettingVisible(true);
+            }
+        };
     }
 
     @Override

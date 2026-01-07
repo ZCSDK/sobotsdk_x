@@ -2,12 +2,10 @@
 package com.sobot.chat.utils;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -116,34 +114,7 @@ public class ImageUtils {
         // mtx.postRotate(rotate);
         return Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, true);
     }
-    public static String getPath(Activity activity, Uri uri, Intent data) {
-        String resultPath = getPath(activity, uri);
-        if (StringUtils.isEmpty(resultPath)) {
-            // 1. 如果通过原代码ImageUtils.getPath(...)返回的path为空,  则使用Intent# getDataString()返回的String进行解析
-            if (!TextUtils.isEmpty(data.getDataString()) && data.getDataString().startsWith("file:///")) {
-                resultPath = data.getDataString().replace("file:///", "");
-            } else {
-                String[] proj = {MediaStore.Images.Media.DATA};
-                Cursor cursor = null;
-                try {
-                    cursor = activity.managedQuery(uri, proj, null, null, null);
-                    if (cursor == null) {
-                        return "";
-                    }
-                    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                    cursor.moveToFirst();
-                    //最后根据索引值获取图片路径
-                    resultPath = cursor.getString(column_index);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (cursor != null)
-                        cursor.close();
-                }
-            }
-        }
-        return resultPath;
-    }
+
     /**
      * <br>功能简述:4.4及以上获取图片的方法
      * <br>功能详细描述:

@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,12 +45,13 @@ import com.sobot.chat.utils.ZhiChiConstant;
 import com.sobot.chat.widget.toast.ToastUtil;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * @author Created by jinxl on 2018/2/1.
  */
 public abstract class SobotChatBaseFragment extends Fragment {
-    public static final int REQUEST_CODE_CAMERA = 108;
+
     public ZhiChiApi zhiChiApi;
     protected File cameraFile;
 
@@ -136,10 +138,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
                     for (int i = 0; i < grantResults.length; i++) {
                         //判断权限的结果，如果有被拒绝，就return
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                            if (permissions[i] != null && permissions[i].equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                                showPerssionSettingUi();
-                                return;
-                            } else if (permissions[i] != null && permissions[i].equals(Manifest.permission.RECORD_AUDIO)) {
+                            if (permissions[i] != null && permissions[i].equals(Manifest.permission.RECORD_AUDIO)) {
                                 showPerssionSettingUi();
                                 return;
                             } else if (permissions[i] != null && permissions[i].equals(Manifest.permission.CAMERA)) {
@@ -151,7 +150,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
                     if (permissionListener != null) {
                         permissionListener.onPermissionSuccessListener();
                     }
-                    hidePerssionUi();
+                    removePerssionUi();
                 } catch (Exception e) {
 //                    e.printStackTrace();
                 }
@@ -169,28 +168,44 @@ public abstract class SobotChatBaseFragment extends Fragment {
     public boolean isHasPermission(int type, int checkPermissionType) {
         boolean isHasPermission = false;
         if (type == 1) {
-            int result = checkStoragePermission(checkPermissionType);
-            if (result == 0) {
-                isHasPermission = true;
-            } else {
-                isHasPermission = false;
-                if (checkPermissionType == 3) {
-                    showPerssionUi(1);
-                } else {
-                    showPerssionUi(0);
-                }
-                //申请权限
-                requestStoragePermission(checkPermissionType);
-            }
+            isHasPermission = true;
         } else if (type == 2) {
             isHasPermission = checkAudioPermission();
             if (!isHasPermission) {
                 showPerssionUi(2);
+                if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+                    //横屏
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hidePerssionUi();
+                            //申请麦克风权限
+                            requestAudioPermission();
+                        }
+                    }, 2000);
+                } else {
+                    //申请麦克风权限
+                    requestAudioPermission();
+                }
             }
         } else if (type == 3) {
             isHasPermission = checkCameraPermission();
             if (!isHasPermission) {
                 showPerssionUi(3);
+                if (ZCSobotApi.getSwitchMarkStatus(MarkConfig.LANDSCAPE_SCREEN)) {
+                    //横屏
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hidePerssionUi();
+                            //申请相机权限
+                            requestCameraPermission();
+                        }
+                    }, 2000);
+                } else {
+                    //申请相机权限
+                    requestCameraPermission();
+                }
             }
         }
         return isHasPermission;
@@ -204,6 +219,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
     public void showPerssionUi(int type) {
         overlay = LayoutInflater.from(getSobotActivity()).inflate(R.layout.sobot_layout_overlay, null);
         if (overlay != null) {
+            overlay.setVisibility(View.VISIBLE);
             final LinearLayout ll_info = overlay.findViewById(R.id.ll_info);
             final LinearLayout ll_setting = overlay.findViewById(R.id.ll_setting);
             TextView tv_content = overlay.findViewById(R.id.tv_content);
@@ -241,19 +257,19 @@ public abstract class SobotChatBaseFragment extends Fragment {
             overlay.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hidePerssionUi();
+                    removePerssionUi();
                 }
             });
             btn_left.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hidePerssionUi();
+                    removePerssionUi();
                 }
             });
             btn_right.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    hidePerssionUi();
+                    removePerssionUi();
                     Uri packageURI = Uri.parse("package:" + getSobotActivity().getPackageName());
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
                     getSobotActivity().startActivity(intent);
@@ -266,6 +282,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
     public void showPerssionSettingUi() {
         String permissionTitle = "";
         if (overlay != null) {
+            overlay.setVisibility(View.VISIBLE);
             LinearLayout ll_info = overlay.findViewById(R.id.ll_info);
             LinearLayout ll_setting = overlay.findViewById(R.id.ll_setting);
             TextView tv_content = overlay.findViewById(R.id.tv_content);
@@ -281,7 +298,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
     }
 
     //移除权限提示蒙层
-    public void hidePerssionUi() {
+    public void removePerssionUi() {
         if (overlay != null) {
             if (viewGroup == null) {
                 viewGroup = getSobotActivity().findViewById(android.R.id.content);
@@ -290,40 +307,13 @@ public abstract class SobotChatBaseFragment extends Fragment {
         }
     }
 
-    /**
-     * 申请存储权限
-     *
-     * @param checkType 0：图片权限 1：视频权限，3，所有细分的权限， android 13 使用
-     */
-    public void requestStoragePermission(int checkType) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        } else {
-            //申请READ_EXTERNAL_STORAGE权限
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_CODE);
-            }
+    //隐藏权限提示蒙层
+    public void hidePerssionUi() {
+        if (overlay != null) {
+            overlay.setVisibility(View.GONE);
         }
     }
 
-    /**
-     * 检查存储权限
-     *
-     * @param checkType 0：图片权限 1：视频权限，3，所有细分的权限， android 13 使用
-     * @return int  0：有权限，1：没有权限，2:有部分权限
-     */
-    public int checkStoragePermission(int checkType) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return 0; //有权限
-        } else {
-            // android 13 api33 以前
-            if (ContextCompat.checkSelfPermission(getSobotActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                return 0; //有权限
-            } else {
-                return 1; //没有权限
-            }
-        }
-    }
 
     /**
      * 检查录音权限
@@ -415,16 +405,12 @@ public abstract class SobotChatBaseFragment extends Fragment {
      * 从图库获取图片
      */
     public void selectPicFromLocal() {
-        permissionListener = new PermissionListenerImpl() {
-            @Override
-            public void onPermissionSuccessListener() {
-                ChatUtils.openSelectPic(getSobotActivity(), getSobotBaseFragment());
-            }
-        };
-        if (!isHasPermission(1, 0)) {
-            return;
+        try {
+            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+            intent.setType("image/*");
+            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+        } catch (Exception e) {
         }
-        ChatUtils.openSelectPic(getSobotActivity(), SobotChatBaseFragment.this);
     }
 
 
@@ -432,16 +418,12 @@ public abstract class SobotChatBaseFragment extends Fragment {
      * 从图库获取视频
      */
     public void selectVedioFromLocal() {
-        permissionListener = new PermissionListenerImpl() {
-            @Override
-            public void onPermissionSuccessListener() {
-                ChatUtils.openSelectVedio(getSobotActivity(), getSobotBaseFragment());
-            }
-        };
-        if (!isHasPermission(1, 1)) {
-            return;
+        try {
+            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
+            intent.setType("video/*");
+            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
+        } catch (Exception e) {
         }
-        ChatUtils.openSelectVedio(getSobotActivity(), SobotChatBaseFragment.this);
     }
 
     /**

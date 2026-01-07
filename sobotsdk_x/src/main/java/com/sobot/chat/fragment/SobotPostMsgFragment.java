@@ -5,17 +5,21 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -28,6 +32,7 @@ import com.sobot.chat.R;
 import com.sobot.chat.activity.SobotCameraActivity;
 import com.sobot.chat.activity.SobotPhotoActivity;
 import com.sobot.chat.activity.SobotPostMsgActivity;
+import com.sobot.chat.activity.SobotPrivacyAgreementActivity;
 import com.sobot.chat.activity.SobotVideoActivity;
 import com.sobot.chat.activity.halfdialog.SobotPhoneCodeDialog;
 import com.sobot.chat.activity.halfdialog.SobotPostCascadeActivity;
@@ -71,10 +76,8 @@ import com.sobot.chat.widget.dialog.SobotDeleteWorkOrderDialog;
 import com.sobot.chat.widget.dialog.SobotDialogUtils;
 import com.sobot.chat.widget.dialog.SobotSelectPicDialog;
 import com.sobot.chat.widget.kpswitch.util.KeyboardUtil;
-import com.sobot.chat.widget.toast.CustomToast;
 import com.sobot.chat.widget.toast.ToastUtil;
 import com.sobot.network.http.callback.StringResultCallBack;
-import com.sobot.utils.SobotStringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -91,7 +94,7 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
     private TextView sobot_tv_post_msg, sobot_post_email_lable, sobot_post_phone_lable, sobot_post_lable, sobot_post_title_lable, sobot_post_question_type, sobot_post_question_lable, sobot_tv_problem_description;
     private TextView sobot_btn_submit;
     private LinearLayout sobot_post_customer_field;
-    private LinearLayout sobot_post_email_rl, sobot_post_phone_rl, sobot_post_title_rl,sobot_ll_content_img;
+    private LinearLayout sobot_post_email_rl, sobot_post_phone_rl, sobot_post_title_rl, sobot_ll_content_img;
     private RelativeLayout sobot_post_question_ll;
     private TextView sobot_tv_phone_code;//手机区号
     private LinearLayout ll_upload_file;//上传附件
@@ -116,6 +119,12 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
     private boolean flag_exit_sdk;
 
     private int flag_exit_type = -1;
+
+    //隐私协议
+    private TextView sobot_tv_policy;
+    private ImageView cb_policy;
+    private LinearLayout sobot_ll_policy;
+    private boolean flag_policy = false;
 
     @SuppressLint("HandlerLeak")
     public Handler handler = new Handler() {
@@ -172,6 +181,10 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
     }
 
     protected void initView(View rootView) {
+        sobot_ll_policy = rootView.findViewById(R.id.sobot_ll_policy);
+        sobot_tv_policy = rootView.findViewById(R.id.sobot_tv_policy);
+        cb_policy = rootView.findViewById(R.id.iv_policy);
+        sobot_ll_policy.setOnClickListener(this);
         ll_upload_file = rootView.findViewById(R.id.ll_upload_file);
         sobot_btn_file = rootView.findViewById(R.id.sobot_btn_file);
         sobot_btn_file.setOnClickListener(this);
@@ -188,7 +201,7 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
         sobot_post_email = (EditText) rootView.findViewById(R.id.sobot_post_email);
         sobot_post_title = (EditText) rootView.findViewById(R.id.sobot_post_title);
         sobot_et_content = (EditText) rootView.findViewById(R.id.sobot_post_et_content);
-        sobot_ll_content_img =  rootView.findViewById(R.id.sobot_ll_content_img);
+        sobot_ll_content_img = rootView.findViewById(R.id.sobot_ll_content_img);
         sobot_tv_post_msg = (TextView) rootView.findViewById(R.id.sobot_tv_post_msg);
         sobot_post_email_lable = (TextView) rootView.findViewById(R.id.sobot_post_email_lable);
         sobot_post_phone_lable = (TextView) rootView.findViewById(R.id.sobot_post_phone_lable);
@@ -271,6 +284,46 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
         } else {
             sobot_post_question_ll.setVisibility(View.GONE);
             sobot_post_question_type.setTag(mConfig.getTicketTypeId());
+        }
+        if (mConfig.getSubmitTicket() == 1 && StringUtils.isNoEmpty(mConfig.getPolicyName())) {
+            String agreementText = getResources().getString(R.string.sobot_agree_agreement);
+            SpannableString spannableString = new SpannableString(String.format(agreementText, mConfig.getPolicyName()));
+
+            // 设置可点击部分
+            ClickableSpan clickableSpan = new ClickableSpan() {
+                @Override
+                public void onClick(View widget) {
+                    // 处理点击事件，例如跳转到用户协议页面
+                    Intent intent = new Intent(getSobotActivity(), SobotPrivacyAgreementActivity.class);
+                    intent.putExtra("policyContent", mConfig.getPolicyContent());
+                    intent.putExtra("policyName", mConfig.getPolicyName());
+                    startActivityForResult(intent, ZhiChiConstant.work_order_list_display_type_policy);
+                }
+
+                @Override
+                public void updateDrawState(TextPaint ds) {
+                    super.updateDrawState(ds);
+                    ds.setColor(ThemeUtils.getLinkColor(getSobotActivity())); // 设置链接颜色
+                    ds.setUnderlineText(true); // 设置下划线
+                }
+            };
+
+            // 计算"《用户协议》"在字符串中的位置
+            int start = agreementText.indexOf("%s");
+            int end = start + mConfig.getPolicyName().length();
+
+            spannableString.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            // 应用到TextView
+            sobot_tv_policy.setText(spannableString);
+            sobot_tv_policy.setMovementMethod(LinkMovementMethod.getInstance());
+
+            sobot_ll_policy.setVisibility(View.VISIBLE);
+            sobot_btn_submit.setClickable(false);
+            sobot_btn_submit.setEnabled(false);
+            sobot_btn_submit.getBackground().setAlpha(102);
+        } else {
+            sobot_ll_policy.setVisibility(View.GONE);
         }
     }
 
@@ -388,30 +441,17 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
         }
 
         if (mConfig.isTelShowFlag()) {
+            phoneCode = sobot_tv_phone_code.getText().toString();
+            userPhone = sobot_post_phone.getText().toString();
             if (mConfig.isTelFlag()) {
-                if (SobotStringUtils.isEmpty(phoneCode)) {
-                    showHint(getContext().getResources().getString(R.string.sobot_phone_code_hint));
-                    return;
-                }
                 if (TextUtils.isEmpty(sobot_post_phone.getText().toString().trim())) {
                     showHint(getContext().getResources().getString(R.string.sobot_phone_hint));
                     return;
                 }
-                userPhone = phoneCode + sobot_post_phone.getText().toString();
-            } else {
-                String phoneStr = sobot_post_phone.getText().toString().trim();
-                if (SobotStringUtils.isNoEmpty(phoneCode) && SobotStringUtils.isEmpty(phoneStr)) {
-                    showHint(getContext().getResources().getString(R.string.sobot_phone_hint));
-                    return;
-                }
-                if (!TextUtils.isEmpty(sobot_post_phone.getText().toString().trim())) {
-
-                    userPhone = phoneCode + phoneStr;
-                }
             }
         }
 
-        postMsg(userPhone, userEamil, title);
+        postMsg(userPhone, userEamil, title,flag_policy);
     }
 
     public void showHint(String content) {
@@ -442,12 +482,25 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
             Intent intent = new Intent(getSobotActivity(), SobotPhoneCodeDialog.class);
             startActivityForResult(intent, 4001);
         } else if (view == sobot_btn_file) {
-            if(pic_list.size()>=15){
+            if (pic_list.size() >= 15) {
                 //图片上限15张
                 ToastUtil.showToast(getSobotActivity(), getResources().getString(R.string.sobot_ticket_update_file_max_hite));
-            }else {
+            } else {
                 menuWindow = new SobotSelectPicDialog(getSobotActivity(), itemsOnClick);
                 menuWindow.show();
+            }
+        } else if (view == sobot_ll_policy) {
+            //隐私协议
+            flag_policy = !flag_policy;
+            cb_policy.setSelected(flag_policy);
+            if(flag_policy){
+                sobot_btn_submit.setEnabled(true);
+                sobot_btn_submit.setClickable(true);
+                sobot_btn_submit.getBackground().setAlpha(255);
+            }else{
+                sobot_btn_submit.setClickable(false);
+                sobot_btn_submit.setEnabled(false);
+                sobot_btn_submit.getBackground().setAlpha(102);
             }
         } else if (view == sobot_btn_submit) {
             setCusFieldValue();
@@ -462,7 +515,7 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
         }
     }
 
-    private void postMsg(String userPhone, String userEamil, String title) {
+    private void postMsg(String userPhone, String userEamil, String title,boolean authorizeAgree ) {
         PostParamModel postParam = new PostParamModel();
         postParam.setTemplateId(mConfig.getTemplateId());
         postParam.setPartnerId(information.getPartnerid());
@@ -470,11 +523,13 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
         postParam.setTicketContent(sobot_et_content.getText().toString());
         postParam.setCustomerEmail(userEamil);
         postParam.setCustomerPhone(userPhone);
+        postParam.setRegionCode(phoneCode);
         postParam.setTicketTitle(title);
         postParam.setCompanyId(mConfig.getCompanyId());
         postParam.setFileStr(getFileStr());
         postParam.setGroupId(mGroupId);
         postParam.setTicketFrom("4");
+        postParam.setAuthorizeAgree(authorizeAgree);
         if (information != null && information.getLeaveParamsExtends() != null) {
             postParam.setParamsExtends(SobotJsonUtils.toJson(information.getLeaveParamsExtends()));
         }
@@ -699,7 +754,7 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
             sobot_post_phone_lable.setText(Html.fromHtml(getContext().getResources().getString(R.string.sobot_phone)));
         }
         if (mConfig.isTicketTitleShowFlag()) {
-            sobot_post_title_lable.setText(Html.fromHtml( mustFill+getContext().getResources().getString(R.string.sobot_title) ));
+            sobot_post_title_lable.setText(Html.fromHtml(mustFill + getContext().getResources().getString(R.string.sobot_title)));
         }
 
     }
@@ -765,105 +820,118 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == ZhiChiConstant.REQUEST_CODE_picture) { // 发送本地图片
-                if (data != null && data.getData() != null) {
-                    Uri selectedImage = data.getData();
-                    if (selectedImage == null) {
-                        selectedImage = ImageUtils.getUri(data, getSobotActivity());
-                    }
-                    String path = ImageUtils.getPath(getSobotActivity(), selectedImage,data);
-                    if (!StringUtils.isEmpty(path)) {
-                        if (MediaFileUtils.isVideoFileType(path)) {
-                            try {
-                                File selectedFile = new File(path);
-                                if (selectedFile.exists()) {
-                                    if (selectedFile.length() > 50 * 1024 * 1024) {
-                                        ToastUtil.showToast(getContext(), getResources().getString(R.string.sobot_file_upload_failed));
+        if (resultCode == Activity.RESULT_OK && requestCode == ZhiChiConstant.work_order_list_display_type_policy) {
+            flag_policy = data.getBooleanExtra("policyAgree", false);
+            cb_policy.setSelected(flag_policy);
+            if(flag_policy){
+                sobot_btn_submit.setEnabled(true);
+                sobot_btn_submit.setClickable(true);
+                sobot_btn_submit.getBackground().setAlpha(255);
+            }else{
+                sobot_btn_submit.setClickable(false);
+                sobot_btn_submit.setEnabled(false);
+                sobot_btn_submit.getBackground().setAlpha(102);
+            }
+        } else {
+            if (resultCode == Activity.RESULT_OK) {
+                if (requestCode == ZhiChiConstant.REQUEST_CODE_picture) { // 发送本地图片
+                    if (data != null && data.getData() != null) {
+                        Uri selectedImage = data.getData();
+                        if (selectedImage == null) {
+                            selectedImage = ImageUtils.getUri(data, getSobotActivity());
+                        }
+                        String path = ImageUtils.getPath(getSobotActivity(), selectedImage);
+                        if (!StringUtils.isEmpty(path)) {
+                            if (MediaFileUtils.isVideoFileType(path)) {
+                                try {
+                                    File selectedFile = new File(path);
+                                    if (selectedFile.exists()) {
+                                        if (selectedFile.length() > 50 * 1024 * 1024) {
+                                            ToastUtil.showToast(getContext(), getResources().getString(R.string.sobot_file_upload_failed));
+                                            return;
+                                        }
+                                    }
+                                    SobotDialogUtils.startProgressDialog(getSobotActivity());
+//                            ChatUtils.sendPicByFilePath(getSobotActivity(),path,sendFileListener,false);
+                                    String fName = MD5Util.encode(path);
+                                    String filePath = null;
+                                    try {
+                                        filePath = FileUtil.saveImageFile(getSobotActivity(), selectedImage, fName + FileUtil.getFileEndWith(path), path);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        ToastUtil.showToast(getSobotActivity(), getContext().getResources().getString(R.string.sobot_pic_type_error));
                                         return;
                                     }
-                                }
-                                SobotDialogUtils.startProgressDialog(getSobotActivity());
-//                            ChatUtils.sendPicByFilePath(getSobotActivity(),path,sendFileListener,false);
-                                String fName = MD5Util.encode(path);
-                                String filePath = null;
-                                try {
-                                    filePath = FileUtil.saveImageFile(getSobotActivity(), selectedImage, fName + FileUtil.getFileEndWith(path), path);
+                                    sendFileListener.onSuccess(filePath);
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    ToastUtil.showToast(getSobotActivity(), getContext().getResources().getString(R.string.sobot_pic_type_error));
-                                    return;
                                 }
-                                sendFileListener.onSuccess(filePath);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
 
+                            } else {
+                                SobotDialogUtils.startProgressDialog(getSobotActivity());
+                                ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false);
+                            }
                         } else {
-                            SobotDialogUtils.startProgressDialog(getSobotActivity());
-                            ChatUtils.sendPicByUriPost(getSobotActivity(), selectedImage, sendFileListener, false,data);
+                            showHint(getContext().getResources().getString(R.string.sobot_did_not_get_picture_path));
                         }
                     } else {
                         showHint(getContext().getResources().getString(R.string.sobot_did_not_get_picture_path));
                     }
-                } else {
-                    showHint(getContext().getResources().getString(R.string.sobot_did_not_get_picture_path));
-                }
-            } else if (requestCode == ZhiChiConstant.REQUEST_CODE_makePictureFromCamera) {
-                if (cameraFile != null && cameraFile.exists()) {
-                    SobotDialogUtils.startProgressDialog(getSobotActivity());
-                    ChatUtils.sendPicByFilePath(getSobotActivity(), cameraFile.getAbsolutePath(), sendFileListener, true);
-                } else {
-                    showHint(getContext().getResources().getString(R.string.sobot_pic_select_again));
-                }
-            }
-        } else if (resultCode == SobotCameraActivity.RESULT_CODE) {
-            if (requestCode == ChatUtils.REQUEST_CODE_CAMERA) {
-                int actionType = SobotCameraActivity.getActionType(data);
-                if (actionType == SobotCameraActivity.ACTION_TYPE_VIDEO) {
-                    File videoFile = new File(SobotCameraActivity.getSelectedVideo(data));
-                    if (videoFile.exists()) {
-                        cameraFile = videoFile;
+                } else if (requestCode == ZhiChiConstant.REQUEST_CODE_makePictureFromCamera) {
+                    if (cameraFile != null && cameraFile.exists()) {
                         SobotDialogUtils.startProgressDialog(getSobotActivity());
-                        sendFileListener.onSuccess(videoFile.getAbsolutePath());
+                        ChatUtils.sendPicByFilePath(getSobotActivity(), cameraFile.getAbsolutePath(), sendFileListener, true);
                     } else {
-                        showHint(getResources().getString(R.string.sobot_pic_select_again));
-                    }
-                } else {
-                    File tmpPic = new File(SobotCameraActivity.getSelectedImage(data));
-                    if (tmpPic.exists()) {
-                        cameraFile = tmpPic;
-                        SobotDialogUtils.startProgressDialog(getSobotActivity());
-                        ChatUtils.sendPicByFilePath(getSobotActivity(), tmpPic.getAbsolutePath(), sendFileListener, true);
-                    } else {
-                        showHint(getResources().getString(R.string.sobot_pic_select_again));
+                        showHint(getContext().getResources().getString(R.string.sobot_pic_select_again));
                     }
                 }
-            }
-        }
-        StCusFieldPresenter.onStCusFieldActivityResult(getSobotActivity(), data, mFields, sobot_post_customer_field);
-        if (data != null) {
-            switch (requestCode) {
-                case ZhiChiConstant.work_order_list_display_type_category:
-                    if (!TextUtils.isEmpty(data.getStringExtra("category_typeId"))) {
-                        String typeName = data.getStringExtra("category_typeName");
-                        String typeId = data.getStringExtra("category_typeId");
-
-                        if (!TextUtils.isEmpty(typeName)) {
-                            sobot_post_question_type.setText(typeName);
-                            sobot_post_question_type.setTag(typeId);
-                            sobot_post_question_type.setVisibility(View.VISIBLE);
+            } else if (resultCode == SobotCameraActivity.RESULT_CODE) {
+                if (requestCode == ChatUtils.REQUEST_CODE_CAMERA) {
+                    int actionType = SobotCameraActivity.getActionType(data);
+                    if (actionType == SobotCameraActivity.ACTION_TYPE_VIDEO) {
+                        File videoFile = new File(SobotCameraActivity.getSelectedVideo(data));
+                        if (videoFile.exists()) {
+                            cameraFile = videoFile;
+                            SobotDialogUtils.startProgressDialog(getSobotActivity());
+                            sendFileListener.onSuccess(videoFile.getAbsolutePath());
+                        } else {
+                            showHint(getResources().getString(R.string.sobot_pic_select_again));
+                        }
+                    } else {
+                        File tmpPic = new File(SobotCameraActivity.getSelectedImage(data));
+                        if (tmpPic.exists()) {
+                            cameraFile = tmpPic;
+                            SobotDialogUtils.startProgressDialog(getSobotActivity());
+                            ChatUtils.sendPicByFilePath(getSobotActivity(), tmpPic.getAbsolutePath(), sendFileListener, true);
+                        } else {
+                            showHint(getResources().getString(R.string.sobot_pic_select_again));
                         }
                     }
-                    break;
-                case 4001:
-                    //区号
-                    phoneCode = data.getStringExtra("selectCode");
-                    sobot_tv_phone_code.setText(phoneCode);
-                    break;
-                default:
-                    break;
+                }
+            }
+            StCusFieldPresenter.onStCusFieldActivityResult(getSobotActivity(), data, mFields, sobot_post_customer_field);
+            if (data != null) {
+                switch (requestCode) {
+                    case ZhiChiConstant.work_order_list_display_type_category:
+                        if (!TextUtils.isEmpty(data.getStringExtra("category_typeId"))) {
+                            String typeName = data.getStringExtra("category_typeName");
+                            String typeId = data.getStringExtra("category_typeId");
+
+                            if (!TextUtils.isEmpty(typeName)) {
+                                sobot_post_question_type.setText(typeName);
+                                sobot_post_question_type.setTag(typeId);
+                                sobot_post_question_type.setVisibility(View.VISIBLE);
+                            }
+                        }
+                        break;
+                    case 4001:
+                        //区号
+                        phoneCode = data.getStringExtra("selectCode");
+                        sobot_tv_phone_code.setText(phoneCode);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -879,24 +947,13 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
             }
             if (v.getId() == R.id.btn_pick_photo) {
                 LogUtils.i("选择照片");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-                    intent.setType("image/*");
-                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-                } else {
-                    selectPicFromLocal();
-                }
+                selectPicFromLocal();
             }
             if (v.getId() == R.id.btn_pick_vedio) {
                 LogUtils.i("选择视频");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-                    intent.setType("video/*");
-                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-                } else {
-                    selectVedioFromLocal();
-                }
+                selectVedioFromLocal();
             }
+
         }
     };
 

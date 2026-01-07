@@ -295,12 +295,12 @@
     <!--4.2.2 二级评级-->
     <string name="sobot_satisfied">满意</string>
     <string name="sobot_dissatisfied">不满意</string>
-<!--    4.2.2 询前表单-->
+    <!--    4.2.2 询前表单-->
     <string name="sobot_from_title">请填写询前表单</string>
-<!--    4.2.3 工单状态-->
+    <!--    4.2.3 工单状态-->
     <string name="sobot_ticket_service_reply">回复了您</string>
     <string name="sobot_ticket_me_reply">您的回复</string>
-<!--    4.2.3 新版UI添加-->
+    <!--    4.2.3 新版UI添加-->
     <string name="sobot_ticket_update_file">上传附件</string>
     <string name="sobot_notice_expand_all">展开全部</string>
     <string name="sobot_ticket_no_reply">暂无回复</string>
@@ -311,8 +311,18 @@
     <string name="sobot_skill_no_service">暂无客服在线，点击进行留言。</string>
     <string name="sobot_leaveMsg_create_success_des_new">工单处理状态更新后将在会话中提醒您。</string>
     <string name="sobot_phone_code">区号</string>
-<!--    4.2.4 -->
+    <!--    4.2.4 -->
     <string name="sobot_goods_count">商品数</string>
     <string name="sobot_card_more_info">更多信息</string>
     <string name="sobot_see_more">查看更多</string>
+    <!--    4.2.11 -->
+    <string name="sobot_no_microphone">麦克风权限未开启</string>
+    <string name="sobot_no_microphone_des">无法录制声音，前往\“设置 > 应用 > %s > 权限\”中打开麦克风权限</string>
+    <string name="sobot_continue_shooting">继续拍摄</string>
+    <string name="sobot_audio_go_setting">未开启麦克风，无法录制声音</string>
+    <string name="sobot_microphone_permission_yongtu_camera">正在申请麦克风使用权限。允许后，咨询客服和留言时可以发送/上传录制的视频。</string>
+    <!--    4.2.12-->
+    <string name="sobot_agree_agreement">我已阅读并同意 %s。</string>
+    <string name="sobot_agree">同意</string>
+
 </resources>

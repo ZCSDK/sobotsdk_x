@@ -7,19 +7,22 @@ import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
-import android.provider.MediaStore;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -58,7 +61,6 @@ import com.sobot.chat.widget.dialog.SobotDeleteWorkOrderDialog;
 import com.sobot.chat.widget.dialog.SobotDialogUtils;
 import com.sobot.chat.widget.dialog.SobotSelectPicDialog;
 import com.sobot.chat.widget.kpswitch.util.KeyboardUtil;
-import com.sobot.chat.widget.toast.CustomToast;
 import com.sobot.chat.widget.toast.ToastUtil;
 import com.sobot.network.http.callback.StringResultCallBack;
 
@@ -67,13 +69,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SobotReplyActivity extends SobotDialogBaseActivity implements  View.OnClickListener {
+public class SobotReplyActivity extends SobotDialogBaseActivity implements View.OnClickListener {
 
 
     private TextView sobotTvTitle;
     private EditText sobotReplyEdit;
     private RecyclerView sobotReplyMsgPic;
-    private TextView sobot_btn_file,sobot_file_hite;//上传按钮
+    private TextView sobot_btn_file, sobot_file_hite;//上传按钮
     private TextView sobotBtnSubmit;
 
     private ArrayList<SobotFileModel> pic_list = new ArrayList<>();
@@ -91,6 +93,19 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
     private String mCompanyId = "";
     private SobotUserTicketInfo mTicketInfo;
 
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        //窗口对齐屏幕宽度
+        Window win = this.getWindow();
+        WindowManager.LayoutParams lp = win.getAttributes();
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.gravity = Gravity.BOTTOM;
+        win.setAttributes(lp);
+    }
+
 
     @Override
     protected int getContentViewResId() {
@@ -100,14 +115,14 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
     @Override
     protected void initView() {
 
-        sobot_btn_file =  findViewById(R.id.sobot_btn_file);
-        sobot_file_hite =  findViewById(R.id.sobot_file_hite);
+        sobot_btn_file = findViewById(R.id.sobot_btn_file);
+        sobot_file_hite = findViewById(R.id.sobot_file_hite);
         sobotTvTitle = (TextView) findViewById(R.id.sobot_tv_title);
         sobotTvTitle.setText(R.string.sobot_reply);
         String hideTxt = getResources().getString(R.string.sobot_ticket_update_file_hite);
-        sobot_file_hite.setText(String.format(hideTxt, "15","50M"));
+        sobot_file_hite.setText(String.format(hideTxt, "15", "50M"));
         sobotReplyEdit = (EditText) findViewById(R.id.sobot_reply_edit);
-        sobotReplyMsgPic =  findViewById(R.id.sobot_reply_msg_pic);
+        sobotReplyMsgPic = findViewById(R.id.sobot_reply_msg_pic);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         // 设置RecyclerView的LayoutManager
         sobotReplyMsgPic.setLayoutManager(layoutManager);
@@ -186,7 +201,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
                 KeyboardUtil.hideKeyboard(sobotReplyEdit);
                 if (SobotOption.imagePreviewListener != null) {
                     //如果返回true,拦截;false 不拦截
-                    boolean isIntercept = SobotOption.imagePreviewListener.onPreviewImage(getSobotBaseContext(),  fileUrl);
+                    boolean isIntercept = SobotOption.imagePreviewListener.onPreviewImage(getSobotBaseContext(), fileUrl);
                     if (isIntercept) {
                         return;
                     }
@@ -284,10 +299,10 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
     public void onClick(View v) {
         KeyboardUtil.hideKeyboard(v);
         if (v == sobot_btn_file) {
-            if(pic_list.size()>=15){
+            if (pic_list.size() >= 15) {
                 //图片上限15张
                 ToastUtil.showToast(this, getResources().getString(R.string.sobot_ticket_update_file_max_hite));
-            }else {
+            } else {
                 menuWindow = new SobotSelectPicDialog(SobotReplyActivity.this, itemsOnClick);
                 menuWindow.show();
             }
@@ -332,7 +347,6 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
     }
 
     // 为弹出窗口popupwindow实现监听类
-    // 为弹出窗口popupwindow实现监听类
     private View.OnClickListener itemsOnClick = new View.OnClickListener() {
         public void onClick(View v) {
             menuWindow.dismiss();
@@ -343,52 +357,22 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
             }
             if (v.getId() == R.id.btn_pick_photo) {
                 LogUtils.i("选择照片");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-                    intent.setType("image/*");
-                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-                } else {
-                    permissionListener = new PermissionListenerImpl() {
-                        @Override
-                        public void onPermissionSuccessListener() {
-                            ChatUtils.openSelectPic(SobotReplyActivity.this);
-                        }
-                    };
-                    if (!isHasPermission(1, 0)) {
-                        return;
-                    }
-                    ChatUtils.openSelectPic(SobotReplyActivity.this);
-                }
+                selectPicFromLocal();
             }
             if (v.getId() == R.id.btn_pick_vedio) {
                 LogUtils.i("选择视频");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-                    intent.setType("video/*");
-                    startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-                } else {
-                    permissionListener = new PermissionListenerImpl() {
-                        @Override
-                        public void onPermissionSuccessListener() {
-                            ChatUtils.openSelectVedio(SobotReplyActivity.this, null);
-                        }
-                    };
-                    if (!isHasPermission(1, 1)) {
-                        return;
-                    }
-                    ChatUtils.openSelectVedio(SobotReplyActivity.this, null);
-                }
+                selectVedioFromLocal();
             }
         }
     };
 
     public void addPicView(SobotFileModel item) {
-        if(sobotReplyMsgPic.getVisibility()==View.GONE){
+        if (sobotReplyMsgPic.getVisibility() == View.GONE) {
             sobotReplyMsgPic.setVisibility(View.VISIBLE);
         }
         pic_list.add(item);
         adapter.notifyDataSetChanged();
-        sobotReplyMsgPic.scrollToPosition(adapter.getItemCount()-1);
+        sobotReplyMsgPic.scrollToPosition(adapter.getItemCount() - 1);
     }
 
 
@@ -425,7 +409,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
                     if (selectedImage == null) {
                         selectedImage = ImageUtils.getUri(data, SobotReplyActivity.this);
                     }
-                    String path = ImageUtils.getPath(this, selectedImage,data);
+                    String path = ImageUtils.getPath(this, selectedImage);
                     if (MediaFileUtils.isVideoFileType(path)) {
                         try {
                             File selectedFile = new File(path);
@@ -453,7 +437,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
 
                     } else {
                         SobotDialogUtils.startProgressDialog(this);
-                        ChatUtils.sendPicByUriPost(this, selectedImage, sendFileListener, false,data);
+                        ChatUtils.sendPicByUriPost(this, selectedImage, sendFileListener, false);
                     }
                 } else {
                     showHint(getContext().getResources().getString(R.string.sobot_did_not_get_picture_path));
@@ -509,8 +493,8 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements  View
                         SobotFileModel item = new SobotFileModel();
                         item.setFileUrl(zhiChiMessage.getData().getUrl());
                         item.setFileLocalPath(filePath);
-                        String fileName = filePath.substring(filePath.lastIndexOf("/")+1);
-                        String fileType = fileName.substring(fileName.lastIndexOf(".")+1);
+                        String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+                        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1);
                         item.setFileName(fileName);
                         item.setFileType(fileType);
                         addPicView(item);

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sobot.chat.MarkConfig;
@@ -16,6 +17,7 @@ import com.sobot.chat.adapter.base.SobotBaseAdapter;
 import com.sobot.chat.api.model.StDocModel;
 import com.sobot.chat.notchlib.INotchScreen;
 import com.sobot.chat.notchlib.NotchScreenManager;
+import com.sobot.chat.utils.ChatUtils;
 
 import java.util.List;
 
@@ -48,14 +50,23 @@ public class SobotCategoryAdapter extends SobotBaseAdapter<StDocModel> {
     private static class ViewHolder {
         private TextView sobot_tv_title;
         private Activity mActivity;
+        private ImageView iv_arrow;
 
         public ViewHolder(Context context, Activity activity, View view) {
             this.mActivity = activity;
-            sobot_tv_title = (TextView) view.findViewById(R.id.sobot_tv_title);
+            sobot_tv_title = (TextView) view.findViewById(R.id.tv_title);
+            iv_arrow = view.findViewById(R.id.iv_arrow);
         }
 
         public void bindData(int position, StDocModel data) {
             sobot_tv_title.setText(data.getQuestionTitle());
+            if (mActivity != null) {
+                if (ChatUtils.isRtl(mActivity)) {
+                    iv_arrow.setImageResource(R.drawable.sobot_right_arrow_icon_rtl);
+                } else {
+                    iv_arrow.setImageResource(R.drawable.sobot_right_arrow_icon);
+                }
+            }
             displayInNotch(sobot_tv_title);
         }
 

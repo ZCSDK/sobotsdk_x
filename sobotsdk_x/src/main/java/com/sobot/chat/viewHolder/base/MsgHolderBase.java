@@ -1251,12 +1251,11 @@ public abstract class MsgHolderBase extends RecyclerView.ViewHolder {
                 appointMessage.setContent(content);
                 appointMessage.setMsgType(Integer.parseInt(msgType));
                 bundle.putSerializable("appointMessage", appointMessage);
-                intent.putExtras(bundle);
-                CommonUtils.sendLocalBroadcast(context, intent);
             }
         } catch (JSONException e) {
-            throw new RuntimeException(e);
         }
+        intent.putExtras(bundle);
+        CommonUtils.sendLocalBroadcast(context, intent);
     }
 
     //顶踩是否显示在气泡右侧，默认是的

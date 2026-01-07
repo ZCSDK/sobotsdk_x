@@ -21,6 +21,7 @@ import com.sobot.chat.api.model.FaqDocRespVo;
 import com.sobot.chat.api.model.GroupRespVo;
 import com.sobot.chat.api.model.SobotFaqDetailModel;
 import com.sobot.chat.api.model.ZhiChiMessageBase;
+import com.sobot.chat.utils.ChatUtils;
 import com.sobot.chat.utils.CommonUtils;
 import com.sobot.chat.utils.ScreenUtils;
 import com.sobot.chat.utils.ThemeUtils;
@@ -151,6 +152,11 @@ public class HotIssueMessageHolder extends MsgHolderBase {
             for (int i = startNum; i < endNum && i < faqDocRespVoList.size(); i++) {
                 View view = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_item_hot_fad, null);
                 TextView answer = view.findViewById(R.id.sobot_tv_name);
+                if (ChatUtils.isRtl(mContext)) {
+                    ImageView arrowIV = view.findViewById(R.id.sobot_im_icon_right);
+                    if (arrowIV != null)
+                        arrowIV.setImageResource(R.drawable.sobot_right_arrow_icon_rtl);
+                }
                 final FaqDocRespVo info = faqDocRespVoList.get(i);
                 answer.setText(info.getQuestionName());
                 answer.setLines(1);
@@ -168,6 +174,11 @@ public class HotIssueMessageHolder extends MsgHolderBase {
             if(childCount<PAGE_NUM && faqDocRespVoList.size() > PAGE_NUM){
                 for (int i = childCount; i < PAGE_NUM; i++) {
                     View view = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_item_hot_fad,null);
+                    if (ChatUtils.isRtl(mContext)) {
+                        ImageView arrowIV = view.findViewById(R.id.sobot_im_icon_right);
+                        if (arrowIV != null)
+                            arrowIV.setImageResource(R.drawable.sobot_right_arrow_icon_rtl);
+                    }
                     TextView answer = view.findViewById(R.id.sobot_tv_name);
                     ImageView rightIV = view.findViewById(R.id.sobot_im_icon_right);
                     answer.setText("");
@@ -204,6 +215,11 @@ public class HotIssueMessageHolder extends MsgHolderBase {
             }
             for (int i = startNum; i < endNum && i < faqList.size(); i++) {
                 View view = LayoutInflater.from(mContext).inflate(R.layout.sobot_chat_msg_item_hot_fad, null);
+                if (ChatUtils.isRtl(mContext)) {
+                    ImageView arrowIV = view.findViewById(R.id.sobot_im_icon_right);
+                    if (arrowIV != null)
+                        arrowIV.setImageResource(R.drawable.sobot_right_arrow_icon_rtl);
+                }
                 TextView answer = view.findViewById(R.id.sobot_tv_name);
                 final FaqDocRespVo info = faqList.get(i);
                 answer.setText(info.getQuestionName());
