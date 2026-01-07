@@ -285,7 +285,7 @@ public class SobotPostMsgFragment extends SobotChatBaseFragment implements View.
             sobot_post_question_ll.setVisibility(View.GONE);
             sobot_post_question_type.setTag(mConfig.getTicketTypeId());
         }
-        if (mConfig.getSubmitTicket() == 1 && StringUtils.isNoEmpty(mConfig.getPolicyName())) {
+        if (true) {
             String agreementText = getResources().getString(R.string.sobot_agree_agreement);
             SpannableString spannableString = new SpannableString(String.format(agreementText, mConfig.getPolicyName()));
 

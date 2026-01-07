@@ -306,6 +306,6 @@
     <string name="sobot_continue_shooting">متابعة التسجيل</string>
     <string name="sobot_audio_go_setting">الميكروفون غير مفعّل. يتعذّر تسجيل الصوت.</string>
     <string name="sobot_microphone_permission_yongtu_camera">يتم الآن طلب إذن لاستخدام الميكروفون. بعد السماح، يمكنك إرسال/تحميل الفيديو المسجل عند استشارة خدمة العملاء وترك رسالة.</string>
-    <string name="sobot_agree_agreement">لقد قرأت s% ووافقت عليه</string>
+    <string name="sobot_agree_agreement">لقد قرأت %s ووافقت عليه</string>
     <string name="sobot_agree">موافقة</string>
 </resources>

@@ -659,6 +659,13 @@ public class CameraInterface implements Camera.PreviewCallback {
         } catch (IllegalStateException e) {
             e.printStackTrace();
             Log.i("CJT", "startRecord IllegalStateException");
+            // 释放资源
+            if (mediaRecorder != null) {
+                mediaRecorder.release();
+                mediaRecorder = null;
+            }
+            // 重新启动预览
+            doStartPreview(mHolder, screenProp);
             if (this.errorLisenter != null) {
                 this.errorLisenter.onError();
             }

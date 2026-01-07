@@ -134,7 +134,7 @@ public class SobotCameraActivity extends SobotChatBaseActivity {
             @Override
             public void onError() {
                 //错误监听
-                finish();
+//                finish();
             }
 
             @Override
