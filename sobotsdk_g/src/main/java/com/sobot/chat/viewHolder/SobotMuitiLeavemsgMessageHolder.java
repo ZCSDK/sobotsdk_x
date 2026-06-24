@@ -72,7 +72,7 @@ public class SobotMuitiLeavemsgMessageHolder extends MsgHolderBase implements Vi
     private void setMsgContent(final Context context, final ZhiChiMessageBase message) {
         sobot_text_ll.removeAllViews();
         if (!TextUtils.isEmpty(message.getAnswer().getMsg())) {
-            String[] arr = message.getAnswer().getMsg().split("\n");
+            String[] arr = message.getAnswer().getMsg().split("<br/>");
             for (int i = 0; i < arr.length; i++) {
                 TextView textView = new TextView(mContext);
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_PX,mContext.getResources().getDimensionPixelSize(R.dimen.sobot_text_font_14));
@@ -90,7 +90,7 @@ public class SobotMuitiLeavemsgMessageHolder extends MsgHolderBase implements Vi
                     if (StringUtils.isEmpty(arr[i])) {
                         textView.setText(" - -");
                     } else {
-                        textView.setText(Html.fromHtml(arr[i]).toString().trim());
+                        textView.setText(Html.fromHtml(arr[i].replace("\n", "<br/>")).toString().trim());
                     }
                     textView.setTextColor(ContextCompat.getColor(mContext, R.color.sobot_color_text_first));
                 } else {

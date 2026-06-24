@@ -1,8 +1,5 @@
 package com.sobot.chat.utils;
 
-import android.content.ContentResolver;
-import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.os.StatFs;
 import android.text.TextUtils;
@@ -16,7 +13,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,11 +25,9 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import okhttp3.Response;
 
 /**
  * io工具类
@@ -545,159 +539,6 @@ public class IOUtils {
             file.delete();
         }
         return true;
-    }
-
-    /**
-     * 根据响应头或者url获取文件名
-     */
-    public static String getNetFileName(Response response, String url) {
-        String fileName = getHeaderFileName(response);
-        if (TextUtils.isEmpty(fileName)) fileName = getUrlFileName(url);
-        if (TextUtils.isEmpty(fileName)) fileName = "unknownfile_" + System.currentTimeMillis();
-        try {
-            fileName = URLDecoder.decode(fileName, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-//            OkLogger.printStackTrace(e);
-        }
-        return fileName;
-    }
-
-    /**
-     * 解析文件头
-     * Content-Disposition:attachment;filename=FileName.txt
-     * Content-Disposition: attachment; filename*="UTF-8''%E6%9B%BF%E6%8D%A2%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A.pdf"
-     */
-    private static String getHeaderFileName(Response response) {
-        String dispositionHeader = response.header("Content-Disposition");
-        if (dispositionHeader != null) {
-            //文件名可能包含双引号，需要去除
-            dispositionHeader = dispositionHeader.replaceAll("\"", "");
-            String split = "filename=";
-            int indexOf = dispositionHeader.indexOf(split);
-            if (indexOf != -1) {
-                return dispositionHeader.substring(indexOf + split.length(), dispositionHeader.length());
-            }
-            split = "filename*=";
-            indexOf = dispositionHeader.indexOf(split);
-            if (indexOf != -1) {
-                String fileName = dispositionHeader.substring(indexOf + split.length(), dispositionHeader.length());
-                String encode = "UTF-8''";
-                if (fileName.startsWith(encode)) {
-                    fileName = fileName.substring(encode.length(), fileName.length());
-                }
-                return fileName;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 通过 ‘？’ 和 ‘/’ 判断文件名
-     * http://mavin-manzhan.oss-cn-hangzhou.aliyuncs.com/1486631099150286149.jpg?x-oss-process=image/watermark,image_d2F0ZXJtYXJrXzIwMF81MC5wbmc
-     */
-    private static String getUrlFileName(String url) {
-        String filename = null;
-        String[] strings = url.split("/");
-        for (String string : strings) {
-            if (string.contains("?")) {
-                int endIndex = string.indexOf("?");
-                if (endIndex != -1) {
-                    filename = string.substring(0, endIndex);
-                    return filename;
-                }
-            }
-        }
-        if (strings.length > 0) {
-            filename = strings[strings.length - 1];
-        }
-        return filename;
-    }
-
-//    /**
-//     * AndroidQ及以上 创建文件
-//     * @param context
-//     * @param fileName 指文件名，不包含路径
-//     * @param fileType "application/vnd.android.package-archive"
-//     * @param relativePath  包含某个媒体下的子路径
-//     * @return
-//     */
-//    public static Uri insertFileIntoMediaStore (Context context,String fileName, String fileType, String relativePath) {
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q||Environment.isExternalStorageLegacy()) {
-//            return null;
-//        }
-//        ContentResolver resolver = context.getContentResolver();
-//        //设置文件参数到ContentValues中
-//        ContentValues values = new ContentValues();
-//        //设置文件名
-//        values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
-////        //设置文件描述，这里以文件名为例子
-//////        values.put(MediaStore.Downloads.DESCRIPTION, fileName);
-//        //设置文件类型
-//        values.put(MediaStore.Downloads.MIME_TYPE,fileType);
-//        //注意RELATIVE_PATH需要targetVersion=29
-//        //故该方法只可在Android10的手机上执行
-//        values.put(MediaStore.Downloads.RELATIVE_PATH, relativePath);
-//        //EXTERNAL_CONTENT_URI代表外部存储器
-//        Uri external = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
-//        //insertUri表示文件保存的uri路径
-//        Uri insertUri  = resolver.insert(external, values);
-//        return insertUri;
-//    }
-
-//    public static Uri findFileExists(Context context,String filePath) {
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q||Environment.isExternalStorageLegacy()) {
-//            File file = new File(filePath);
-//            if (file.exists()) {
-//                return FileOpenHelper.getUri(SobotApp.getApplicationContext(), filePath);
-//            }
-//            return null;
-//        } else {
-//            File file = new File(CommonUtils.getSDCardRootPath(context) + File.separator + filePath);
-//            if (file.exists()) {
-//                return FileOpenHelper.getUri(SobotApp.getApplicationContext(), file.getPath());
-//            }
-//
-//            return null;
-//
-//
-//        }
-
-
-//    }
-
-    public static boolean copyFile(Context context, String sourceFilePath, final Uri insertUri) {
-        if (insertUri == null) {
-            return false;
-        }
-        ContentResolver resolver = context.getContentResolver();
-        InputStream is = null;
-        OutputStream os = null;
-        try {
-            os = resolver.openOutputStream(insertUri);
-            if (os == null) {
-                return false;
-            }
-            File sourceFile = new File(sourceFilePath);
-            if (sourceFile.exists()) { // 文件存在时
-                is = new FileInputStream(sourceFile); // 读入原文件
-                return copyFileWithStream(os, is);
-            }
-            return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-                if (os != null) {
-                    os.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public static boolean copyFileWithStream(OutputStream os, InputStream is) {

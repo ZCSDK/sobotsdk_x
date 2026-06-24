@@ -314,7 +314,6 @@ public abstract class SobotChatBaseFragment extends Fragment {
         }
     }
 
-
     /**
      * 检查录音权限
      *
@@ -405,12 +404,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
      * 从图库获取图片
      */
     public void selectPicFromLocal() {
-        try {
-            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-            intent.setType("image/*");
-            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-        } catch (Exception e) {
-        }
+        ChatUtils.openSelectPic(getSobotActivity(),getSobotBaseFragment());
     }
 
 
@@ -418,12 +412,7 @@ public abstract class SobotChatBaseFragment extends Fragment {
      * 从图库获取视频
      */
     public void selectVedioFromLocal() {
-        try {
-            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-            intent.setType("video/*");
-            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-        } catch (Exception e) {
-        }
+        ChatUtils.openSelectVedio(getSobotActivity(),getSobotBaseFragment());
     }
 
     /**

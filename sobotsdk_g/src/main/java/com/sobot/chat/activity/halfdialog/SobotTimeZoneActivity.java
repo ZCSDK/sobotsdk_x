@@ -34,7 +34,6 @@ import java.util.Locale;
  * 自定义字段 --时区 时间
  */
 public class SobotTimeZoneActivity extends SobotDialogBaseActivity implements View.OnClickListener {
-    private View v_top;
 
     private TextView tv_time_zone;//跳转的时区选择
     private TextView btnSubmit;//确定
@@ -78,8 +77,6 @@ public class SobotTimeZoneActivity extends SobotDialogBaseActivity implements Vi
         tv_time_zone = findViewById(R.id.tv_time_zone);
         type = new boolean[]{true, true, true, true, true, false};//显示类型 默认全部显示
         btnSubmit = findViewById(R.id.btnSubmit);
-        v_top = findViewById(R.id.v_top);
-        v_top.setOnClickListener(this);
         tv_time_zone.setOnClickListener(this);
         btnSubmit.setOnClickListener(this);
 

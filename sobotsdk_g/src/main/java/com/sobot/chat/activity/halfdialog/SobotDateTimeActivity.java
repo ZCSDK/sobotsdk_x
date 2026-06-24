@@ -23,7 +23,7 @@ import java.util.Calendar;
  * 自定义字段 --日期时间
  */
 public class SobotDateTimeActivity extends SobotDialogBaseActivity implements View.OnClickListener {
-    private View v_top;
+
 
     private TextView btnSubmit;//确定
     private TextView sobot_tv_title;
@@ -57,8 +57,6 @@ public class SobotDateTimeActivity extends SobotDialogBaseActivity implements Vi
         sobot_tv_title = findViewById(R.id.sobot_tv_title);
         findViewById(R.id.tv_time_zone).setVisibility(View.GONE);
         btnSubmit = findViewById(R.id.btnSubmit);
-        v_top = findViewById(R.id.v_top);
-        v_top.setOnClickListener(this);
         btnSubmit.setOnClickListener(this);
 
         // 时间转轮 自定义控件

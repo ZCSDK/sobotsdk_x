@@ -191,12 +191,12 @@ public class SobotTicketDetailAdapter extends RecyclerView.Adapter {
             if (list.get(position) instanceof SobotUserTicketInfo) {
                 final SobotUserTicketInfo data = (SobotUserTicketInfo) list.get(position);
                 if (data != null && !TextUtils.isEmpty(data.getContent())) {
-                    String tempStr = data.getContent().replaceAll("<br/>", "").replace("<p></p>", "")
+                    String tempStr = data.getContent().replace("<p></p>", "")
                             .replaceAll("<p>", "").replaceAll("</p>", "<br/>").replaceAll("\n", "<br/>");
                     if(tempStr.contains("<img")) {
                         tempStr = tempStr.replaceAll("<img[^>]*>", " [" + mActivity.getResources().getString(R.string.sobot_upload) + "] ");
                     }
-                    vh.tv_exp.setText(TextUtils.isEmpty(data.getContent()) ? "" : Html.fromHtml(tempStr));
+                    vh.tv_exp.setText(TextUtils.isEmpty(data.getContent()) ? "" : tempStr);
                 }
 
                 SobotTicketStatus status = getStatus(data.getTicketStatus());
@@ -348,7 +348,7 @@ public class SobotTicketDetailAdapter extends RecyclerView.Adapter {
                             vh.sobot_tv_content_detail_split.setVisibility(View.GONE);
                             vh.sobot_tv_content.setPadding(0, 0, 0, 0);
                         }
-                        HtmlTools.getInstance(mActivity).setRichText(vh.sobot_tv_content, reply.getReplyContent().replaceAll("<br/>", "").replaceAll("\n", "<br/>").replaceAll("<img.*?/>", " [" + mActivity.getResources().getString(R.string.sobot_upload) + "] "), getLinkTextColor());
+                        HtmlTools.getInstance(mActivity).setRichText(vh.sobot_tv_content, reply.getReplyContent().replaceAll("\n", "<br/>").replaceAll("<img.*?/>", " [" + mActivity.getResources().getString(R.string.sobot_upload) + "] "), getLinkTextColor());
                     }
 
 

@@ -1248,6 +1248,16 @@ public class ZCSobotApi {
 
 
     /**
+     * 设置是否使用传感器（距离传感器/加速度传感器）
+     * 默认不使用，调用此方法传 true 后开启
+     *
+     * @param enable true 开启传感器，false 关闭传感器
+     */
+    public static void setCollectSensor(boolean enable) {
+        MarkConfig.SOBOT_COLLECT_SENSOR = enable;
+    }
+
+    /**
      * 2.8.6
      * 指定使用国际化语言包
      * 如果本地没有指定的语言时,开始下载,下载前会检测存储权限，没有权限，直接返回，使用系统权限

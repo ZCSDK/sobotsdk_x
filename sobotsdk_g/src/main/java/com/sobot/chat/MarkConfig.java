@@ -6,7 +6,10 @@ package com.sobot.chat;
 public class MarkConfig {
 
     private static int markValue = 0b00000000010;
-
+    /**
+     * 是否使用传感器
+     */
+    public static boolean SOBOT_COLLECT_SENSOR = true;
 
     /**
      * 右起第一位 默认 false 竖屏

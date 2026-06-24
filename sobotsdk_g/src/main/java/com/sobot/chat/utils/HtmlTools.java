@@ -155,30 +155,6 @@ public class HtmlTools {
         this.context = context.getApplicationContext();
     }
 
-    public void loadPic(final TextView textView, String source, final String htmlContent,
-                        String fileString, final int color) {
-        // 启动新线程下载
-
-        final File file = new File(fileString);
-
-        HttpUtils.getInstance().download(source, file, null, new FileCallBack() {
-
-            @Override
-            public void onResponse(File result) {
-                setRichText(textView, htmlContent, color);
-            }
-
-            @Override
-            public void onError(Exception e, String msg, int responseCode) {
-                LogUtils.i(" 文本图片的下载失败", e);
-            }
-
-            @Override
-            public void inProgress(int progress) {
-                LogUtils.i(" 文本图片的下载进度" + progress);
-            }
-        });
-    }
 
     /**
      * 设置富文本
@@ -305,40 +281,11 @@ public class HtmlTools {
      * @return
      */
     public Spanned formatRichTextWithPic(final TextView textView, final String htmlContent, final int color) {
-        return Html.fromHtml(("<span>" + htmlContent + "</span>").replace("span", "sobotspan"), new Html.ImageGetter() {
-            @Override
-            public Drawable getDrawable(String source) {
-                if (!TextUtils.isEmpty(source)) {
-                    textImagePath = CommonUtils.getSDCardRootPath(context);
-                    Drawable drawable = null;
-                    String fileString = textImagePath
-                            + String.valueOf(source.hashCode());
-                    if (new File(fileString).exists()) {
-                        LogUtils.i(" 网络下载 文本中的图片信息  " + fileString + "  eixts");
-                        // 获取本地文件返回Drawable
-                        drawable = Drawable.createFromPath(fileString);
-                        if (drawable != null) {
-                            // 设置图片边界
-                            LogUtils.i(" 图文并茂中 图片的 大小 width： "
-                                    + drawable.getIntrinsicWidth() + "--height:"
-                                    + drawable.getIntrinsicWidth());
-                            drawable.setBounds(0, 0, drawable.getIntrinsicWidth() * 4,
-                                    drawable.getIntrinsicHeight() * 4);
-                        }
-                        return drawable;
-                    } else {
-                        LogUtils.i(fileString + " Do not eixts");
-                        if (source.startsWith("https://") || source.startsWith("http://")) {
-                            loadPic(textView, source, htmlContent, fileString, color);
-                            return drawable;
-                        } else
-                            return null;
-                    }
-                }
-                return null;
-            }
-
-        }, new SobotCustomTagHandler(context, textView.getTextColors()));
+        // 添加空值检查
+        if (textView == null || TextUtils.isEmpty(htmlContent)) {
+            return Html.fromHtml("", null, null);
+        }
+        return Html.fromHtml(("<span>" + htmlContent + "</span>").replace("span", "sobotspan").replaceAll("<img[^>]*>", ""), null, new SobotCustomTagHandler(context, textView.getTextColors()));
     }
 
     /**

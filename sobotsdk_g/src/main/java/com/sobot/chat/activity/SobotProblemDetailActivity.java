@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -76,6 +78,66 @@ public class SobotProblemDetailActivity extends SobotBaseHelpCenterActivity impl
         intent.putExtra(EXTRA_KEY_DOC, data);
         intent.putExtra("configModel", configModel);
         return intent;
+    }
+
+
+    // 键盘真正显示，避免多次走回调
+    private boolean isKeyboardShown = false;
+
+    private ViewTreeObserver.OnGlobalLayoutListener keyboardLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            try {
+                Rect r = new Rect();
+                mWebView.getWindowVisibleDisplayFrame(r);
+                int screenHeight = mWebView.getRootView().getHeight();
+                // 计算键盘高度，考虑工具栏
+                int keypadHeight = screenHeight - r.bottom;
+                //自定义导航栏高度
+                View toolBar = getToolBar();
+                if (toolBar != null && toolBar.getVisibility() == View.VISIBLE) {
+                    keypadHeight -= toolBar.getHeight();
+                }
+                if (keypadHeight < 0) {
+                    keypadHeight = 0;
+                }
+                LogUtils.d("键盘高度===========" + keypadHeight);
+                boolean currentlyKeyboardShown = keypadHeight > screenHeight * 0.15;
+                // 只有状态真正改变时才处理
+                if (currentlyKeyboardShown && !isKeyboardShown) {
+                    // 键盘刚显示
+                    isKeyboardShown = true;
+                    adjustWebViewForKeyboard(keypadHeight);
+                } else if (!currentlyKeyboardShown && isKeyboardShown) {
+                    // 键盘刚隐藏
+                    isKeyboardShown = false;
+                    resetWebViewLayout();
+                }
+            } catch (Exception e) {
+            }
+        }
+    };
+
+    //webview高度 - 键盘高度
+    private void adjustWebViewForKeyboard(int keyboardHeight) {
+        try {
+            //LinearLayout.LayoutParams 需要自己判断具体的类型
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mWebView.getLayoutParams();
+            params.height = mWebView.getHeight() - keyboardHeight;
+            mWebView.setLayoutParams(params);
+        } catch (Exception e) {
+        }
+    }
+
+    //webview高度 还原
+    private void resetWebViewLayout() {
+        try {
+            //LinearLayout.LayoutParams 需要自己判断具体的类型
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mWebView.getLayoutParams();
+            params.height = LinearLayout.LayoutParams.MATCH_PARENT;
+            mWebView.setLayoutParams(params);
+        } catch (Exception e) {
+        }
     }
 
     @Override
@@ -265,6 +327,10 @@ public class SobotProblemDetailActivity extends SobotBaseHelpCenterActivity impl
                 startActivity(intent);
             }
         });
+        // 注册键盘监听器
+        if (keyboardLayoutListener != null) {
+            mWebView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardLayoutListener);
+        }
         mWebView.removeJavascriptInterface("searchBoxJavaBridge_");
         mWebView.getSettings().setDefaultFontSize(14);
         mWebView.getSettings().setTextZoom(100);
@@ -502,6 +568,10 @@ public class SobotProblemDetailActivity extends SobotBaseHelpCenterActivity impl
     @Override
     protected void onDestroy() {
         if (mWebView != null) {
+            if (keyboardLayoutListener != null) {
+                mWebView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardLayoutListener);
+                keyboardLayoutListener = null;
+            }
             mWebView.removeAllViews();
             final ViewGroup viewGroup = (ViewGroup) mWebView.getParent();
             if (viewGroup != null) {

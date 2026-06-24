@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -20,6 +21,7 @@ import androidx.fragment.app.FragmentManager;
 
 import com.sobot.widget.R;
 import com.sobot.widget.refresh.layout.api.RefreshHeader;
+import com.sobot.widget.refresh.layout.api.RefreshKernel;
 import com.sobot.widget.refresh.layout.api.RefreshLayout;
 import com.sobot.widget.refresh.layout.constant.RefreshState;
 import com.sobot.widget.refresh.layout.constant.SpinnerStyle;
@@ -242,6 +244,23 @@ public class SobotClassicsHeader extends ClassicsAbstract<SobotClassicsHeader> i
         mShared = context.getSharedPreferences("ClassicsHeader", Context.MODE_PRIVATE);
         setLastUpdateTime(new Date(mShared.getLong(KEY_LAST_UPDATE_TIME, System.currentTimeMillis())));
 
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Android 9 兼容">
+    /**
+     * 重写 onInitialized，修复 Android 9 (API 28) 上的 NPE 崩溃。
+     * 原因：父类在 onInitialized 中直接调用 requestDrawBackgroundFor 触发 addView，
+     * 而此时 onMeasure 阶段 ViewRootImpl.mView 尚未初始化，导致 NPE。
+     * 解决：Android 9 上使用 post() 延迟到视图 attach 后再执行。
+     */
+    @Override
+    public void onInitialized(@NonNull RefreshKernel kernel, int height, int maxDragHeight) {
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
+            post(() -> super.onInitialized(kernel, height, maxDragHeight));
+        } else {
+            super.onInitialized(kernel, height, maxDragHeight);
+        }
     }
     //</editor-fold>
 

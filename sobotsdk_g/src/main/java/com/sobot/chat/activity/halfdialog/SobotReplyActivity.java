@@ -114,7 +114,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements View.
 
     @Override
     protected void initView() {
-
+        findViewById(R.id.sobot_container).setOnClickListener(this);
         sobot_btn_file = findViewById(R.id.sobot_btn_file);
         sobot_file_hite = findViewById(R.id.sobot_file_hite);
         sobotTvTitle = (TextView) findViewById(R.id.sobot_tv_title);
@@ -298,6 +298,9 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements View.
     @Override
     public void onClick(View v) {
         KeyboardUtil.hideKeyboard(v);
+        if (v.getId() == R.id.sobot_container) {
+            finish();
+        }
         if (v == sobot_btn_file) {
             if (pic_list.size() >= 15) {
                 //图片上限15张
@@ -363,6 +366,7 @@ public class SobotReplyActivity extends SobotDialogBaseActivity implements View.
                 LogUtils.i("选择视频");
                 selectVedioFromLocal();
             }
+
         }
     };
 

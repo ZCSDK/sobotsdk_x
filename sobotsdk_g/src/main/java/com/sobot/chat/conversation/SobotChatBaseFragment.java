@@ -283,7 +283,7 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
         }
         NotificationUtils.cancleAllNotification(mAppContext);
 
-        if (_sensorManager != null) {
+        if (MarkConfig.SOBOT_COLLECT_SENSOR && _sensorManager != null) {
             _sensorManager.registerListener(this, mProximiny, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
@@ -1158,7 +1158,7 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
             updateMsgToHandler(msgId, handler, ZhiChiConstant.MSG_SEND_STATUS_LOADING);
         }
         final String finalMsgId = msgId;
-        zhiChiApi.insertSysMsg(SobotChatBaseFragment.this, initModel.getCid(), initModel.getPartnerid(), data.replace("\n", "<br/>"), "多轮对话工单提交确认提示", new StringResultCallBack<BaseCode>() {
+        zhiChiApi.insertSysMsg(SobotChatBaseFragment.this, initModel.getCid(), initModel.getPartnerid(), data, "多轮对话工单提交确认提示", new StringResultCallBack<BaseCode>() {
             @Override
             public void onSuccess(BaseCode baseCode) {
                 if (!isActive()) {
@@ -1641,12 +1641,14 @@ public abstract class SobotChatBaseFragment extends com.sobot.chat.fragment.Sobo
     public void initAudioManager() {
         if (audioManager == null)
             audioManager = (AudioManager) getSobotActivity().getSystemService(Context.AUDIO_SERVICE);
-        if (_sensorManager == null)
-            _sensorManager = (SensorManager) getSobotActivity().getSystemService(Context.SENSOR_SERVICE);
+        if (MarkConfig.SOBOT_COLLECT_SENSOR) {
+            if (_sensorManager == null)
+                _sensorManager = (SensorManager) getSobotActivity().getSystemService(Context.SENSOR_SERVICE);
 
-        if (_sensorManager != null) {
-            mProximiny = _sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-            _sensorManager.registerListener(this, mProximiny, SensorManager.SENSOR_DELAY_NORMAL);
+            if (_sensorManager != null) {
+                mProximiny = _sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+                _sensorManager.registerListener(this, mProximiny, SensorManager.SENSOR_DELAY_NORMAL);
+            }
         }
         if (audioManager != null) {
             audioManager.setSpeakerphoneOn(true);// 打开扬声器

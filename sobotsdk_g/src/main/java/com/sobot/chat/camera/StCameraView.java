@@ -299,7 +299,9 @@ public class StCameraView extends FrameLayout implements CameraInterface.CameraO
     public void onResume() {
         StCmeraLog.i("JCameraView onResume");
         resetState(TYPE_DEFAULT); //重置状态
-        CameraInterface.getInstance().registerSensorManager(getContext());
+        if (MarkConfig.SOBOT_COLLECT_SENSOR) {
+            CameraInterface.getInstance().registerSensorManager(getContext());
+        }
         CameraInterface.getInstance().setSwitchView(mSwitchCamera);
         machine.start(mVideoView.getHolder(), screenProp);
     }
@@ -311,7 +313,9 @@ public class StCameraView extends FrameLayout implements CameraInterface.CameraO
         resetState(TYPE_PICTURE);
         CameraInterface.getInstance().stopRecord(true, null);
         CameraInterface.getInstance().isPreview(false);
-        CameraInterface.getInstance().unregisterSensorManager(getContext());
+        if (MarkConfig.SOBOT_COLLECT_SENSOR) {
+            CameraInterface.getInstance().unregisterSensorManager(getContext());
+        }
     }
 
     //SurfaceView生命周期

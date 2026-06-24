@@ -72,6 +72,7 @@ import com.sobot.chat.widget.toast.ToastUtil;
 import com.sobot.utils.SobotSharedPreferencesUtil;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Locale;
 
 public abstract class SobotChatBaseActivity extends AppCompatActivity {
@@ -376,6 +377,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
         switch (requestCode) {
             case ZhiChiConstant.SOBOT_PERMISSIONS_REQUEST_ACTIVITY_CODE:
                 try {
+
                     for (int i = 0; i < grantResults.length; i++) {
                         //判断权限的结果，如果有被拒绝，就return
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
@@ -504,10 +506,10 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
                 tv_content.setText("\"" + CommonUtils.getAppName(getSobotBaseActivity()) + "\" " + getResources().getString(R.string.sobot_camera_permission_yongtu));
                 tv_setting_title.setText(getResources().getString(R.string.sobot_please_open_camera));
                 tv_setting_content.setText(getResources().getString(R.string.sobot_use_camera));
-            } else if (type == 4) {
+            }else if (type == 4) {
                 tv_content.setText("\"" + CommonUtils.getAppName(getSobotBaseActivity()) + "\" " + getResources().getString(R.string.sobot_microphone_permission_yongtu_camera));
                 tv_setting_title.setText(getResources().getString(R.string.sobot_no_microphone));
-                String tempStr = getResources().getString(R.string.sobot_no_microphone_des);
+               String tempStr= getResources().getString(R.string.sobot_no_microphone_des);
                 tv_setting_content.setText(String.format(tempStr, CommonUtils.getAppName(getSobotBaseActivity())));
                 btn_left.setText(getResources().getString(R.string.sobot_continue_shooting));
             }
@@ -583,7 +585,6 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
             overlay.setVisibility(View.GONE);
         }
     }
-
 
     /**
      * 检查录音权限
@@ -697,12 +698,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
      * 从图库获取图片
      */
     public void selectPicFromLocal() {
-        try {
-            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-            intent.setType("image/*");
-            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-        } catch (Exception e) {
-        }
+        ChatUtils.openSelectPic(getSobotBaseActivity());
     }
 
 
@@ -710,12 +706,7 @@ public abstract class SobotChatBaseActivity extends AppCompatActivity {
      * 从图库获取视频
      */
     public void selectVedioFromLocal() {
-        try {
-            Intent intent = new Intent(MediaStore.ACTION_PICK_IMAGES);
-            intent.setType("video/*");
-            startActivityForResult(intent, ZhiChiConstant.REQUEST_CODE_picture);
-        } catch (Exception e) {
-        }
+        ChatUtils.openSelectVedio(getSobotBaseActivity());
     }
 
     public SobotChatBaseActivity getSobotBaseActivity() {

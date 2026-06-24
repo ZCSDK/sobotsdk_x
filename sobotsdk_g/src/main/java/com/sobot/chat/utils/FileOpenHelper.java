@@ -171,6 +171,7 @@ public class FileOpenHelper {
         } else {
             uri = Uri.fromFile(file);
         }
+        LogUtils.d("getUri:"+uri);
         return uri;
     }
     public static Uri getUri(Context context, String filePath) {

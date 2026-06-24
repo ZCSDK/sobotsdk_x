@@ -1337,7 +1337,7 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                 case ZhiChiConstant.hander_comment_finish:
                     CustomToast.makeText(getSobotActivity(),
                             ResourceUtils.getResString(getSobotActivity(), "sobot_thank_dialog_hint"), 1000,
-                            ResourceUtils.getDrawableId(getSobotActivity(), "sobot_icon_success")).show();
+                            R.drawable.sobot_icon_success).show();
                     boolean isFinish = (boolean) msg.obj;
                     LogUtils.d("========isFinish===" + isFinish);
                     LogUtils.d("======getSobotActivity().isFinishing()=====" + getSobotActivity().isFinishing());
@@ -6546,10 +6546,10 @@ public class SobotChatFragment extends SobotChatBaseFragment implements View.OnC
                             Iterator iterator = mapData.entrySet().iterator();
                             while (iterator.hasNext()) {
                                 Map.Entry<String, String> entry = (Map.Entry<String, String>) iterator.next();
-                                tempSb.append(entry.getKey()).append("\n").append(entry.getValue()).append("\n");
+                                tempSb.append(entry.getKey()).append("<br/>").append(entry.getValue()).append("<br/>");
                             }
                             if (!TextUtils.isEmpty(tempSb.toString())) {
-                                sendMuitidiaLeaveMsg(null, tempSb.toString().substring(0, tempSb.toString().lastIndexOf("\n")), handler, true);
+                                sendMuitidiaLeaveMsg(null, tempSb.toString().substring(0, tempSb.toString().lastIndexOf("<br/>")), handler, true);
                             }
                             String tipMsgId = (String) bundle.get("tipMsgId");
                             if (!TextUtils.isEmpty(tipMsgId)) {
