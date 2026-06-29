@@ -113,6 +113,10 @@ public class SobotHelpCenterActivity extends SobotBaseHelpCenterActivity impleme
     }
 
     private void setTool() {
+        if (mInfo == null) {
+            finish();
+            return;
+        }
         if (configModel != null) {
             setToobar(configModel);
         }
@@ -160,10 +164,13 @@ public class SobotHelpCenterActivity extends SobotBaseHelpCenterActivity impleme
 
     //设置导航条颜色
     private void setToobar(HelpConfigModel configModel) {
+        if (mInfo == null) {
+            return;
+        }
         this.configModel = configModel;
         if (configModel != null) {
             SharedPreferencesUtil.saveObject(getSobotBaseActivity(), "SobotHelpConfigModel", configModel);
-            if (mInfo != null && SobotStringUtils.isNoEmpty(mInfo.getHelpCenterTelTitle()) && SobotStringUtils.isNoEmpty(mInfo.getHelpCenterTel())) {
+            if (SobotStringUtils.isNoEmpty(mInfo.getHelpCenterTelTitle()) && SobotStringUtils.isNoEmpty(mInfo.getHelpCenterTel())) {
                 tel = mInfo.getHelpCenterTel();
                 tv_sobot_layout_online_tel.setText(mInfo.getHelpCenterTelTitle());
                 tv_sobot_layout_online_tel.setVisibility(View.VISIBLE);
@@ -233,6 +240,10 @@ public class SobotHelpCenterActivity extends SobotBaseHelpCenterActivity impleme
 
     @Override
     protected void initData() {
+        if (mInfo == null) {
+            finish();
+            return;
+        }
         ZhiChiApi api = SobotMsgManager.getInstance(getApplicationContext()).getZhiChiApi();
         api.getCategoryList(SobotHelpCenterActivity.this, mInfo.getApp_key(), new StringResultCallBack<List<StCategoryModel>>() {
             @Override
@@ -266,6 +277,10 @@ public class SobotHelpCenterActivity extends SobotBaseHelpCenterActivity impleme
     @Override
     public void onClick(View v) {
         if (v == tv_sobot_layout_online_service || v == tv_sobot_layout_online_service_v) {
+            if (mInfo == null) {
+                finish();
+                return;
+            }
             if (SobotOption.openChatListener != null) {
                 boolean isIntercept = SobotOption.openChatListener.onOpenChatClick(getSobotBaseActivity(), mInfo);
                 if (isIntercept) {
@@ -292,6 +307,10 @@ public class SobotHelpCenterActivity extends SobotBaseHelpCenterActivity impleme
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (mInfo == null) {
+            finish();
+            return;
+        }
         List<StCategoryModel> datas = mAdapter.getDatas();
         StCategoryModel data = datas.get(position);
         Intent intent = SobotProblemCategoryActivity.newIntent(getApplicationContext(), mInfo, data, configModel);

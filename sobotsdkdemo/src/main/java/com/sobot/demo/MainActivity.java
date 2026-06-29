@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
                 info.setPartnerid("jiaqian");
                 info.setApp_key("1c1da2c0aad047d7ba1d14ecd18ae4f6");
 //                ZCSobotApi.setInternationalLanguage(MainActivity.this,"zh",true);
-                ZCSobotApi.openZCChat(MainActivity.this,info);
+                ZCSobotApi.openZCServiceCenter(MainActivity.this,info);
             }
         });
 
